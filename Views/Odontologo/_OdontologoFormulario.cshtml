@@ -1,0 +1,71 @@
+﻿@model Proyecto_DentalNova.Models.OdontologoViewModel.OdontologoVM;
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+
+        <h4><i class="bi bi-person-check-fill"></i> Asignación de Usuario</h4>
+        <hr class="mt-2 mb-4">
+        <div class="form-group mb-3">
+            <label asp-for="Odontologo.UsuarioId" class="form-label"></label>
+            <select asp-for="Odontologo.UsuarioId" class="form-select" asp-items="Model.UsuariosDisponibles">
+                <option value="">-- Seleccione un Usuario para asignar como Odontólogo --</option>
+            </select>
+            <span asp-validation-for="Odontologo.UsuarioId" class="text-danger"></span>
+            <div class="form-text">Solo se muestran usuarios activos que no han sido asignados como pacientes u odontólogos.</div>
+        </div>
+
+        <h4 class="mt-5"><i class="bi bi-award-fill"></i> Información Profesional</h4>
+        <hr class="mt-2 mb-4">
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Odontologo.CedulaProfesional" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-patch-check"></i></span>
+                        <input asp-for="Odontologo.CedulaProfesional" class="form-control" placeholder="Cédula profesional" />
+                    </div>
+                    <span asp-validation-for="Odontologo.CedulaProfesional" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="EspecialidadesSeleccionadasIds" class="form-label">Especialidades</label>
+
+                    <select asp-for="EspecialidadesSeleccionadasIds"
+                            asp-items="Model.TodasLasEspecialidades"
+                            class="form-select"
+                            multiple
+                            size="8">
+                    </select>
+
+                    <span asp-validation-for="EspecialidadesSeleccionadasIds" class="text-danger"></span>
+                    <div class="form-text">
+                        Mantén presionada la tecla <kbd>Ctrl</kbd> (o <kbd>Cmd</kbd> en Mac) para seleccionar varias opciones.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Odontologo.Institucion" class="form-label"></label>
+                    <input asp-for="Odontologo.Institucion" class="form-control" placeholder="Universidad de egreso (opcional)" />
+                    <span asp-validation-for="Odontologo.Institucion" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Odontologo.AnioGraduacion" class="form-label"></label>
+                    <input asp-for="Odontologo.AnioGraduacion" type="number" class="form-control" placeholder="Año (opcional)" />
+                    <span asp-validation-for="Odontologo.AnioGraduacion" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="Odontologo.FechaIngreso" class="form-label"></label>
+            <input asp-for="Odontologo.FechaIngreso" type="date" class="form-control" />
+            <span asp-validation-for="Odontologo.FechaIngreso" class="text-danger"></span>
+        </div>
+    </div>
+</div>

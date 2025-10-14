@@ -1,0 +1,28 @@
+﻿@model Proyecto_DentalNova.Models.UsuarioViewModel.UsuarioVM
+
+@{
+    ViewData["Title"] = "Crear Nuevo Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Crear Nuevo Usuario</h1>
+<hr />
+<div class="row">
+    <div class="col-12">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <partial name="_UsuarioFormulario" />
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">Crear Usuario</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

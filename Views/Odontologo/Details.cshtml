@@ -1,0 +1,77 @@
+﻿@model Proyecto_DentalNova.Models.Odontologo
+
+@{
+    ViewData["Title"] = $"Perfil de {Model.Usuario?.Nombre} {Model.Usuario?.Apellidos}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-secondary">
+        <div class="card-header bg-light p-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-person-workspace display-4 me-3 text-primary"></i>
+                <div>
+                    <h2 class="mb-0">@Model.Usuario?.Nombre @Model.Usuario?.Apellidos</h2>
+                    <p class="mb-0 text-muted">Perfil Profesional del Odontólogo</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-primary"><i class="bi bi-award"></i> Datos Profesionales</h5>
+                    <hr>
+                    <dl class="row">
+                        <dt class="col-sm-5">Cédula Profesional</dt>
+                        <dd class="col-sm-7">@Model.CedulaProfesional</dd>
+
+                        <dt class="col-sm-5">Institución</dt>
+                        <dd class="col-sm-7">@(Model.Institucion ?? "No especificada")</dd>
+
+                        <dt class="col-sm-5">Año de Graduación</dt>
+                        <dd class="col-sm-7">@(Model.AnioGraduacion?.ToString() ?? "No especificado")</dd>
+
+                        <dt class="col-sm-5">Fecha de Ingreso</dt>
+                        <dd class="col-sm-7">@Model.FechaIngreso.ToLongDateString()</dd>
+                    </dl>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="text-primary"><i class="bi bi-star-fill"></i> Especialidades</h5>
+                    <hr>
+                    @if (Model.Especialidades != null && Model.Especialidades.Any())
+                    {
+                        foreach (var especialidad in Model.Especialidades)
+                        {
+                            <span class="badge bg-primary fs-6 me-2 mb-2">@especialidad.Nombre</span>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No se han asignado especialidades.</p>
+                    }
+
+                    <h5 class="text-primary mt-4"><i class="bi bi-telephone"></i> Contacto</h5>
+                    <hr>
+                    <dl class="row">
+                        <dt class="col-sm-5">Correo</dt>
+                        <dd class="col-sm-7">@Model.Usuario?.CorreoElectronico</dd>
+
+                        <dt class="col-sm-5">Teléfono</dt>
+                        <dd class="col-sm-7">@(Model.Usuario?.Telefono ?? "No proporcionado")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer text-end bg-light p-3">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Editar Perfil
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Volver a la Lista
+            </a>
+        </div>
+    </div>
+</div>

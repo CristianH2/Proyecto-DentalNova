@@ -1,0 +1,115 @@
+﻿@model Proyecto_DentalNova.Models.UsuarioViewModel.UsuarioVM
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+
+        <h4><i class="bi bi-person-fill"></i> Información Personal</h4>
+        <hr class="mt-2 mb-4">
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Usuario.Nombre" class="form-label"></label>
+                    <input asp-for="Usuario.Nombre" class="form-control" placeholder="Nombre(s) del usuario" />
+                    <span asp-validation-for="Usuario.Nombre" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Usuario.Apellidos" class="form-label"></label>
+                    <input asp-for="Usuario.Apellidos" class="form-control" placeholder="Apellido paterno y materno" />
+                    <span asp-validation-for="Usuario.Apellidos" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Usuario.FechaNacimiento" class="form-label"></label>
+                    <input asp-for="Usuario.FechaNacimiento" type="date" class="form-control" />
+                    <span asp-validation-for="Usuario.FechaNacimiento" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Usuario.Genero" class="form-label"></label>
+                    <select asp-for="Usuario.Genero" class="form-select" asp-items="Model.Generos">
+                        <option value="">-- Seleccione un Género --</option>
+                    </select>
+                    <span asp-validation-for="Usuario.Genero" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Usuario.CURP" class="form-label"></label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                <input asp-for="Usuario.CURP" class="form-control" placeholder="18 caracteres alfanuméricos" />
+            </div>
+            <span asp-validation-for="Usuario.CURP" class="text-danger"></span>
+        </div>
+
+        <h4 class="mt-5"><i class="bi bi-telephone-fill"></i> Información de Contacto</h4>
+        <hr class="mt-2 mb-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Usuario.CorreoElectronico" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Usuario.CorreoElectronico" class="form-control" placeholder="ejemplo@correo.com" />
+                    </div>
+                    <span asp-validation-for="Usuario.CorreoElectronico" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Usuario.Telefono" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                        <input asp-for="Usuario.Telefono" class="form-control" placeholder="Número de contacto (opcional)" />
+                    </div>
+                    <span asp-validation-for="Usuario.Telefono" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+
+        <h4 class="mt-5"><i class="bi bi-shield-lock-fill"></i> Seguridad y Acceso</h4>
+        <hr class="mt-2 mb-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="NewPassword" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                        <input asp-for="NewPassword" class="form-control" placeholder="Dejar en blanco para no cambiar (Edición)" />
+                    </div>
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Repita la nueva contraseña" />
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label">Estado del Usuario</label>
+            <div class="form-check form-switch border rounded-3" style="padding: 5px 50px;">
+                <input asp-for="Usuario.Activo" class="form-check-input" type="checkbox" role="switch"/>
+                <label asp-for="Usuario.Activo" class="form-check-label"></label>
+                <div class="form-text">Un usuario inactivo no podrá iniciar sesión en el sistema.</div>
+            </div>
+        </div>
+    </div>
+</div>

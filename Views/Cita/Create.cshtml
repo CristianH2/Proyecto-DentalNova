@@ -1,0 +1,62 @@
+﻿@model Proyecto_DentalNova.Models.Cita
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>Cita</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="FechaHora" class="control-label"></label>
+                <input asp-for="FechaHora" class="form-control" />
+                <span asp-validation-for="FechaHora" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DuracionMinutos" class="control-label"></label>
+                <select asp-for="DuracionMinutos" class="form-control"></select>
+                <span asp-validation-for="DuracionMinutos" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EstatusCita" class="control-label"></label>
+                <select asp-for="EstatusCita" class="form-control"></select>
+                <span asp-validation-for="EstatusCita" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MotivoConsulta" class="control-label"></label>
+                <input asp-for="MotivoConsulta" class="form-control" />
+                <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FechaActualizacion" class="control-label"></label>
+                <input asp-for="FechaActualizacion" class="form-control" />
+                <span asp-validation-for="FechaActualizacion" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PacienteId" class="control-label"></label>
+                <select asp-for="PacienteId" class ="form-control" asp-items="ViewBag.PacienteId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="OdontologoId" class="control-label"></label>
+                <select asp-for="OdontologoId" class ="form-control" asp-items="ViewBag.OdontologoId"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
