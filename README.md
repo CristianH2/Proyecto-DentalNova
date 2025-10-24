@@ -33,6 +33,7 @@ Pueden registrarse, iniciar sesión, ver su historial, consultar la disponibilid
 
 ### ✨ Funcionalidades Principales
 **🏥 Módulo de Gestión Clínica**
+
 Gestión de Pacientes: Administración completa (CRUD) de los perfiles de pacientes.
 
 Gestión de Odontólogos: Administración de perfiles y horarios de los especialistas.
@@ -42,6 +43,7 @@ Agenda Clínica: Visualización y manejo de la agenda por odontólogo.
 Expediente Clínico: Registro detallado de tratamientos, historial y notas por paciente.
 
 **💼 Módulo Administrativo y Financiero**
+
 Registro de Pagos: Asociación de pagos a citas y tratamientos realizados.
 
 Gestión de Inventario: Control de artículos, proveedores y registro de compras.
@@ -49,6 +51,7 @@ Gestión de Inventario: Control de artículos, proveedores y registro de compras
 Generación de Reportes: Creación de informes básicos sobre la operación de la clínica.
 
 **📱 Módulo de Portal del Paciente**
+
 Autenticación Segura: Registro e inicio de sesión para nuevos pacientes.
 
 Consulta de Historial: Acceso al historial de citas y tratamientos recibidos.
@@ -56,9 +59,11 @@ Consulta de Historial: Acceso al historial de citas y tratamientos recibidos.
 Solicitud de Citas: Posibilidad de agendar nuevas citas según la disponibilidad real.
 
 **🔒 Módulo de Seguridad**
+
 Autenticación y Autorización: Sistema basado en roles (Administrador, Odontólogo, Paciente) para un acceso seguro y restringido a la información sensible.
 
 **🔔 Módulo de Notificaciones**
+
 Recordatorios Automáticos: Envío de notificaciones para citas
 
 ## Configuración del entorno Local
