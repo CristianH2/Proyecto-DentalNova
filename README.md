@@ -72,7 +72,7 @@ Recordatorios Automáticos: Envío de notificaciones para citas
 ### Configurar base de datos
 1. Abrir la Consola: Herramientas > Administrador de paquetes NuGet > Consola del Administrador de paquetes.
 
-2. Crea la Migración: Add-Migration InitialCreate
+2. Crea la Migración: Add-Migration "InitialCreate"
 
 3. Aplica la Migración: Update-Database
 
