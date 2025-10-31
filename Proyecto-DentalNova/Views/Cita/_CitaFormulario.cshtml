@@ -1,0 +1,56 @@
+﻿@model Proyecto_DentalNova.Models.CitaViewModel.CitaVM
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+
+        <h4><i class="bi bi-calendar-plus"></i> Datos de la Cita</h4>
+        <hr class="mt-2 mb-4">
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Cita.PacienteId" class="form-label"></label>
+                <select asp-for="Cita.PacienteId" class="form-select" asp-items="Model.PacientesDisponibles">
+                    <option value="">-- Seleccione un Paciente --</option>
+                </select>
+                <span asp-validation-for="Cita.PacienteId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Cita.OdontologoId" class="form-label"></label>
+                <select asp-for="Cita.OdontologoId" class="form-select" asp-items="Model.OdontologosDisponibles">
+                    <option value="">-- Seleccione un Odontólogo --</option>
+                </select>
+                <span asp-validation-for="Cita.OdontologoId" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Cita.FechaHora" class="form-label"></label>
+                <input asp-for="Cita.FechaHora" class="form-control" type="datetime-local" />
+                <span asp-validation-for="Cita.FechaHora" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Cita.EstatusCita" class="form-label"></label>
+                <select asp-for="Cita.EstatusCita" class="form-select" asp-items="Model.EstatusDisponibles"></select>
+                <span asp-validation-for="Cita.EstatusCita" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="Cita.DuracionMinutos" class="form-label"></label>
+            <div class="border rounded p-2">
+                @foreach (var duracion in Model.DuracionesDisponibles)
+                {
+                    <div class="form-check form-check-inline">
+                        <input type="radio" asp-for="Cita.DuracionMinutos" value="@duracion.Value" class="form-check-input" id="duracion_@duracion.Value" />
+                        <label class="form-check-label" for="duracion_@duracion.Value">@duracion.Text</label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="Cita.DuracionMinutos" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Cita.MotivoConsulta" class="form-label"></label>
+            <textarea asp-for="Cita.MotivoConsulta" class="form-control" rows="3" placeholder="Motivo principal de la visita (opcional)"></textarea>
+            <span asp-validation-for="Cita.MotivoConsulta" class="text-danger"></span>
+        </div>
+    </div>
+</div>

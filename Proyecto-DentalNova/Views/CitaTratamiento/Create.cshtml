@@ -1,0 +1,42 @@
+﻿@model Proyecto_DentalNova.Models.CitaTratamientoViewModel.CitaTratamientoVM
+
+@{
+    ViewData["Title"] = "Añadir Tratamiento a la Cita";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <partial name="_CitaTratamientoFormulario" />
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Añadir Tratamiento</button>
+        <a asp-action="Details" asp-controller="Cita" asp-route-id="@Model.CitaTratamiento.CitaId" class="btn btn-secondary">
+            <i class="bi bi-x-circle"></i> Cancelar
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+        <script>
+            $(function () {
+                const tratamientoSelect = $('#tratamientoSelect');
+                const costoFinalInput = $('#costoFinalInput');
+
+                // Escuchar el evento 'change' en el dropdown de tratamientos
+                tratamientoSelect.on('change', function () {
+                    // Encontrar la opción seleccionada
+                    const selectedOption = $(this).find('option:selected');
+
+                    // Obtener el costo del atributo 'data-costo'
+                    const costoBase = selectedOption.data('costo');
+
+                    // Si se seleccionó una opción válida, asignar el costo. Si no, poner 0.
+                    costoFinalInput.val(costoBase || '0.00');
+                });
+            });
+        </script>
+}

@@ -1,0 +1,6 @@
+@DentalNova.Api_HostAddress = http://localhost:5260
+
+GET {{DentalNova.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

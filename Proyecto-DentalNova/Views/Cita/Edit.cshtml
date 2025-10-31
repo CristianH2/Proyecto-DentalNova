@@ -1,0 +1,25 @@
+﻿@model Proyecto_DentalNova.Models.CitaViewModel.CitaVM
+
+@{
+    ViewData["Title"] = "Editar Cita";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Cita.Id" />
+    <input type="hidden" asp-for="Cita.FechaCreacion" />
+    <partial name="_CitaFormulario" model="Model" />
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar Cambios</button>
+        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

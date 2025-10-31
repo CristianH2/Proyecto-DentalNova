@@ -1,0 +1,18 @@
+﻿@model DentalNova.Core.Helpers.IPaginatedList
+
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+            <button name="Filtro.Page" value="@(Model.PageIndex - 1)" class="page-link">« Anterior</button>
+        </li>
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                <button name="Filtro.Page" value="@i" class="page-link">@i</button>
+            </li>
+        }
+        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+            <button name="Filtro.Page" value="@(Model.PageIndex + 1)" class="page-link">Siguiente »</button>
+        </li>
+    </ul>
+</nav>

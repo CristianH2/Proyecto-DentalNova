@@ -1,0 +1,11 @@
+﻿namespace DentalNova.Core.Helpers
+{
+    public interface IPaginatedList
+    {
+        int PageIndex { get; }
+        int TotalPages { get; }
+        int TotalCount { get; }
+        bool HasPreviousPage { get; }
+        bool HasNextPage { get; }
+    }
+}

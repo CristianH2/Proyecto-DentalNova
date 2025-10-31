@@ -1,0 +1,60 @@
+﻿@model DentalNova.Core.Repository.Entities.Tratamiento
+
+@{
+    ViewData["Title"] = $"Detalles del Tratamiento";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-info">
+        <div class="card-header bg-light p-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-file-medical display-4 me-3 text-primary"></i>
+                <div>
+                    <h2 class="mb-0">@Model.Nombre</h2>
+                    <p class="mb-0 text-muted">Ficha de Información del Tratamiento</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+            {
+                <h5 class="text-primary"><i class="bi bi-card-text"></i> Descripción</h5>
+                <hr>
+                <p class="fst-italic">@Model.Descripcion</p>
+            }
+
+            <h5 class="text-primary mt-4"><i class="bi bi-info-circle"></i> Detalles Adicionales</h5>
+            <hr>
+            <dl class="row">
+                <dt class="col-sm-4">Costo del Tratamiento</dt>
+                <dd class="col-sm-8">@Model.Costo.ToString("C")</dd>
+
+                <dt class="col-sm-4">Duración Estimada</dt>
+                <dd class="col-sm-8">@Model.DuracionDias días</dd>
+
+                <dt class="col-sm-4">Estado Actual</dt>
+                <dd class="col-sm-8">
+                    @if (Model.Activo)
+                    {
+                        <span class="badge bg-success fs-6">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger fs-6">Inactivo</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+
+        <div class="card-footer text-end bg-light p-3">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Editar Tratamiento
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Volver a la Lista
+            </a>
+        </div>
+    </div>
+</div>

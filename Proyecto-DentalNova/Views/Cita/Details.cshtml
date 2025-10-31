@@ -1,0 +1,108 @@
+﻿@model DentalNova.Core.Repository.Entities.Cita
+
+@{
+    ViewData["Title"] = "Gestionar Cita";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-calendar2-check display-4 me-3 text-primary"></i>
+                    <div>
+                        <h2 class="mb-0">Cita del @Model.FechaHora.ToString("D")</h2>
+                        <p class="mb-0 text-muted">a las @Model.FechaHora.ToString("t")</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-success mb-0">Total: @Model.CostoTotalTratamientos.ToString("C")</h3>
+                    <span class="badge bg-primary fs-5">@Model.EstatusCita</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <h5 class="text-primary"><i class="bi bi-person"></i> Paciente</h5>
+                    <p class="fs-5 ms-3">@Model.Paciente?.Usuario?.Nombre @Model.Paciente?.Usuario?.Apellidos</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-primary"><i class="bi bi-person-workspace"></i> Odontólogo Asignado</h5>
+                    <p class="fs-5 ms-3">@Model.Odontologo?.Usuario?.Nombre @Model.Odontologo?.Usuario?.Apellidos</p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.MotivoConsulta))
+                {
+                    <div class="col-12 mt-3">
+                        <h5 class="text-primary"><i class="bi bi-chat-left-text"></i> Motivo de la Consulta</h5>
+                        <p class="ms-3 fst-italic">"@Model.MotivoConsulta"</p>
+                    </div>
+                }
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="text-success"><i class="bi bi-list-check"></i> Tratamientos en la Cita</h4>
+                        <a asp-controller="CitaTratamiento" asp-action="Create" asp-route-citaId="@Model.Id" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Añadir Tratamiento
+                        </a>
+                    </div>
+                    <hr>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tratamiento</th>
+                                    <th>Costo Final</th>
+                                    <th>Estatus</th>
+                                    <th>Observaciones</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tratamiento in Model.CitasTratamientos)
+                                {
+                                    <tr>
+                                        <td><strong>@tratamiento.Tratamiento?.Nombre</strong></td>
+                                        <td>@tratamiento.CostoFinal.ToString("C")</td>
+                                        <td><span class="badge bg-secondary">@tratamiento.EstatusTratamiento</span></td>
+                                        <td>@(tratamiento.Observaciones ?? "N/A")</td>
+                                        <td class="text-end">
+                                            <a asp-controller="CitaTratamiento" asp-action="Edit" asp-route-id="@tratamiento.Id" class="btn btn-sm btn-primary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-controller="CitaTratamiento" asp-action="Delete" asp-route-id="@tratamiento.Id" class="btn btn-sm btn-danger" title="Quitar">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.CitasTratamientos.Any())
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">Aún no se han añadido tratamientos a esta cita.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer text-end bg-light p-3">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Volver a la Agenda
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Editar Datos de la Cita
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Eliminar Cita
+            </a>
+        </div>
+    </div>
+</div>

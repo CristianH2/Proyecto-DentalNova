@@ -1,0 +1,42 @@
+﻿@model DentalNova.Core.Repository.Entities.Paciente
+
+@{
+    ViewData["Title"] = "Eliminar Paciente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white text-center">
+                <h2 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Eliminación</h2>
+            </div>
+            <div class="card-body text-center p-4">
+                <p class="lead">¿Estás seguro de que deseas eliminar permanentemente el expediente del paciente?</p>
+
+                <div class="my-4">
+                    <i class="bi bi-person-x display-1 text-danger"></i>
+                    <h3 class="display-6 mt-3">@Model.Usuario?.Nombre @Model.Usuario?.Apellidos</h3>
+                    <p class="text-muted fs-5">@Model.Usuario?.CorreoElectronico</p>
+                </div>
+
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-shield-exclamation"></i> <strong>Atención:</strong> Esta acción es irreversible. Se eliminará el expediente clínico y todos los datos asociados.
+                </div>
+            </div>
+            <div class="card-footer text-end bg-light p-3">
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Sí, Eliminar Paciente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

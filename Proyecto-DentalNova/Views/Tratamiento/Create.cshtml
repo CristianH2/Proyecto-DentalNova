@@ -1,0 +1,23 @@
+﻿@model DentalNova.Core.Repository.Entities.Tratamiento
+
+@{
+    ViewData["Title"] = "Crear Nuevo Tratamiento";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <partial name="_TratamientoFormulario" />
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Crear Tratamiento</button>
+        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

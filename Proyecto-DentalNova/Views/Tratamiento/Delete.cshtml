@@ -1,0 +1,46 @@
+﻿@model DentalNova.Core.Repository.Entities.Tratamiento
+
+@{
+    bool isActivating = !Model.Activo;
+    ViewData["Title"] = isActivating ? "Activar Tratamiento" : "Desactivar Tratamiento";
+    string cardClass = isActivating ? "border-success" : "border-danger";
+    string headerClass = isActivating ? "bg-success" : "bg-danger";
+    string iconClass = isActivating ? "bi-toggle-on" : "bi-toggle-off";
+    string buttonClass = isActivating ? "btn-success" : "btn-danger";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow @cardClass">
+            <div class="card-header @headerClass text-white text-center">
+                <h2 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Cambio de Estado</h2>
+            </div>
+            <div class="card-body text-center p-4">
+                <p class="lead">¿Estás seguro de que deseas @(isActivating ? "activar" : "desactivar") el siguiente tratamiento?</p>
+
+                <div class="my-4">
+                    <i class="bi @iconClass display-1 @(isActivating ? "text-success" : "text-danger")"></i>
+                    <h3 class="display-6 mt-3">@Model.Nombre</h3>
+                </div>
+
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-info-circle"></i> <strong>Nota:</strong> Al @(isActivating ? "activar" : "desactivar") este tratamiento, @(isActivating ? "estará disponible para" : "ya no estará disponible para") nuevas citas.
+                </div>
+            </div>
+            <div class="card-footer text-end bg-light p-3">
+                <form asp-action="ToggleActivo" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn @buttonClass">
+                        <i class="bi @iconClass"></i> Sí, @(isActivating ? "Activar" : "Desactivar")
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

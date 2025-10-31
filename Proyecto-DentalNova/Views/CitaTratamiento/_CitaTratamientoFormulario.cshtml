@@ -1,0 +1,47 @@
+﻿@model Proyecto_DentalNova.Models.CitaTratamientoViewModel.CitaTratamientoVM
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <input type="hidden" asp-for="CitaTratamiento.CitaId" />
+
+        <div class="form-group mb-3">
+            <label asp-for="CitaTratamiento.TratamientoId" class="form-label"></label>
+            <select asp-for="CitaTratamiento.TratamientoId" class="form-select" id="tratamientoSelect">
+                <option value="">-- Seleccione un Tratamiento --</option>
+                @foreach (var tratamiento in Model.TratamientosDisponibles)
+                {
+                    <option value="@tratamiento.Id" data-costo="@tratamiento.Costo.ToString("F2")">
+                        @tratamiento.Nombre
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="CitaTratamiento.TratamientoId" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="CitaTratamiento.CostoFinal" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="CitaTratamiento.CostoFinal" type="number" step="0.01" class="form-control" id="costoFinalInput" />
+                    </div>
+                    <span asp-validation-for="CitaTratamiento.CostoFinal" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="CitaTratamiento.EstatusTratamiento" class="form-label"></label>
+                    <select asp-for="CitaTratamiento.EstatusTratamiento" class="form-select" asp-items="Model.EstatusDisponibles"></select>
+                    <span asp-validation-for="CitaTratamiento.EstatusTratamiento" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="CitaTratamiento.Observaciones" class="form-label"></label>
+            <textarea asp-for="CitaTratamiento.Observaciones" class="form-control" rows="3" placeholder="Anotaciones específicas sobre este tratamiento en la cita (opcional)"></textarea>
+            <span asp-validation-for="CitaTratamiento.Observaciones" class="text-danger"></span>
+        </div>
+    </div>
+</div>
