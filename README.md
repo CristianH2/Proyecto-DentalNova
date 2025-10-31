@@ -76,7 +76,5 @@ Recordatorios Automáticos: Envío de notificaciones para citas
 
 3. Aplica la Migración: Update-Database
 
-4. Cargar el Script de Datos en la Base de datos: Llenar_Datos.sql
-
 ### Cargar datos requeridos
 1. Ejecutar de la carpeta 'DentalNova.Repository/Scripts de ayuda SQL' los insert para rellenar las tablas de Tratamientos y de Artículos.
