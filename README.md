@@ -1,3 +1,4 @@
+
 ### **Sistema de Gestión para Clínica Dental - DeltaNova**
 Un sistema integral para la gestión de citas, expedientes clínicos y procesos administrativos de la clínica dental "DeltaNova".
 
@@ -69,8 +70,13 @@ Recordatorios Automáticos: Envío de notificaciones para citas
 ## Configuración del entorno Local
 
 ### Configurar base de datos
-// Por definir
+1. Abrir la Consola: Herramientas > Administrador de paquetes NuGet > Consola del Administrador de paquetes.
+
+2. Crea la Migración: Add-Migration InitialCreate
+
+3. Aplica la Migración: Update-Database
+
+4. Cargar el Script de Datos en la Base de datos: Llenar_Datos.sql
 
 ### Cargar datos requeridos
-// Por definir
-
+1. Ejecutar de la carpeta 'DentalNova.Repository/Scripts de ayuda SQL' los insert para rellenar las tablas de Tratamientos y de Artículos.
