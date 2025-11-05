@@ -36,7 +36,9 @@ namespace DentalNova.Security
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),       // El payload
-                Expires = DateTime.UtcNow.AddMinutes(20),      // Cuándo expira
+                Expires = DateTime.Now.AddMinutes(20),      // Expira en 20 minuto
+                NotBefore = DateTime.Now,                // Válido desde ahora
+                IssuedAt = DateTime.Now,                   // Emitido ahora
                 SigningCredentials = creds,                 // La firma
                 Issuer = _config["Jwt:Issuer"],             // Quién lo emite (la app)
                 Audience = _config["Jwt:Audience"]          // Para quién es (la app)

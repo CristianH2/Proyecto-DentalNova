@@ -26,6 +26,7 @@ namespace DentalNova.Business.Helpers
             services.AddScoped<ITratamientoBL, TratamientoBL>();
             services.AddScoped<IUsuarioBL, UsuarioBL>();
             services.AddScoped<IArticuloBL, ArticuloBL>();
+            services.AddScoped<IPacienteBL, PacienteBL>();
 
             // Registra la "Unidad de Trabajo" principal
             services.AddScoped<IUnitOfWork, UnitOfWork>();

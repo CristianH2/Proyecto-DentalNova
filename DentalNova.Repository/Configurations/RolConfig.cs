@@ -10,7 +10,6 @@ namespace DentalNova.Repository.Configurations
         {
             builder.Property(prop => prop.Nombre).HasMaxLength(50).IsRequired();
             builder.Property(prop => prop.Descripcion).HasMaxLength(250);
-
         }
     }
 }
