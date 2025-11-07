@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace DentalNova.Core.Repository.Interfaces
 {
-    public interface ITratamientoRepository
+    public interface IOdontologoRepository
     {
-        Task<IEnumerable<Tratamiento>> ObtenerTodosActivosAsync();
-        Task<Tratamiento> ObtenerPorIdAsync(int id);
+        Task<Odontologo> ObtenerPorIdAsync(int id); // Para obtener los datos del odontólogo asignado
     }
 }

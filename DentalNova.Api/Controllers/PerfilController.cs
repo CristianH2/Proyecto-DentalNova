@@ -22,7 +22,7 @@ namespace DentalNova.Api.Controllers
         // --- USUARIO ---
 
         /// <summary>
-        /// Actualiza la información de contacto del usuario autenticado (ej. teléfono, género).
+        /// Actualiza la información de contacto del usuario autenticado.
         /// </summary>
         /// <param name="dto">Los datos a actualizar.</param>
         /// <returns>Los datos actualizados del usuario.</returns>
@@ -85,12 +85,40 @@ namespace DentalNova.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtiene la información de perfil del usuario autenticado.
+        /// </summary>
+        /// <returns>Los datos del perfil del usuario (Nombre, Email, CURP, Roles).</returns>
+        [HttpGet("obtener-usuario")]
+        [ProducesResponseType(typeof(UsuarioDto), 200)] // OK
+        [ProducesResponseType(401)] // Unauthorized
+        [ProducesResponseType(404)] // Not Found
+        public async Task<IActionResult> ObtenerPerfilUsuario()
+        {
+            // Método para obtener el ID del token
+            var usuarioId = ObtenerUsuarioIdDelToken();
+            if (usuarioId == null)
+            {
+                return Unauthorized(new { Mensaje = "Token inválido." });
+            }
+
+            // Lógica de negocio
+            var usuarioDto = await _unitOfWork.Usuario.ObtenerPerfilUsuarioAsync(usuarioId.Value);
+
+            if (usuarioDto == null)
+            {
+                return NotFound(new { Mensaje = "Usuario no encontrado." });
+            }
+
+            return Ok(usuarioDto);
+        }
+
 
         /// <summary>
         /// Obtiene el perfil médico (Paciente) del usuario autenticado.
         /// </summary>
         /// <returns>El perfil del paciente o un 404 si no existe.</returns>
-        [HttpGet("obtener/paciente")]
+        [HttpGet("obtener-paciente")]
         [ProducesResponseType(typeof(PacienteDto), 200)] // OK
         [ProducesResponseType(401)] // Unauthorized
         [ProducesResponseType(404)] // Not Found

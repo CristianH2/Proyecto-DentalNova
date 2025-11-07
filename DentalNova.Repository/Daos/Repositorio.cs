@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DentalNova.Repository.Daos
 {
-    public class Repositorio : IRepositoriy
+    public class Repositorio : IRepository
     {
         public ITratamientoRepository Tratamiento { get; }
         public IUsuarioRepository Usuario { get; }
@@ -15,12 +15,22 @@ namespace DentalNova.Repository.Daos
         public IRolRepository Rol { get; }
         public IPacienteRepository Paciente { get; }
 
+        public ICitaRepository Cita { get; }
+        public ICitaTratamientoRepository CitaTratamiento { get; }
+        public IHorarioOdontologoRepository HorarioOdontologo { get; }
+        public IOdontologoRepository Odontologo { get; }
+
         public Repositorio( 
             ITratamientoRepository tratamientoRepository, 
             IUsuarioRepository usuarioRepository,
             IArticuloRepository articuloRepository,
             IRolRepository rolRepository,
-            IPacienteRepository pacienteRepository
+            IPacienteRepository pacienteRepository,
+
+            ICitaRepository citaRepository,
+            ICitaTratamientoRepository citaTratamientoRepository,
+            IHorarioOdontologoRepository horarioOdontologoRepository,
+            IOdontologoRepository odontologoRepository
             )
         {
             Tratamiento = tratamientoRepository;
@@ -29,6 +39,10 @@ namespace DentalNova.Repository.Daos
             Rol = rolRepository;
             Paciente = pacienteRepository;
 
+            Cita = citaRepository;
+            CitaTratamiento = citaTratamientoRepository;
+            HorarioOdontologo = horarioOdontologoRepository;
+            Odontologo = odontologoRepository;
         }
     }
 }

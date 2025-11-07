@@ -1,5 +1,6 @@
 ﻿using DentalNova.Core.Dtos;
 using DentalNova.Core.Interfaces;
+using DentalNova.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,12 @@ namespace DentalNova.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ITokenService _tokenService; // Servicio para generar tokens JWT
 
-        public AuthController(IUnitOfWork unitOfWork)
+        public AuthController(IUnitOfWork unitOfWork, ITokenService tokenService)
         {
             _unitOfWork = unitOfWork;
+            _tokenService = tokenService;
         }
 
         /// <summary>
@@ -29,17 +32,23 @@ namespace DentalNova.Api.Controllers
         [ProducesResponseType(401)] // 401 Unauthorized
         public async Task<IActionResult> Login(InicioDeSesionDto inicioDeSesionDto)
         {
-            var tokenDto = await _unitOfWork.Usuario.LoginAsync(inicioDeSesionDto);
+            // Llama a la lógica de negocio para *validar*
+            var usuario = await _unitOfWork.Usuario.ValidarCredencialesAsync(inicioDeSesionDto);
 
-            // Comprueba si el login falló
-            if (tokenDto == null)
+            // Comprueba si falló la validación
+            if (usuario == null)
             {
-                // Devuelve 401 Unauthorized.
                 return Unauthorized(new { Mensaje = "Credenciales inválidas." });
             }
 
-            // Si el login fue exitoso, devuelve el token
-            return Ok(tokenDto);
+            // Si es válido, AHORA genera el token
+            var tokenString = _tokenService.GenerarToken(usuario);
+
+            return Ok(new TokenDto
+            {
+                Token = tokenString,
+                Expiracion = DateTime.Now.AddMinutes(20)
+            });
         }
 
         /// <summary>

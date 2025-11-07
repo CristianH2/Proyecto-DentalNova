@@ -6,12 +6,17 @@ using System.Threading.Tasks;
 
 namespace DentalNova.Core.Repository.Interfaces
 {
-    public interface IRepositoriy
+    public interface IRepository
     {
         ITratamientoRepository Tratamiento { get; }
         IUsuarioRepository Usuario { get; }
         IArticuloRepository Articulo { get; }
         IRolRepository Rol { get; }
         IPacienteRepository Paciente { get; }
+
+        ICitaRepository Cita { get; }
+        ICitaTratamientoRepository CitaTratamiento { get; }
+        IHorarioOdontologoRepository HorarioOdontologo { get; }
+        IOdontologoRepository Odontologo { get; }
     }
 }

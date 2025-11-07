@@ -1,11 +1,17 @@
 using DentalNova.Business.Helpers;
 using DentalNova.Business.Rules;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
+using DentalNova.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddBusinessLogicServices(builder.Configuration);
+
+// Registra ITokenService y la autenticación JWT
+builder.Services.AddSecurityServices(builder.Configuration);
+
 builder.Services.AddControllers();
 
 
@@ -17,6 +23,11 @@ builder.Services.AddSwaggerGen(options =>
 {
     // Define el título de la API
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "DentalNova API", Version = "v1" });
+
+    // documentación
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 
     // Configura el esquema de seguridad para JWT Bearer
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

@@ -72,7 +72,10 @@ namespace DentalNova.Repository.Daos
         /// </summary>
         public async Task<Usuario> ObtenerPorIdAsync(int id)
         {
-            return await _context.Usuarios.FindAsync(id);
+            // _context.Usuarios.FindAsync(id);
+            return await _context.Usuarios
+                        .Include(u => u.Roles)
+                        .FirstOrDefaultAsync(u => u.Id == id);
         }
     }
 }

@@ -14,18 +14,21 @@ namespace DentalNova.Business.Rules
         public IUsuarioBL Usuario { get; }
         public IArticuloBL Articulo { get; }
         public IPacienteBL Paciente { get; }
+        public ICitaBL Cita { get; }
 
         public UnitOfWork(
             ITratamientoBL tratamientoBL, 
             IUsuarioBL usuarioBL,
             IArticuloBL articuloBL,
-            IPacienteBL pacienteBL
+            IPacienteBL pacienteBL,
+            ICitaBL citaBL
             )
         {
             Tratamiento = tratamientoBL;
             Usuario = usuarioBL;
             Articulo = articuloBL;
             Paciente = pacienteBL;
+            Cita = citaBL;
         }
     }
 }

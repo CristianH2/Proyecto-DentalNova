@@ -4,7 +4,7 @@ using DentalNova.Core.Dtos;
 using DentalNova.Core.Interfaces;
 using DentalNova.Core.Repository.Entities;
 using DentalNova.Core.Repository.Interfaces;
-using DentalNova.Security;
+//using DentalNova.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +15,13 @@ namespace DentalNova.Business.Rules
 {
     public class UsuarioBL : IUsuarioBL
     {
-        private readonly IRepositoriy _repositorio;
-        private readonly ITokenService _tokenService;
+        private readonly IRepository _repositorio;
+        //private readonly ITokenService _tokenService;
 
-        public UsuarioBL(IRepositoriy repositorio, ITokenService tokenService)
+        public UsuarioBL(IRepository repositorio) //ITokenService tokenService
         {
             _repositorio = repositorio;
-            _tokenService = tokenService;
+            //_tokenService = tokenService;
         }
 
         public async Task<UsuarioDto> ActualizarPerfilUsuarioAsync(int usuarioId, PerfilUsuarioDtoIn dto)
@@ -67,34 +67,40 @@ namespace DentalNova.Business.Rules
             return await _repositorio.Usuario.ActualizarPasswordAsync(usuarioId, nuevoHash);
         }
 
-        public async Task<TokenDto> LoginAsync(InicioDeSesionDto inicioDeSesion)
+        public async Task<Usuario> ValidarCredencialesAsync(InicioDeSesionDto inicioDeSesion)
         {
-            // Buscar al usuario por email
+            // Buscar al usuario (incluyendo roles para el token/cookie)
             var usuario = await _repositorio.Usuario.ObtenerPorEmailAsync(inicioDeSesion.Correo);
 
-            // Validar que el usuario exista
             if (usuario == null)
             {
-                return null; // Credenciales inválidas
+                return null; // Usuario no existe
             }
 
-            // Validar la contraseña
+            // 2. Validar contraseña
             bool esPasswordValido = BCrypt.Net.BCrypt.Verify(inicioDeSesion.Password, usuario.Password);
 
             if (!esPasswordValido)
             {
-                return null; // Credenciales inválidas
+                return null; // Contraseña incorrecta
             }
 
-            // Generar el token
-            var tokenString = _tokenService.GenerarToken(usuario);
+            // Devolver la entidad Usuario completa
+            return usuario;
+        }
 
-            // Devolver el DTO
-            return new TokenDto
+        public async Task<UsuarioDto> ObtenerPerfilUsuarioAsync(int usuarioId)
+        {
+            // Obtener el usuario por el ID (que viene del token)
+            var usuario = await _repositorio.Usuario.ObtenerPorIdAsync(usuarioId);
+
+            if (usuario == null)
             {
-                Token = tokenString,
-                Expiracion = DateTime.Now.AddMinutes(20)
-            };
+                return null; // No se encontró el usuario
+            }
+
+            // Mapear la entidad al DTO de salida
+            return usuario.ToDto();
         }
 
         public async Task<UsuarioDto> RegistrarAsync(UsuarioDtoIn usuarioDtoIn)
@@ -123,9 +129,6 @@ namespace DentalNova.Business.Rules
             // Agregar el nuevo rol a la BD
             await _repositorio.Rol.AgregarAsync(nuevoRol);
             usuarioCreado.Roles.Add(nuevoRol);
-
-            // Generar token para auto-login
-            var tokenString = _tokenService.GenerarToken(usuarioCreado);
 
             return usuarioCreado.ToDto();
         }

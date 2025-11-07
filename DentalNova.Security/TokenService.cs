@@ -37,8 +37,8 @@ namespace DentalNova.Security
             {
                 Subject = new ClaimsIdentity(claims),       // El payload
                 Expires = DateTime.Now.AddMinutes(20),      // Expira en 20 minuto
-                NotBefore = DateTime.Now,                // Válido desde ahora
-                IssuedAt = DateTime.Now,                   // Emitido ahora
+                NotBefore = DateTime.Now,                   // Válido desde ahora
+                IssuedAt = DateTime.Now,                    // Emitido ahora
                 SigningCredentials = creds,                 // La firma
                 Issuer = _config["Jwt:Issuer"],             // Quién lo emite (la app)
                 Audience = _config["Jwt:Audience"]          // Para quién es (la app)

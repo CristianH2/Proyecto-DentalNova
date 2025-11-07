@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DentalNova.Business\DentalNova.Business.csproj" />
     <ProjectReference Include="..\DentalNova.Core.Repository\DentalNova.Core.Repository.csproj" />
     <ProjectReference Include="..\DentalNova.Core\DentalNova.Core.csproj" />
-    <ProjectReference Include="..\DentalNova.Repository\DentalNova.Repository.csproj" />
   </ItemGroup>
 
 </Project>

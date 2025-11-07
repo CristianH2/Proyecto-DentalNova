@@ -6,9 +6,9 @@ namespace DentalNova.Business.Rules
 {
     public class TratamientoBL : ITratamientoBL
     {
-        private readonly IRepositoriy _repository;
+        private readonly IRepository _repository;
 
-        public TratamientoBL(IRepositoriy repository)
+        public TratamientoBL(IRepository repository)
         {
             _repository = repository;
         }
