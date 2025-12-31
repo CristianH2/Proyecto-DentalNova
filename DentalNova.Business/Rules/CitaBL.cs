@@ -2,12 +2,12 @@
 using DentalNova.Core.Interfaces;
 using DentalNova.Core.Repository.Entities;
 using DentalNova.Core.Repository.Interfaces;
+using static DentalNova.Core.Repository.Entities.Enumerables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static DentalNova.Core.Repository.Entities.Enumerables;
 
 namespace DentalNova.Business.Rules
 {

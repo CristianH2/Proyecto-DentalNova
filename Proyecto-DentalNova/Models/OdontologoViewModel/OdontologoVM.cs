@@ -1,4 +1,4 @@
-﻿using DentalNova.Core.Repository.Entities;
+﻿using DentalNova.Core.Dtos;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Proyecto_DentalNova.Models.OdontologoViewModel
@@ -6,7 +6,7 @@ namespace Proyecto_DentalNova.Models.OdontologoViewModel
     public class OdontologoVM
     {
         // Contiene la instancia del Odontólogo que se está creando o editando.
-        public Odontologo Odontologo { get; set; } = new();
+        public OdontologoDtoIn Odontologo { get; set; } = new();
 
         // Lista para poblar el DropDownList de Usuarios.
         // Se llenará solo con usuarios activos que no sean ni pacientes ni otros odontólogos.

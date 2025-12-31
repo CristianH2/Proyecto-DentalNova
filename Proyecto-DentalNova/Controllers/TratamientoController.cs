@@ -1,45 +1,48 @@
-﻿using DentalNova.Core.Helpers;
-using DentalNova.Core.Repository.Entities;
-using DentalNova.Repository.DataContext;
+﻿using DentalNova.Core.Dtos;
+using DentalNova.Core.Helpers;
+using DentalNova.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using Proyecto_DentalNova.Models.TratamientoViewModel;
 
 namespace Proyecto_DentalNova.Controllers
 {
+    //[Authorize(Roles = "Administrador")] // Seguridad MVC
     public class TratamientoController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ITratamientoService _tratamientoService;
 
-        public TratamientoController(ApplicationDbContext context)
+        public TratamientoController(ITratamientoService tratamientoService)
         {
-            _context = context;
+            _tratamientoService = tratamientoService;
         }
 
-        // GET: Tratamiento
+        // --- GET: Index ---
+        [HttpGet]
         public async Task<IActionResult> Index([Bind(Prefix = "Filtro")] TratamientoFilterViewModel filtro)
         {
-            IQueryable<Tratamiento> query = _context.Tratamientos.AsNoTracking();
+            // 1. Mapear VM Filtro -> DTO Filtro
+            var filtroDto = new TratamientoFilterDto
+            {
+                Page = filtro.Page,
+                PageSize = filtro.PageSize,
+                Id = filtro.Id,
+                NombreLike = filtro.NombreLike,
+                CostoMin = filtro.CostoMin,
+                CostoMax = filtro.CostoMax,
+                Activo = filtro.Activo
+            };
 
-            // Aplicar filtros
-            if (filtro.Id.HasValue)
-                query = query.Where(t => t.Id == filtro.Id.Value);
-            if (!string.IsNullOrWhiteSpace(filtro.NombreLike))
-                query = query.Where(t => t.Nombre.Contains(filtro.NombreLike));
-            if (filtro.CostoMin.HasValue)
-                query = query.Where(t => t.Costo >= filtro.CostoMin.Value);
-            if (filtro.CostoMax.HasValue)
-                query = query.Where(t => t.Costo <= filtro.CostoMax.Value);
-            if (filtro.DuracionMin.HasValue)
-                query = query.Where(t => t.DuracionDias >= filtro.DuracionMin.Value);
-            if (filtro.DuracionMax.HasValue)
-                query = query.Where(t => t.DuracionDias <= filtro.DuracionMax.Value);
-            if (filtro.Activo.HasValue)
-                query = query.Where(t => t.Activo == filtro.Activo.Value);
+            // 2. Llamar API
+            var apiResult = await _tratamientoService.ObtenerTratamientosAdminAsync(filtroDto);
 
-            query = query.OrderBy(t => t.Nombre);
-
-            var pagedResults = await PaginatedList<Tratamiento>.CreateAsync(query, filtro.Page, filtro.PageSize);
+            // 3. Crear lista paginada
+            var pagedResults = PaginatedList<TratamientoDto>.Create(
+                apiResult.Items,
+                apiResult.TotalCount,
+                apiResult.PageIndex,
+                filtro.PageSize);
 
             var vm = new TratamientoIndexViewModel
             {
@@ -50,131 +53,175 @@ namespace Proyecto_DentalNova.Controllers
             return View(vm);
         }
 
-        // GET: Tratamiento/Details/5
+        // --- GET: Details ---
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var tratamiento = await _context.Tratamientos.FirstOrDefaultAsync(m => m.Id == id);
-            if (tratamiento == null) return NotFound();
-            return View(tratamiento);
+
+            try
+            {
+                var dto = await _tratamientoService.ObtenerTratamientoPorIdAsync(id.Value);
+                // Nota: Tu vista Details.cshtml debe esperar TratamientoAdminDtoOut
+                return View(dto);
+            }
+            catch (HttpRequestException) { return NotFound(); }
         }
 
-        // GET: Tratamiento/Create
+        // --- GET: Create ---
         public IActionResult Create()
         {
-            return View(new Tratamiento());
+            var vm = new TratamientoVM(); // Inicializa con valores por defecto
+            return View(vm);
         }
 
-        // POST: Tratamiento/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // --- POST: Create ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion,Costo,DuracionDias,Activo")] Tratamiento tratamiento)
+        public async Task<IActionResult> Create(TratamientoVM vm)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(tratamiento);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _tratamientoService.CrearTratamientoAsync(vm.Tratamiento);
+                    TempData["MensajeExito"] = "Tratamiento creado exitosamente.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (HttpRequestException ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
             }
-            return View(tratamiento);
+
+            TempData["MensajeError"] = "No se pudo crear el tratamiento. Por favor, revise los errores.";
+            return View(vm);
         }
 
-        // GET: Tratamiento/Edit/5
+        // --- GET: Edit ---
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var tratamiento = await _context.Tratamientos.FindAsync(id);
-            if (tratamiento == null) return NotFound();
-            return View(tratamiento);
+
+            try
+            {
+                var dtoOut = await _tratamientoService.ObtenerTratamientoPorIdAsync(id.Value);
+
+                // Mapear Salida -> Entrada para el formulario
+                var dtoIn = new TratamientoDtoIn
+                {
+                    Id = dtoOut.Id,
+                    Nombre = dtoOut.Nombre,
+                    Descripcion = dtoOut.Descripcion,
+                    Costo = dtoOut.Costo,
+                    DuracionDias = dtoOut.DuracionDias,
+                    Activo = dtoOut.Activo
+                };
+
+                var vm = new TratamientoVM { Tratamiento = dtoIn };
+                return View(vm);
+            }
+            catch (HttpRequestException) { return NotFound(); }
         }
 
-        // POST: Tratamiento/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // --- POST: Edit ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Descripcion,Costo,DuracionDias,Activo")] Tratamiento tratamiento)
+        public async Task<IActionResult> Edit(int id, TratamientoVM vm)
         {
-            if (id != tratamiento.Id) return NotFound();
+            if (id != vm.Tratamiento.Id) return BadRequest();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(tratamiento);
-                    await _context.SaveChangesAsync();
+                    await _tratamientoService.ActualizarTratamientoAsync(id, vm.Tratamiento);
+                    TempData["MensajeExito"] = "Tratamiento actualizado correctamente.";
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (HttpRequestException ex)
                 {
-                    if (!_context.Tratamientos.Any(e => e.Id == tratamiento.Id)) return NotFound();
-                    else throw;
+                    ModelState.AddModelError(string.Empty, ex.Message);
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(tratamiento);
+
+            TempData["MensajeError"] = "No se pudo actualizar el tratamiento. Por favor, revise los errores.";
+            return View(vm);
         }
 
-        // GET: Tratamiento/ToggleActivo/5
-        public async Task<IActionResult> ToggleActivo(int? id)
-        {
-            if (id == null) return NotFound();
-            var tratamiento = await _context.Tratamientos.FirstOrDefaultAsync(m => m.Id == id);
-            if (tratamiento == null) return NotFound();
-            return View(tratamiento);
-        }
-
-        // POST: Tratamiento/ToggleActivo/5
-        [HttpPost, ActionName("ToggleActivo")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleActivoConfirmed(int id)
-        {
-            var tratamiento = await _context.Tratamientos.FindAsync(id);
-            if (tratamiento != null)
-            {
-                tratamiento.Activo = !tratamiento.Activo; // Invert the status
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Tratamiento/Delete/5
+        // --- GET: Delete ---
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var tratamiento = await _context.Tratamientos
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (tratamiento == null)
+            try
             {
-                return NotFound();
+                var dto = await _tratamientoService.ObtenerTratamientoPorIdAsync(id.Value);
+                // Nota: Tu vista Delete.cshtml debe esperar TratamientoAdminDtoOut
+                return View(dto);
             }
-
-            return View(tratamiento);
+            catch (HttpRequestException) { return NotFound(); }
         }
 
-        // POST: Tratamiento/Delete/5
+        // --- POST: Delete ---
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var tratamiento = await _context.Tratamientos.FindAsync(id);
-            if (tratamiento != null)
+            try
             {
-                _context.Tratamientos.Remove(tratamiento);
+                await _tratamientoService.EliminarTratamientoAsync(id);
+                TempData["MensajeExito"] = "Tratamiento eliminado correctamente.";
             }
-
-            await _context.SaveChangesAsync();
+            catch (HttpRequestException ex)
+            {
+                TempData["MensajeError"] = "Error al eliminar: " + ex.Message;
+            }
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TratamientoExists(int id)
+        // POST: Tratamiento/ToggleActivo
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleActivo(int id)
         {
-            return _context.Tratamientos.Any(e => e.Id == id);
+            try
+            {
+                // 1. Obtener el tratamiento actual
+                var currentDto = await _tratamientoService.ObtenerTratamientoPorIdAsync(id);
+
+                // 2. Validación de seguridad (por si el ID no existe)
+                if (currentDto == null)
+                {
+                    TempData["MensajeError"] = "El tratamiento solicitado no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // 3. Crear el DTO con el estado INVERTIDO
+                var updateDto = new TratamientoDtoIn
+                {
+                    Id = currentDto.Id,
+                    Nombre = currentDto.Nombre,
+                    Descripcion = currentDto.Descripcion,
+                    Costo = currentDto.Costo,
+                    DuracionDias = currentDto.DuracionDias,
+                    Activo = !currentDto.Activo // <--- Aquí inviertes el valor
+                };
+
+                // 4. Llamar a la API
+                await _tratamientoService.ActualizarTratamientoAsync(id, updateDto);
+
+                // 5. CAMBIO CLAVE: Usar las llaves correctas para SweetAlert
+                // Antes: TempData["Success"]
+                TempData["MensajeExito"] = $"El tratamiento se ha {(updateDto.Activo ? "activado" : "desactivado")} correctamente.";
+            }
+            catch (Exception ex) // Captura Exception general para atrapar cualquier error, no solo HTTP
+            {
+                // Antes: TempData["Error"]
+                TempData["MensajeError"] = "No se pudo cambiar el estado: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
         }
+
     }
 }

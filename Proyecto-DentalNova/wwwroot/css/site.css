@@ -1,22 +1,240 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
+
+/* --- Estilos personalizados --- */
+ul {
+    margin: 0px;
+}
+
+
+/* Estilos Globales */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- SIDEBAR LAYOUT --- */
+#wrapper {
+    overflow-x: hidden;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    margin-left: -15rem; /* Oculto por defecto en móvil */
+    width: 15rem;
+    position: fixed; /* Fijo para que no haga scroll */
+    z-index: 1000;
+    transition: margin .25s ease-out;
+}
+
+    #sidebar-wrapper .list-group-item {
+        padding: 0.75rem 1.25rem;
+        border: none;
+    }
+
+        #sidebar-wrapper .list-group-item:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-left: 4px solid #0d6efd; /* Acento azul */
+            padding-left: calc(1.25rem - 4px); /* Compensar el borde */
+        }
+
+    #sidebar-wrapper .sidebar-subheading {
+        letter-spacing: 0.05em;
+        font-size: 0.75rem;
+    }
+
+#page-content-wrapper {
+    width: 100%;
+    transition: margin .25s ease-out;
+}
+
+/* Estado "Toggleado" (Menú visible/oculto) */
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+/* RESPONSIVE: Comportamiento en Escritorio (Min 768px) */
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0; /* Visible por defecto */
+    }
+
+    #page-content-wrapper {
+        margin-left: 15rem; /* Empujar el contenido */
+        width: calc(100% - 15rem);
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -15rem; /* Ocultar al togglear */
+    }
+
+    #wrapper.toggled #page-content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+
+/* Efecto hover para las tarjetas de selección */
+.hover-shadow {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+    .hover-shadow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        background-color: #fff !important;
+        border-color: #0d6efd !important; /* Borde azul al pasar el mouse */
+    }
+
+/* Campos relativos */
+.form-check {
+    position: relative;
+}
+
+.stretched-link::after {
+    pointer-events: none;
+}
+
+.form-check-input {
+    position: relative;
+    z-index: 2;
+}
+
+/* Corrección para Select2 dentro de Input-Group de Bootstrap 5 */
+/*.input-group > .select2-container--bootstrap-5 {
+    width: auto !important;
+    flex: 1 1 auto;
+}
+
+    .input-group > .select2-container--bootstrap-5 .select2-selection {
+        height: auto;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }*/
+
+/* ==================================================
+   FIX SELECT2 RESPONSIVE INSIDE INPUT-GROUP
+   ================================================== */
+
+/* 1. Forzar que el contenedor de Select2 se comporte como un elemento flexible */
+/*.input-group > .select2-container--bootstrap-5 {
+    width: auto !important;
+    flex: 1 1 auto;
+}*/
+
+/* 2. Asegurar que la selección ocupe el 100% del espacio flexible */
+/*.input-group > .select2-container--bootstrap-5 .select2-selection {
+        height: 100%;
+        width: 100% !important;
+    }*/
+
+/* 3. Arreglo visual para bordes redondeados cuando está junto a un icono */
+/* Quitar borde izquierdo redondeado para que pegue con el icono */
+/*.input-group > .select2-container--bootstrap-5 .select2-selection--single,
+    .input-group > .select2-container--bootstrap-5 .select2-selection--multiple {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }*/
+
+/* 4. Arreglo específico para Selección Múltiple (Tags) */
+/* Esto evita que el input crezca infinitamente o rompa el layout verticalmente */
+/*.select2-container--bootstrap-5 .select2-selection--multiple {
+    min-height: 38px;*/ /* Altura estándar de input bootstrap */
+/*display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}*/
+
+/* ==================================================
+   FIX SELECT2 MULTILINE (TEXT WRAPPING)
+   ================================================== */
+
+/* 1. Permitir que el contenedor crezca en altura */
+/*.select2-container--bootstrap-5 .select2-selection {
+    height: auto !important;*/ /* Importante: deja que crezca */
+/*min-height: 38px;*/ /* Altura mínima estándar de Bootstrap */
+/*}*/
+
+/* 2. Permitir que el texto interior haga salto de línea */
+/*.select2-container--bootstrap-5 .select2-selection .select2-selection__rendered {
+    white-space: normal !important;*/ /* Esto permite el salto de línea */
+/*word-wrap: break-word;*/ /* Rompe palabras muy largas (como emails) */
+/*line-height: 1.5;*/ /* Espaciado entre líneas para que se lea bien */
+/*padding-top: 4px;
+    padding-bottom: 4px;
+}*/
+
+/* 3. Ajustar la flecha (chevron) para que siempre esté centrada o arriba */
+/* Si el texto es muy alto, la flecha se ve mejor alineada al centro */
+/*.select2-container--bootstrap-5 .select2-selection .select2-selection__arrow {
+    top: 50% !important;
+    transform: translateY(-50%);
+}*/
+
+/* ==================================================
+   FIX SELECT2: TRUNCADO Y ALINEACIÓN (NO DROP)
+   ================================================== */
+
+/* 1. Resetear el ancho que Select2 pone con JS */
+/* Esto obliga al Select2 a medir 100% del contenedor padre, no del texto */
+/*.input-group .select2-container {
+    width: 100% !important;
+    flex: 1 1 auto;
+}*/
+
+/* 2. Configurar el área de texto para que corte con (...) */
+/*.select2-container--bootstrap-5 .select2-selection__rendered {
+    display: block !important;
+    white-space: nowrap !important;*/ /* Prohibido bajar de línea */
+/*overflow: hidden !important;*/ /* Cortar lo que sobre */
+/*text-overflow: ellipsis !important;*/ /* Poner los ... */
+/*padding-right: 12px;*/ /* Espacio para que no toque la flecha */
+/*}*/
+
+/* 3. Asegurar altura consistente */
+/*.select2-container--bootstrap-5 .select2-selection {
+    height: 38px !important;
+    align-items: center;
+}*/
+
+/* ==================================================
+   TRUNCAR TEXTO SELECT2 (NOMBRE LARGO -> NOM...)
+   ================================================== */
+
+/*.select2-container--bootstrap-5 .select2-selection__rendered {
+    display: block !important;
+    white-space: nowrap !important;*/ /* 1. No bajar de línea */
+/*overflow: hidden !important;*/ /* 2. Ocultar lo que sobra */
+/*text-overflow: ellipsis !important;*/ /* 3. Poner los ... */
+/*max-width: 100%;
+    padding-right: 20px;*/ /* Espacio para que no se pegue a la flecha/X */
+/*}*/
+
+/* Asegurar que el contenedor tenga altura fija de nuevo */
+/*.select2-container--bootstrap-5 .select2-selection {
+    height: 38px !important;*/ /* Altura estándar Bootstrap */
+/*align-items: center;
+}*/
+

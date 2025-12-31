@@ -4,111 +4,126 @@
     ViewData["Title"] = "Gestión de Usuarios";
 }
 
-<h1>@ViewData["Title"]</h1>
-<hr />
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark">@ViewData["Title"]</h2>
+        <p class="text-muted mb-0">Administración de cuentas y permisos de acceso.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fas fa-user-plus me-2"></i> Nuevo Usuario
+    </a>
+</div>
 
-<div class="row g-3">
+<div class="row g-4">
+    
     <div class="col-12 col-xl-3">
-        <div class="card shadow-sm">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-funnel-fill me-2"></i>
-                <strong>Filtro de Búsqueda</strong>
+        <div class="card shadow-sm border-0 sticky-top" style="top: 1rem; z-index: 100;">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros de Búsqueda</h6>
             </div>
             <div class="card-body">
                 <form method="get" class="vstack gap-3">
+                    
                     <div>
-                        <label asp-for="Filtro.Id" class="form-label"></label>
-                        <input asp-for="Filtro.Id" class="form-control" />
-                    </div>
-                    <div>
-                        <label asp-for="Filtro.NombreLike" class="form-label"></label>
-                        <input asp-for="Filtro.NombreLike" class="form-control" placeholder="Contiene..." />
-                    </div>
-                    <div>
-                        <label asp-for="Filtro.ApellidosLike" class="form-label"></label>
-                        <input asp-for="Filtro.ApellidosLike" class="form-control" placeholder="Contiene..." />
-                    </div>
-                    <div>
-                        <label asp-for="Filtro.CorreoLike" class="form-label"></label>
-                        <input asp-for="Filtro.CorreoLike" class="form-control" placeholder="Contiene..." />
-                    </div>
-                    <div>
-                        <label asp-for="Filtro.TelefonoLike" class="form-label"></label>
-                        <input asp-for="Filtro.TelefonoLike" class="form-control" placeholder="Contiene..." />
+                        <label asp-for="Filtro.Id" class="form-label small fw-bold text-muted text-uppercase">ID Usuario</label>
+                        <input asp-for="Filtro.Id" class="form-control" placeholder="#" />
                     </div>
 
                     <div>
-                        <label class="form-label d-block">Género</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="Filtro.Genero" value="" id="generoTodos" @(Model.Filtro.Genero == null ? "checked" : null) />
-                            <label class="form-check-label" for="generoTodos">Todos</label>
+                        <label asp-for="Filtro.NombreLike" class="form-label small fw-bold text-muted text-uppercase">Nombre</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                            <input asp-for="Filtro.NombreLike" class="form-control border-start-0" placeholder="Buscar..." />
                         </div>
-                        @foreach (var genero in Model.Filtro.Generos)
-                        {
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="Filtro.Genero" value="@genero.Value" id="genero_@genero.Value" @(Model.Filtro.Genero?.ToString() == genero.Value ? "checked" : null) />
-                                <label class="form-check-label" for="genero_@genero.Value">@genero.Text</label>
-                            </div>
-                        }
+                    </div>
+
+                    <div>
+                        <label asp-for="Filtro.ApellidosLike" class="form-label small fw-bold text-muted text-uppercase">Apellidos</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-tag text-muted"></i></span>
+                            <input asp-for="Filtro.ApellidosLike" class="form-control border-start-0" placeholder="Buscar..." />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label asp-for="Filtro.CorreoLike" class="form-label small fw-bold text-muted text-uppercase">Correo</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
+                            <input asp-for="Filtro.CorreoLike" class="form-control border-start-0" placeholder="nombre@ejemplo.com" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label asp-for="Filtro.TelefonoLike" class="form-label small fw-bold text-muted text-uppercase">Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-phone text-muted"></i></span>
+                            <input asp-for="Filtro.TelefonoLike" class="form-control border-start-0" placeholder="55..." />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label small fw-bold text-muted text-uppercase d-block">Género</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="Filtro.Genero" value="" id="generoTodos" @(Model.Filtro.Genero == null ? "checked" : null) autocomplete="off">
+                            <label class="btn btn-outline-secondary btn-sm" for="generoTodos">Todos</label>
+
+                            @foreach (var genero in Model.Filtro.Generos)
+                            {
+                                <input type="radio" class="btn-check" name="Filtro.Genero" value="@genero.Value" id="genero_@genero.Value" @(Model.Filtro.Genero?.ToString() == genero.Value ? "checked" : null) autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm" for="genero_@genero.Value">@genero.Text</label>
+                            }
+                        </div>
                     </div>
                     
                     <div>
-                        <label class="form-label d-block">Estado</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="Filtro.Activo" value="" id="estadoTodos" @(Model.Filtro.Activo == null ? "checked" : null) />
-                            <label class="form-check-label" for="estadoTodos">Todos</label>
-                        </div>
-                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="Filtro.Activo" value="true" id="estadoActivo" @(Model.Filtro.Activo == true ? "checked" : null) />
-                            <label class="form-check-label" for="estadoActivo">Activo</label>
-                        </div>
-                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="Filtro.Activo" value="false" id="estadoInactivo" @(Model.Filtro.Activo == false ? "checked" : null) />
-                            <label class="form-check-label" for="estadoInactivo">Inactivo</label>
+                        <label class="form-label small fw-bold text-muted text-uppercase d-block">Estado</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="Filtro.Activo" value="" id="estadoTodos" @(Model.Filtro.Activo == null ? "checked" : null) autocomplete="off">
+                            <label class="btn btn-outline-secondary btn-sm" for="estadoTodos">Todos</label>
+
+                            <input type="radio" class="btn-check" name="Filtro.Activo" value="true" id="estadoActivo" @(Model.Filtro.Activo == true ? "checked" : null) autocomplete="off">
+                            <label class="btn btn-outline-success btn-sm" for="estadoActivo">Activo</label>
+
+                            <input type="radio" class="btn-check" name="Filtro.Activo" value="false" id="estadoInactivo" @(Model.Filtro.Activo == false ? "checked" : null) autocomplete="off">
+                            <label class="btn btn-outline-danger btn-sm" for="estadoInactivo">Inactivo</label>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2 mt-3">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Aplicar Filtro</button>
+                    <div class="d-grid gap-2 mt-2">
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-search me-2"></i> Buscar</button>
+                        <a href="@Url.Action("Index")" class="btn btn-light text-muted border">Limpiar Filtros</a>
                     </div>
                 </form>
-
-                <form method="get" class="d-grid mt-2">
-                    <button type="submit" class="btn btn-outline-secondary">Mostrar Todos</button>
-                </form>
-
-                <hr />
-                <a class="btn btn-success w-100" asp-action="Create"><i class="bi bi-plus-circle"></i> Crear Nuevo Usuario</a>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-xl-9">
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Resultados (@Model.Resultados?.TotalCount ?? 0)</span>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">Resultados Encontrados</h6>
+                <span class="badge bg-primary rounded-pill">@Model.Resultados?.TotalCount</span>
             </div>
+            
             <div class="card-body p-0">
                 <form method="get" class="m-0 p-0">
-                    @foreach (var prop in Model.Filtro.GetType().GetProperties())
+                     @foreach (var prop in Model.Filtro.GetType().GetProperties())
                     {
-                        if (prop.Name != "Generos" && prop.Name != "Estados" && prop.GetValue(Model.Filtro) != null)
+                        if (prop.Name != "Generos" && prop.Name != "Estados" && prop.Name != "Page" && prop.Name != "PageSize" && prop.GetValue(Model.Filtro) != null)
                         {
                             <input type="hidden" name="Filtro.@prop.Name" value="@prop.GetValue(Model.Filtro)" />
                         }
                     }
 
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Nombre Completo</th>
-                                    <th>Correo Electrónico</th>
+                                    <th class="ps-4">Usuario</th>
                                     <th>Teléfono</th>
                                     <th>Género</th>
                                     <th>Estado</th>
-                                    <th class="text-center">Acciones</th>
+                                    <th class="text-end pe-4">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -117,39 +132,60 @@
                                     foreach (var item in Model.Resultados)
                                     {
                                         <tr>
-                                            <td>@item.Id</td>
-                                            <td>@item.Nombre @item.Apellidos</td>
-                                            <td>@item.CorreoElectronico</td>
-                                            <td>@(item.Telefono ?? "N/A")</td>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    @{
+                                                        // Generador de iniciales simple
+                                                        var iniciales = (!string.IsNullOrEmpty(item.Nombre) ? item.Nombre.Substring(0,1) : "") + (!string.IsNullOrEmpty(item.Apellidos) ? item.Apellidos.Substring(0,1) : "");
+                                                    }
+                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3 fw-bold" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                                        @iniciales
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold text-dark">@item.Nombre @item.Apellidos</div>
+                                                        <small class="text-muted">@item.CorreoElectronico</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            
+                                            <td>
+                                                @if(!string.IsNullOrEmpty(item.Telefono)) {
+                                                    <span class="text-dark"><i class="fas fa-phone-alt text-muted me-2 small"></i>@item.Telefono</span>
+                                                } else {
+                                                    <span class="text-muted small">N/A</span>
+                                                }
+                                            </td>
+                                            
                                             <td>
                                                 @switch (item.Genero)
                                                 {
-                                                    case 'M': <span>Masculino</span>; break;
-                                                    case 'F': <span>Femenino</span>; break;
-                                                    case 'O': <span>Otro</span>; break;
-                                                    default: <span>No especificado</span>; break;
+                                                    case 'M': <i class="fas fa-mars text-primary" title="Masculino"></i> <span class="d-none d-md-inline">Masculino</span>; break;
+                                                    case 'F': <i class="fas fa-venus text-danger" title="Femenino"></i> <span class="d-none d-md-inline">Femenino</span>; break;
+                                                    default: <i class="fas fa-genderless text-muted"></i> <span>Otro</span>; break;
                                                 }
                                             </td>
+                                            
                                             <td>
                                                 @if (item.Activo)
                                                 {
-                                                    <span class="badge bg-success">Activo</span>
+                                                    <span class="badge bg-success bg-opacity-10 text-success"><i class="fas fa-check-circle me-1"></i> Activo</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-danger">Inactivo</span>
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger"><i class="fas fa-ban me-1"></i> Inactivo</span>
                                                 }
                                             </td>
-                                            <td class="text-center">
-                                                <div class="btn-group" role="group">
-                                                    <a class="btn btn-sm btn-secondary" asp-action="Details" asp-route-id="@item.Id" title="Detalles">
-                                                        <i class="bi bi-eye"></i>
+
+                                            <td class="text-end pe-4">
+                                                <div class="btn-group">
+                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Ver Detalles">
+                                                        <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@item.Id" title="Editar">
-                                                        <i class="bi bi-pencil-square"></i>
+                                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                        <i class="fas fa-pen"></i>
                                                     </a>
-                                                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id" title="Eliminar">
-                                                        <i class="bi bi-trash"></i>
+                                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>
                                             </td>
@@ -159,7 +195,13 @@
                                 else
                                 {
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted p-4">No se encontraron resultados.</td>
+                                        <td colspan="5" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
+                                                <h5>No se encontraron usuarios</h5>
+                                                <p class="mb-0">Intenta ajustar los filtros de búsqueda.</p>
+                                            </div>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -168,7 +210,7 @@
 
                     @if (Model.Resultados != null && Model.Resultados.Any())
                     {
-                        <div class="p-3">
+                        <div class="card-footer bg-white border-top-0 py-3">
                             @await Html.PartialAsync("_Pagination", Model.Resultados)
                         </div>
                     }
@@ -177,3 +219,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    
+}

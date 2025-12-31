@@ -1,77 +1,173 @@
-﻿@model DentalNova.Core.Repository.Entities.Odontologo
+﻿@model DentalNova.Core.Dtos.OdontologoDto
 
 @{
-    ViewData["Title"] = $"Perfil de {Model.Usuario?.Nombre} {Model.Usuario?.Apellidos}";
+    ViewData["Title"] = $"Perfil Dr(a). {Model.Nombre}";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var iniciales = (!string.IsNullOrEmpty(Model.Nombre) ? Model.Nombre.Substring(0, 1) : "") +
+                    (!string.IsNullOrEmpty(Model.Apellidos) ? Model.Apellidos.Substring(0, 1) : "");
 }
 
-<div class="container mt-4">
-    <div class="card shadow border-secondary">
-        <div class="card-header bg-light p-4">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-person-workspace display-4 me-3 text-primary"></i>
-                <div>
-                    <h2 class="mb-0">@Model.Usuario?.Nombre @Model.Usuario?.Apellidos</h2>
-                    <p class="mb-0 text-muted">Perfil Profesional del Odontólogo</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Perfil Profesional</h2>
+        <p class="text-muted mb-0">Detalle de credenciales y especialidades.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Volver
+        </a>
+        @* <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm">
+            <i class="fas fa-pen me-2"></i> Editar Perfil
+        </a> *@
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-12 col-lg-4 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-4">
+
+                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3 shadow"
+                     style="width: 120px; height: 120px; font-size: 3rem; font-weight: bold;">
+                    @iniciales
                 </div>
+
+                <h4 class="fw-bold mb-1">Dr(a). @Model.Nombre</h4>
+                <h5 class="fw-light text-muted mb-3">@Model.Apellidos</h5>
+
+                <div class="badge bg-dark text-white mb-4 px-3 py-2 rounded-pill font-monospace">
+                    ID MÉDICO: #@Model.Id
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="text-start">
+                    <div class="mb-3">
+                        <label class="small text-muted fw-bold text-uppercase">Correo Electrónico</label>
+                        <div class="fs-6 text-break">
+                            <i class="fas fa-envelope text-primary me-2 opacity-50"></i>
+                            @Model.CorreoElectronico
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="small text-muted fw-bold text-uppercase">Fecha de Ingreso</label>
+                        <div class="fs-6">
+                            <i class="fas fa-calendar-check text-primary me-2 opacity-50"></i>
+                            @Model.FechaIngreso.ToLongDateString()
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light text-center py-3 border-top-0 mt-4">
+                    <small class="text-success fw-bold"><i class="fas fa-circle me-1 small"></i> Personal Activo</small>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm fw-bold">
+                        <i class="fas fa-pen me-2"></i> Editar Perfil
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-light text-danger border">
+                        <i class="fas fa-trash me-2"></i> Dar de baja
+                    </a>
+                </div>
+
             </div>
         </div>
+    </div>
 
-        <div class="card-body p-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5 class="text-primary"><i class="bi bi-award"></i> Datos Profesionales</h5>
-                    <hr>
-                    <dl class="row">
-                        <dt class="col-sm-5">Cédula Profesional</dt>
-                        <dd class="col-sm-7">@Model.CedulaProfesional</dd>
+    <div class="col-12 col-lg-8 col-xl-9">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="fas fa-briefcase-medical me-2"></i> Credenciales y Formación
+                </h6>
+            </div>
+            <div class="card-body p-4">
 
-                        <dt class="col-sm-5">Institución</dt>
-                        <dd class="col-sm-7">@(Model.Institucion ?? "No especificada")</dd>
-
-                        <dt class="col-sm-5">Año de Graduación</dt>
-                        <dd class="col-sm-7">@(Model.AnioGraduacion?.ToString() ?? "No especificado")</dd>
-
-                        <dt class="col-sm-5">Fecha de Ingreso</dt>
-                        <dd class="col-sm-7">@Model.FechaIngreso.ToLongDateString()</dd>
-                    </dl>
+                <div class="row align-items-center mb-5">
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex align-items-center p-3 border rounded bg-light">
+                            <div class="bg-white p-3 rounded-circle shadow-sm text-primary me-3">
+                                <i class="fas fa-id-card fa-2x"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted fw-bold text-uppercase d-block">Cédula Profesional</small>
+                                <span class="fs-4 fw-bold font-monospace text-dark">@Model.CedulaProfesional</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-6">
-                    <h5 class="text-primary"><i class="bi bi-star-fill"></i> Especialidades</h5>
-                    <hr>
+                <div class="mb-5">
+                    <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Especialidades Clínicas</h6>
+
                     @if (Model.Especialidades != null && Model.Especialidades.Any())
                     {
-                        foreach (var especialidad in Model.Especialidades)
-                        {
-                            <span class="badge bg-primary fs-6 me-2 mb-2">@especialidad.Nombre</span>
-                        }
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var esp in Model.Especialidades)
+                            {
+                                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 fs-6 fw-normal">
+                                    <i class="fas fa-tooth me-2"></i> @esp
+                                </span>
+                            }
+                        </div>
                     }
                     else
                     {
-                        <p class="text-muted">No se han asignado especialidades.</p>
+                        <span class="text-muted fst-italic">Sin especialidades registradas (Odontología General)</span>
                     }
-
-                    <h5 class="text-primary mt-4"><i class="bi bi-telephone"></i> Contacto</h5>
-                    <hr>
-                    <dl class="row">
-                        <dt class="col-sm-5">Correo</dt>
-                        <dd class="col-sm-7">@Model.Usuario?.CorreoElectronico</dd>
-
-                        <dt class="col-sm-5">Teléfono</dt>
-                        <dd class="col-sm-7">@(Model.Usuario?.Telefono ?? "No proporcionado")</dd>
-                    </dl>
                 </div>
-            </div>
-        </div>
 
-        <div class="card-footer text-end bg-light p-3">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-                <i class="bi bi-pencil-square"></i> Editar Perfil
-            </a>
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left-circle"></i> Volver a la Lista
-            </a>
+                <div class="mb-0">
+                    <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Formación Académica</h6>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="small text-muted fw-bold">Institución / Universidad</label>
+                            <div class="fs-6 text-dark">
+                                <i class="fas fa-university text-secondary me-2"></i>
+                                @(string.IsNullOrEmpty(Model.Institucion) ? "No especificada" : Model.Institucion)
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-muted fw-bold">Año de Graduación</label>
+                            <div class="fs-6 text-dark">
+                                <i class="fas fa-graduation-cap text-secondary me-2"></i>
+                                @(Model.AnioGraduacion.HasValue? Model.AnioGraduacion.Value.ToString() : "--")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* <div class="card-footer bg-white text-end py-3 border-top-0">
+                <button onclick="confirmarEliminar(@Model.Id)" class="btn btn-sm btn-outline-danger border-0">
+                    <i class="fas fa-trash-alt me-2"></i> Dar de baja odontólogo
+                </button>
+            </div> *@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function confirmarEliminar(id) {
+            Swal.fire({
+                title: '¿Dar de baja?',
+                text: "El odontólogo perderá acceso al sistema.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                     window.location.href = '@Url.Action("Delete")/' + id;
+                }
+            })
+        }
+    </script>
+}

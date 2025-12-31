@@ -1,4 +1,105 @@
-﻿@model Proyecto_DentalNova.Models.PacienteViewModel.PacienteVM;
+﻿@model Proyecto_DentalNova.Models.PacienteViewModel.PacienteVM
+
+@{
+    ViewData["Title"] = "Nuevo Paciente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-0">Registrar Expediente</h2>
+                <p class="text-muted mb-0">Complete la información clínica inicial.</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Verifique los datos ingresados.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <partial name="_PacienteFormulario" />
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pb-5">
+                <a asp-action="Index" class="btn btn-light border px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                    <i class="fas fa-save me-2"></i> Guardar Expediente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+
+            // 1. Inicializar Select2 con tema Bootstrap 5
+            $('.select2-usuario').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Escriba para buscar usuario...',
+                width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style', // Asegura que tome el ancho del input-group
+            });
+
+            // 2. Lógica de Cálculo de Edad (Optimizada)
+            const usuarioSelect = $('#usuarioSelect');
+            const edadInput = $('#edadInput');
+
+            function calculateAge(birthDateString) {
+                if (!birthDateString) return '';
+
+                const birthDate = new Date(birthDateString);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+
+            // Evento Change (Funciona tanto para clic normal como para Select2)
+            usuarioSelect.on('change', function () {
+                const selectedOption = $(this).find('option:selected');
+                const fechaNacimiento = selectedOption.data('fecha-nacimiento');
+
+                if(fechaNacimiento) {
+                    const edad = calculateAge(fechaNacimiento);
+                    edadInput.val(edad);
+
+                    // Efecto visual para indicar que se actualizó
+                    edadInput.addClass('bg-white').removeClass('bg-light');
+                    setTimeout(() => edadInput.addClass('bg-light').removeClass('bg-white'), 500);
+                } else {
+                    edadInput.val('');
+                }
+            });
+
+            // Disparar al inicio por si hay valor seleccionado (Re-render de validación fallida)
+            if(usuarioSelect.val()) {
+                usuarioSelect.trigger('change');
+            }
+        });
+    </script>
+}
+
+@* @model Proyecto_DentalNova.Models.PacienteViewModel.PacienteVM;
 
 @{
     ViewData["Title"] = "Crear Nuevo Paciente";
@@ -11,6 +112,7 @@
     <div class="col-12">
         <form asp-action="Create" method="post">
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
             <partial name="_PacienteFormulario" />
 
             <div class="form-group mt-4">
@@ -66,4 +168,4 @@
             });
         });
     </script>
-}
+}  *@

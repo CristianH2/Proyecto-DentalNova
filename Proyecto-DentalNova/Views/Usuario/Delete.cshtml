@@ -1,41 +1,60 @@
-﻿@model DentalNova.Core.Repository.Entities.Usuario
+﻿@model DentalNova.Core.Dtos.UsuarioAdminDto
 
 @{
     ViewData["Title"] = "Eliminar Usuario";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow border-danger">
-            <div class="card-header bg-danger text-white text-center">
-                <h2 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Eliminación</h2>
-            </div>
-            <div class="card-body text-center p-4">
-                <p class="lead">¿Estás seguro de que deseas eliminar permanentemente al usuario?</p>
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
 
-                <div class="my-4">
-                    <i class="bi bi-person-x display-1 text-danger"></i>
-                    <h3 class="display-6 mt-3">@Model.Nombre @Model.Apellidos</h3>
-                    <p class="text-muted fs-5">@Model.CorreoElectronico</p>
+        <div class="card shadow border-0 border-top border-danger border-5">
+            <div class="card-body p-5 text-center">
+
+                <div class="mb-4">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex justify-content-center align-items-center mx-auto"
+                         style="width: 100px; height: 100px;">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    </div>
                 </div>
 
-                <div class="alert alert-warning" role="alert">
-                    <i class="bi bi-shield-exclamation"></i> <strong>Atención:</strong> Esta acción es irreversible. Todos los datos asociados a este usuario se perderán.
+                <h2 class="fw-bold text-dark">¿Estás seguro?</h2>
+                <p class="text-muted mb-4">Esta acción eliminará permanentemente al siguiente usuario:</p>
+
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="bg-white border rounded-circle d-flex justify-content-center align-items-center me-3"
+                             style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            <i class="fas fa-user text-muted"></i>
+                        </div>
+                        <div class="text-start">
+                            <h5 class="fw-bold mb-0 text-dark">@Model.Nombre @Model.Apellidos</h5>
+                            <small class="text-muted">@Model.CorreoElectronico</small>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="card-footer text-end bg-light p-3">
-                <form asp-action="Delete" method="post">
+
+                <div class="alert alert-danger d-flex align-items-start small text-start">
+                    <i class="fas fa-info-circle me-2 mt-1 flex-shrink-0"></i>
+                    <div>
+                        <strong>Atención:</strong> Esta operación es irreversible. Se perderá el acceso al sistema y el historial de acciones asociadas.
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post" class="mt-4 d-grid gap-2">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
 
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash"></i> Sí, Eliminar Usuario
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold shadow-sm">
+                        <i class="fas fa-trash-alt me-2"></i> Sí, Eliminar Usuario
                     </button>
+
+                    <a asp-action="Index" class="btn btn-light text-muted border">
+                        Cancelar y Volver
+                    </a>
                 </form>
+
             </div>
         </div>
+
     </div>
 </div>

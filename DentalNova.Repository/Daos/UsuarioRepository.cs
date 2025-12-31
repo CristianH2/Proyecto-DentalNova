@@ -29,6 +29,23 @@ namespace DentalNova.Repository.Daos
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task ActualizarUsuarioAdminAsync(Usuario usuario, bool actualizarPassword)
+        {
+            if (actualizarPassword)
+            {
+                // Actualiza la entidad completa, incluyendo la contraseña hasheada
+                _context.Usuarios.Update(usuario);
+            }
+            else
+            {
+                // Actualiza la entidad pero le dice a EF que ignore el campo 'Password'
+                _context.Entry(usuario).State = EntityState.Modified;
+                _context.Entry(usuario).Property(u => u.Password).IsModified = false;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         /// <summary>
         /// Actualiza la contraseña utilizando un ID y la nueva contraseña
         /// </summary>
@@ -76,6 +93,67 @@ namespace DentalNova.Repository.Daos
             return await _context.Usuarios
                         .Include(u => u.Roles)
                         .FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        // --- Métodos para Admin MVC ---
+
+        /// <summary>
+        /// Proporciona la consulta base (IQueryable) para el filtrado,
+        /// usando AsNoTracking() para un rendimiento de lectura óptimo.
+        /// (Mueve la lógica de UsuarioController.Index)
+        /// </summary>
+        public IQueryable<Usuario> ObtenerQueryableParaFiltro()
+        {
+            // AsNoTracking es crucial para las listas de solo lectura
+            return _context.Usuarios.AsNoTracking();
+        }
+
+        /// <summary>
+        /// Elimina un usuario por su ID.
+        /// (Mueve la lógica de UsuarioController.DeleteConfirmed)
+        /// </summary>
+        public async Task EliminarAsync(int id)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario != null)
+            {
+                _context.Usuarios.Remove(usuario);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        /// <summary>
+        /// Verifica si un email ya existe, opcionalmente excluyendo un ID de usuario (para editar).
+        /// (Mueve la lógica de UsuarioController.Create/Edit)
+        /// </summary>
+        public async Task<bool> EmailYaExisteAsync(string email, int? usuarioId = null)
+        {
+            var query = _context.Usuarios.AsNoTracking();
+
+            if (usuarioId.HasValue)
+            {
+                // Para el caso de "Edit", excluye al usuario actual de la búsqueda
+                query = query.Where(u => u.Id != usuarioId.Value);
+            }
+
+            return await query.AnyAsync(u => u.CorreoElectronico == email);
+        }
+
+        /// <summary>
+        /// Verifica si una CURP ya existe, opcionalmente excluyendo un ID de usuario (para editar).
+        /// (Mueve la lógica de UsuarioController.Create/Edit)
+        /// </summary>
+        public async Task<bool> CurpYaExisteAsync(string curp, int? usuarioId = null)
+        {
+            var query = _context.Usuarios.AsNoTracking();
+
+            if (usuarioId.HasValue)
+            {
+                // Para el caso de "Edit", excluye al usuario actual de la búsqueda
+                query = query.Where(u => u.Id != usuarioId.Value);
+            }
+
+            return await query.AnyAsync(u => u.CURP == curp);
         }
     }
 }

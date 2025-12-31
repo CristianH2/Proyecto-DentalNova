@@ -1,11 +1,11 @@
-﻿using DentalNova.Core.Helpers;
-using DentalNova.Core.Repository.Entities;
+﻿using DentalNova.Core.Dtos;
+using DentalNova.Core.Helpers;
 
 namespace Proyecto_DentalNova.Models.TratamientoViewModel
 {
     public class TratamientoIndexViewModel
     {
         public TratamientoFilterViewModel Filtro { get; set; } = new();
-        public PaginatedList<Tratamiento>? Resultados { get; set; }
+        public PaginatedList<TratamientoDto>? Resultados { get; set; }
     }
 }

@@ -1,4 +1,61 @@
-﻿@model Proyecto_DentalNova.Models.PacienteViewModel.PacienteVM;
+﻿@model Proyecto_DentalNova.Models.PacienteViewModel.PacienteVM
+
+@{
+    ViewData["Title"] = "Editar Expediente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-0">Editar Expediente</h2>
+                <p class="text-muted mb-0">Actualizando datos clínicos.</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Paciente.Id" />
+            <input type="hidden" asp-for="Paciente.UsuarioId" /> <partial name="_PacienteFormulario" model="Model" />
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pb-5">
+                <a asp-action="Index" class="btn btn-light border px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                    <i class="fas fa-sync-alt me-2"></i> Actualizar Datos
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            // Inicializar Select2
+            $('.select2-usuario').select2({
+                theme: 'bootstrap-5',
+                width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+            });
+
+            // Opcional: Deshabilitar el cambio de usuario en Edición para evitar errores de integridad
+            $('#usuarioSelect').prop('disabled', true);
+
+            // Recalcular edad visualmente al cargar (Aunque venga de BD, es bueno refrescarla)
+            // Reutilizamos la lógica de Create si es necesario, o confiamos en el valor del Model
+        });
+    </script>
+}
+
+@* @model Proyecto_DentalNova.Models.PacienteViewModel.PacienteVM;
 
 
 @{
@@ -12,9 +69,10 @@
     <div class="col-12">
         <form asp-action="Edit" method="post">
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
             <input type="hidden" asp-for="Paciente.Id" />
             <input type="hidden" asp-for="Paciente.UsuarioId" />
-            <input type="hidden" asp-for="Paciente.FechaCreacion" />
+            @* <input type="hidden" asp-for="Paciente.FechaCreacion" /> *-@
 
             <partial name="_PacienteFormulario" model="Model" />
 
@@ -70,4 +128,4 @@
             });
         });
     </script>
-}
+} *@

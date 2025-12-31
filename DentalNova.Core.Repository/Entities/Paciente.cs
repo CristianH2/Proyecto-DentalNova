@@ -17,10 +17,13 @@ namespace DentalNova.Core.Repository.Entities
         // * Checkboxes * 
         [DisplayName("¿Tiene alergias?")]
         public bool ConAlergias { get; set; }
+
         [DisplayName("¿Tiene enfermedades crónicas?")]
         public bool ConEnfermedadesCronicas { get; set; }
+
         [DisplayName("¿Toma medicamentos actuales?")]
         public bool ConMedicamentosActuales { get; set; }
+
         [DisplayName("¿Tiene antecedentes familiares?")]
         public bool ConAntecedentesFamiliares { get; set; }
 

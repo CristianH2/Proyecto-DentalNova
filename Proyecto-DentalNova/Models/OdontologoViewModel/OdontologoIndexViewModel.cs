@@ -1,11 +1,11 @@
-﻿using DentalNova.Core.Helpers;
-using DentalNova.Core.Repository.Entities;
+﻿using DentalNova.Core.Dtos;
+using DentalNova.Core.Helpers;
 
 namespace Proyecto_DentalNova.Models.OdontologoViewModel
 {
     public class OdontologoIndexViewModel
     {
         public OdontologoFilterViewModel Filtro { get; set; } = new();
-        public PaginatedList<Odontologo>? Resultados { get; set; }
+        public PaginatedList<OdontologoDto>? Resultados { get; set; }
     }
 }

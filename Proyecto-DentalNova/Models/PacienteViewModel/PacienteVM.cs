@@ -1,16 +1,14 @@
-﻿using DentalNova.Core.Repository.Entities;
+﻿using DentalNova.Core.Dtos;
 
 namespace Proyecto_DentalNova.Models.PacienteViewModel
 {
-    public record UsuarioDisponible(int Id, string Texto, DateTime? FechaNacimiento);
+    //public record UsuarioDisponible(int Id, string Texto, DateTime? FechaNacimiento);
     public class PacienteVM
     {
-        // 1. Contiene la instancia del Paciente que se está creando o editando.
-        public Paciente Paciente { get; set; } = new();
+        // Usamos el DTO de Entrada en lugar de la Entidad
+        public PacienteAdminDtoIn Paciente { get; set; } = new();
 
-        // 2. Lista para poblar el DropDownList de Usuarios.
-        //    Esta lista se llenará en el controlador solo con los usuarios
-        //    que todavía no están asignados a otro paciente.
-        public IEnumerable<UsuarioDisponible> UsuariosDisponibles { get; set; } = new List<UsuarioDisponible>();
+        // 2. Usamos el DTO de usuarios disponibles que viene de la API
+        public List<UsuarioDisponibleDto> UsuariosDisponibles { get; set; } = new List<UsuarioDisponibleDto>();
     }
 }

@@ -1,97 +1,116 @@
 ﻿@model Proyecto_DentalNova.Models.TratamientoViewModel.TratamientoIndexViewModel
 
 @{
-    ViewData["Title"] = "Gestión de Tratamientos";
+    ViewData["Title"] = "Catálogo de Tratamientos";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>@ViewData["Title"]</h1>
-<hr />
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark">@ViewData["Title"]</h2>
+        <p class="text-muted mb-0">Administración de precios y servicios clínicos.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus-circle me-2"></i> Nuevo Tratamiento
+    </a>
+</div>
 
-<div class="row g-3">
+<div class="row g-4">
+
     <div class="col-12 col-xl-3">
-        <div class="card shadow-sm">
-            <div class="card-header d-flex align-items-center"><i class="bi bi-funnel-fill me-2"></i><strong>Filtro de Búsqueda</strong></div>
+        <div class="card shadow-sm border-0 sticky-top" style="top: 1rem; z-index: 100;">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Buscar Servicio</h6>
+            </div>
             <div class="card-body">
                 <form method="get" class="vstack gap-3">
+
                     <div>
-                        <label asp-for="Filtro.Id" class="form-label"></label>
-                        <input asp-for="Filtro.Id" class="form-control" />
+                        <label asp-for="Filtro.Id" class="form-label small fw-bold text-muted text-uppercase">Código ID</label>
+                        <input asp-for="Filtro.Id" class="form-control" placeholder="#" />
                     </div>
+
                     <div>
-                        <label asp-for="Filtro.NombreLike" class="form-label"></label>
-                        <input asp-for="Filtro.NombreLike" class="form-control" placeholder="Contiene..." />
-                    </div>
-                    <div class="row g-2">
-                        <div class="col">
-                            <label asp-for="Filtro.CostoMin" class="form-label"></label>
-                            <input asp-for="Filtro.CostoMin" class="form-control" type="number" step="0.01" />
-                        </div>
-                        <div class="col">
-                            <label asp-for="Filtro.CostoMax" class="form-label"></label>
-                            <input asp-for="Filtro.CostoMax" class="form-control" type="number" step="0.01" />
+                        <label asp-for="Filtro.NombreLike" class="form-label small fw-bold text-muted text-uppercase">Nombre / Descripción</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input asp-for="Filtro.NombreLike" class="form-control border-start-0" placeholder="Ej. Ortodoncia..." />
                         </div>
                     </div>
-                    <div class="row g-2">
-                        <div class="col">
-                            <label asp-for="Filtro.DuracionMin" class="form-label"></label>
-                            <input asp-for="Filtro.DuracionMin" class="form-control" type="number" />
-                        </div>
-                        <div class="col">
-                            <label asp-for="Filtro.DuracionMax" class="form-label"></label>
-                            <input asp-for="Filtro.DuracionMax" class="form-control" type="number" />
-                        </div>
-                    </div>
+
                     <div>
-                        <label class="form-label d-block">Estado</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="Filtro.Activo" value="" id="estadoTodos" @(Model.Filtro.Activo == null ? "checked" : null) />
-                            <label class="form-check-label" for="estadoTodos">Todos</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="Filtro.Activo" value="true" id="estadoActivo" @(Model.Filtro.Activo == true ? "checked" : null) />
-                            <label class="form-check-label" for="estadoActivo">Activo</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="Filtro.Activo" value="false" id="estadoInactivo" @(Model.Filtro.Activo == false ? "checked" : null) />
-                            <label class="form-check-label" for="estadoInactivo">Inactivo</label>
+                        <label class="form-label small fw-bold text-muted text-uppercase">Rango de Costo ($)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">$</span>
+                            <input asp-for="Filtro.CostoMin" class="form-control" type="number" step="0.01" placeholder="Min" min="0" />
+                            <input asp-for="Filtro.CostoMax" class="form-control" type="number" step="0.01" placeholder="Max" min="0" />
                         </div>
                     </div>
-                    <div class="d-grid gap-2 mt-2">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Aplicar Filtro</button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+
+                    <div>
+                        <label class="form-label small fw-bold text-muted text-uppercase">Duración (Días)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="far fa-clock"></i></span>
+                            <input asp-for="Filtro.DuracionMin" class="form-control" type="number" placeholder="Min" step="1" min="0" />
+                            <input asp-for="Filtro.DuracionMax" class="form-control" type="number" placeholder="Max" step="1" min="0" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label small fw-bold text-muted text-uppercase d-block mb-2">Disponibilidad</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="Filtro.Activo" value="" id="estadoTodos" @(Model.Filtro.Activo == null ? "checked" : "") autocomplete="off">
+                            <label class="btn btn-outline-secondary" for="estadoTodos">Todos</label>
+
+                            <input type="radio" class="btn-check" name="Filtro.Activo" value="true" id="estadoActivo" @(Model.Filtro.Activo == true ? "checked" : "") autocomplete="off">
+                            <label class="btn btn-outline-success" for="estadoActivo">Activos</label>
+
+                            <input type="radio" class="btn-check" name="Filtro.Activo" value="false" id="estadoInactivo" @(Model.Filtro.Activo == false ? "checked" : "") autocomplete="off">
+                            <label class="btn btn-outline-danger" for="estadoInactivo">Inactivos</label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-search me-2"></i> Filtrar</button>
+                        <a asp-action="Index" class="btn btn-light text-muted border">Limpiar</a>
                     </div>
                 </form>
-                <hr />
-                <a class="btn btn-success w-100" asp-action="Create"><i class="bi bi-plus-circle"></i> Crear Nuevo Tratamiento</a>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-xl-9">
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center"><span>Resultados (@Model.Resultados?.TotalCount ?? 0)</span></div>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">Tratamientos Disponibles</h6>
+                <span class="badge bg-primary rounded-pill">@Model.Resultados?.TotalCount</span>
+            </div>
+
             <div class="card-body p-0">
                 <form method="get" class="m-0 p-0">
+                    @Html.AntiForgeryToken()
                     @foreach (var prop in Model.Filtro.GetType().GetProperties())
                     {
                         var value = prop.GetValue(Model.Filtro);
-                        if (value != null)
+                        if (value != null && prop.Name != "Page" && prop.Name != "PageSize" && prop.Name != "Activo")
                         {
                             <input type="hidden" name="Filtro.@prop.Name" value="@value" />
                         }
                     }
+                    @if (Model.Filtro.Activo.HasValue)
+                    {
+                        <input type="hidden" name="Filtro.Activo" value="@Model.Filtro.Activo.Value.ToString().ToLower()" />
+                    }
 
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
+                                    <th class="ps-4">Tratamiento</th>
                                     <th>Costo</th>
-                                    <th>Duración</th>
+                                    <th>Duración Est.</th>
                                     <th>Estado</th>
-                                    <th class="text-center">Acciones</th>
+                                    <th class="text-end pe-4">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,31 +119,63 @@
                                     foreach (var item in Model.Resultados)
                                     {
                                         <tr>
-                                            <td>@item.Id</td>
-                                            <td>
-                                                <strong>@item.Nombre</strong>
-                                                <p class="text-muted small mb-0">@item.Descripcion</p>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-info bg-opacity-10 text-info rounded p-2 me-3">
+                                                        <i class="fas fa-briefcase-medical fa-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold text-dark">@item.Nombre</div>
+                                                        <small class="text-muted d-block text-truncate" style="max-width: 250px;">
+                                                            @item.Descripcion
+                                                        </small>
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td>@item.Costo.ToString("C")</td>
-                                            <td>@item.DuracionDias días</td>
+
+                                            <td>
+                                                <span class="fw-bold text-success">
+                                                    @item.Costo.ToString("C")
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <span class="badge bg-light text-dark border fw-normal">
+                                                    <i class="far fa-clock me-1"></i> @item.DuracionDias días
+                                                </span>
+                                            </td>
+
                                             <td>
                                                 @if (item.Activo)
                                                 {
-                                                    <span class="badge bg-success">Activo</span>
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3">
+                                                        <i class="fas fa-check-circle me-1"></i> Activo
+                                                    </span>
                                                 }
                                                 else
                                                 {
-
-                                                    <span class="badge bg-danger">Inactivo</span>
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3">
+                                                        <i class="fas fa-ban me-1"></i> Inactivo
+                                                    </span>
                                                 }
                                             </td>
-                                            <td class="text-center">
-                                                <div class="btn-group" role="group">
-                                                    <a class="btn btn-sm btn-secondary" asp-action="Details" asp-route-id="@item.Id" title="Detalles"><i class="bi bi-eye"></i></a>
-                                                    <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@item.Id" title="Editar"><i class="bi bi-pencil-square"></i></a>
-                                                    <a class="btn btn-sm @(item.Activo ? "btn-danger" : "btn-success")" asp-action="ToggleActivo" asp-route-id="@item.Id" title="@(item.Activo ? "Desactivar" : "Activar")">
-                                                        <i class="bi @(item.Activo ? "bi-toggle-off" : "bi-toggle-on")"></i>
+
+                                            <td class="text-end pe-4">
+                                                <div class="btn-group">
+                                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id" title="Detalles" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-eye"></i>
                                                     </a>
+                                                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.Id" title="Editar" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-pen"></i>
+                                                    </a>
+
+                                                    <button type="button"
+                                                            onclick="confirmarCambioEstado(@item.Id, '@Html.Raw(item.Nombre)', @item.Activo.ToString().ToLower())"
+                                                            class="btn btn-sm @(item.Activo ? "btn-outline-danger" : "btn-outline-success")"
+                                                            title="@(item.Activo ? "Desactivar" : "Activar")"
+                                                            data-bs-toggle="tooltip">
+                                                        <i class="fas @(item.Activo ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -132,14 +183,16 @@
                                 }
                                 else
                                 {
-                                    <tr><td colspan="6" class="text-center text-muted p-4">No se encontraron resultados.</td></tr>
+                                    <tr><td colspan="5" class="text-center py-5 text-muted">No se encontraron tratamientos.</td></tr>
                                 }
                             </tbody>
                         </table>
                     </div>
                     @if (Model.Resultados != null && Model.Resultados.Any())
                     {
-                        <div class="p-3">@await Html.PartialAsync("_Pagination", Model.Resultados)</div>
+                        <div class="card-footer bg-white border-top-0 py-3">
+                            @await Html.PartialAsync("_Pagination", Model.Resultados)
+                        </div>
                     }
                 </form>
             </div>
@@ -147,78 +200,65 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        // Inicializar Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
 
+        // Función SweetAlert para Cambiar Estado
+        function confirmarCambioEstado(id, nombre, esActivo) {
 
+            // Definir textos y colores según si vamos a Activar o Desactivar
+            const titulo = esActivo ? '¿Desactivar Tratamiento?' : '¿Activar Tratamiento?';
+            const texto = esActivo
+                ? `El tratamiento "${nombre}" dejará de estar visible para nuevas citas.`
+                : `El tratamiento "${nombre}" estará disponible nuevamente.`;
+            const icon = esActivo ? 'warning' : 'question';
+            const confirmBtnColor = esActivo ? '#dc3545' : '#198754'; // Rojo o Verde
+            const confirmBtnText = esActivo ? 'Sí, desactivar' : 'Sí, activar';
 
+            Swal.fire({
+                title: titulo,
+                text: texto,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: confirmBtnColor,
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: confirmBtnText,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Enviar formulario POST dinámico
+                    var form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = '@Url.Action("ToggleActivo")'; // Asegúrate que esta acción exista en tu controlador
 
-@* @model IEnumerable<DentalNova.Core.Entities.Tratamiento>
+                    // Input ID
+                    var inputId = document.createElement('input');
+                    inputId.type = 'hidden';
+                    inputId.name = 'id';
+                    inputId.value = id;
+                    form.appendChild(inputId);
 
-@{
-    ViewData["Title"] = "Gestión de Tratamientos";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
+                    // Token Antiforgery (Importante para seguridad)
+                    var inputToken = document.createElement('input');
+                    inputToken.type = 'hidden';
+                    inputToken.name = '__RequestVerificationToken';
 
-<div class="row mb-3">
-    <div class="col-6">
-        <h1>@ViewData["Title"]</h1>
-    </div>
-    <div class="col-6 text-end">
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Crear Nuevo Tratamiento
-        </a>
-    </div>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover table-striped">
-                <thead class="table-light">
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Costo</th>
-                        <th>Duración</th>
-                        <th>Estado</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td>
-                                <strong>@item.Nombre</strong>
-                                <p class="text-muted small mb-0">@item.Descripcion</p>
-                            </td>
-                            <td>@item.Costo.ToString("C")</td>
-                            <td>@item.DuracionDias días</td>
-                            <td>
-                                @if (item.Activo)
-                                {
-                                    <span class="badge bg-success">Activo</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Inactivo</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
-                                    <a class="btn btn-sm btn-secondary" asp-action="Details" asp-route-id="@item.Id" title="Detalles">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@item.Id" title="Editar">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a class="btn btn-sm @(item.Activo ? "btn-danger" : "btn-success")" asp-action="ToggleActivo" asp-route-id="@item.Id" title="@(item.Activo ? "Desactivar" : "Activar")">
-                                        <i class="bi @(item.Activo ? "bi-toggle-off" : "bi-toggle-on")"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
+                    // Intentamos obtener el valor de un token existente en la página
+                    var existingToken = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if(existingToken) {
+                        inputToken.value = existingToken.value;
+                        form.appendChild(inputToken);
                     }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div> *@
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            })
+        }
+    </script>
+}

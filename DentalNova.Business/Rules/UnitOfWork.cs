@@ -15,13 +15,15 @@ namespace DentalNova.Business.Rules
         public IArticuloBL Articulo { get; }
         public IPacienteBL Paciente { get; }
         public ICitaBL Cita { get; }
+        public IOdontologoBL Odontologo { get; }
 
         public UnitOfWork(
             ITratamientoBL tratamientoBL, 
             IUsuarioBL usuarioBL,
             IArticuloBL articuloBL,
             IPacienteBL pacienteBL,
-            ICitaBL citaBL
+            ICitaBL citaBL,
+            IOdontologoBL odontologoBL
             )
         {
             Tratamiento = tratamientoBL;
@@ -29,6 +31,7 @@ namespace DentalNova.Business.Rules
             Articulo = articuloBL;
             Paciente = pacienteBL;
             Cita = citaBL;
+            Odontologo = odontologoBL;
         }
     }
 }

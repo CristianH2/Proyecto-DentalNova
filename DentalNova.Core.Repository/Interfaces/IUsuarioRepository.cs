@@ -14,5 +14,12 @@ namespace DentalNova.Core.Repository.Interfaces
         Task<Usuario> ObtenerPorIdAsync(int id);
         Task<bool> ActualizarPasswordAsync(int id, string nuevoPasswordHash);
         Task<bool> ActualizarAsync(Usuario usuario);
+
+        // --- Métodos para Admin MVC ---
+        IQueryable<Usuario> ObtenerQueryableParaFiltro();
+        Task EliminarAsync(int id);
+        Task<bool> EmailYaExisteAsync(string email, int? usuarioId = null);
+        Task<bool> CurpYaExisteAsync(string curp, int? usuarioId = null);
+        Task ActualizarUsuarioAdminAsync(Usuario usuario, bool actualizarPassword);
     }
 }

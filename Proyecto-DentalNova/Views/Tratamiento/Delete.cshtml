@@ -1,46 +1,65 @@
-﻿@model DentalNova.Core.Repository.Entities.Tratamiento
+﻿@model DentalNova.Core.Dtos.TratamientoDto
 
 @{
-    bool isActivating = !Model.Activo;
-    ViewData["Title"] = isActivating ? "Activar Tratamiento" : "Desactivar Tratamiento";
-    string cardClass = isActivating ? "border-success" : "border-danger";
-    string headerClass = isActivating ? "bg-success" : "bg-danger";
-    string iconClass = isActivating ? "bi-toggle-on" : "bi-toggle-off";
-    string buttonClass = isActivating ? "btn-success" : "btn-danger";
+    ViewData["Title"] = "Eliminar Servicio";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow @cardClass">
-            <div class="card-header @headerClass text-white text-center">
-                <h2 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Cambio de Estado</h2>
-            </div>
-            <div class="card-body text-center p-4">
-                <p class="lead">¿Estás seguro de que deseas @(isActivating ? "activar" : "desactivar") el siguiente tratamiento?</p>
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
 
-                <div class="my-4">
-                    <i class="bi @iconClass display-1 @(isActivating ? "text-success" : "text-danger")"></i>
-                    <h3 class="display-6 mt-3">@Model.Nombre</h3>
+        <div class="card shadow border-0 border-top border-danger border-5">
+            <div class="card-body p-5 text-center">
+
+                <div class="mb-4">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex justify-content-center align-items-center mx-auto"
+                         style="width: 100px; height: 100px;">
+                        <i class="fas fa-eraser fa-3x"></i>
+                    </div>
                 </div>
 
-                <div class="alert alert-warning" role="alert">
-                    <i class="bi bi-info-circle"></i> <strong>Nota:</strong> Al @(isActivating ? "activar" : "desactivar") este tratamiento, @(isActivating ? "estará disponible para" : "ya no estará disponible para") nuevas citas.
+                <h2 class="fw-bold text-dark">¿Eliminar del Catálogo?</h2>
+                <p class="text-muted mb-4">Esta acción retirará permanentemente el siguiente servicio:</p>
+
+                <div class="card bg-light border-0 mb-4 text-start">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="bg-white text-info rounded-circle d-flex justify-content-center align-items-center me-3 fw-bold flex-shrink-0 shadow-sm"
+                             style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            <i class="fas fa-tooth"></i>
+                        </div>
+
+                        <div class="overflow-hidden w-100">
+                            <h5 class="fw-bold mb-0 text-dark text-truncate">@Model.Nombre</h5>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span class="badge bg-dark font-monospace rounded-pill">ID: #@Model.Id</span>
+                                <span class="fw-bold text-success small">@Model.Costo.ToString("C")</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="card-footer text-end bg-light p-3">
-                <form asp-action="ToggleActivo" method="post">
+
+                <div class="alert alert-danger d-flex align-items-start small text-start">
+                    <i class="fas fa-exclamation-triangle me-2 mt-1 flex-shrink-0"></i>
+                    <div>
+                        <strong>Advertencia:</strong> El tratamiento dejará de estar disponible para futuras citas. El historial de citas pasadas se conservará por integridad de datos.
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post" class="mt-4 d-grid gap-2">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
 
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Cancelar
-                    </a>
-                    <button type="submit" class="btn @buttonClass">
-                        <i class="bi @iconClass"></i> Sí, @(isActivating ? "Activar" : "Desactivar")
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold shadow-sm">
+                        <i class="fas fa-trash-alt me-2"></i> Confirmar Eliminación
                     </button>
+
+                    <a asp-action="Index" class="btn btn-light text-muted border">
+                        Cancelar
+                    </a>
                 </form>
+
             </div>
         </div>
+
     </div>
 </div>

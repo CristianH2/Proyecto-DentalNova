@@ -1,0 +1,53 @@
+﻿@model DentalNova.Core.Dtos.InicioDeSesionDto
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center py-3 rounded-top">
+                    <h3 class="mb-0"><i class="bi bi-shield-lock-fill"></i> Acceso</h3>
+                    <small>DentalNova Administración</small>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Login" method="post">
+
+                        @* Muestra errores generales (ej. "Credenciales inválidas") *@
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Correo" class="form-control" placeholder="nombre@ejemplo.com" />
+                            <label asp-for="Correo"><i class="bi bi-envelope"></i> Correo Electrónico</label>
+                            <span asp-validation-for="Correo" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Contraseña" />
+                            <label asp-for="Password"><i class="bi bi-key"></i> Contraseña</label>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Iniciar Sesión <i class="bi bi-box-arrow-in-right"></i>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <small class="text-muted">¿No tienes cuenta? Contacta al administrador.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -2,6 +2,242 @@
 
 @{
     ViewData["Title"] = "Agenda de Citas";
+}
+
+@section Styles {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <style>
+        /* Ajuste para que el calendario se vea bien con Bootstrap */
+        .fc-event {
+            cursor: pointer;
+            border: none;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.25rem !important;
+            text-transform: capitalize;
+        }
+        /* Colores de estado personalizados */
+        .bg-cita-confirmada {
+            background-color: #198754 !important;
+            border-left: 4px solid #0f5132 !important;
+        }
+
+        .bg-cita-pendiente {
+            background-color: #ffc107 !important;
+            color: #000;
+            border-left: 4px solid #ba8b00 !important;
+        }
+
+        .bg-cita-cancelada {
+            background-color: #dc3545 !important;
+            border-left: 4px solid #842029 !important;
+        }
+    </style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold text-dark mb-0">Agenda Clínica</h2>
+
+    <div class="d-flex align-items-center gap-2">
+        <label class="fw-bold text-muted small mb-0">Ver agenda de:</label>
+        <select class="form-select form-select-sm" style="width: 200px;">
+            <option value="0">Todos los Odontólogos</option>
+            <option value="1">Dr. Juan Pérez</option>
+            <option value="2">Dra. Ana Gómez</option>
+        </select>
+        <button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#modalCita">
+            <i class="fas fa-plus"></i> Nueva
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 h-100">
+    <div class="card-body p-0">
+        <div id="calendar" style="min-height: 800px;"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitulo">Agendar Cita</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCita">
+                    <input type="hidden" id="citaId" name="Id" value="0">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Paciente</label>
+                        <select class="form-select select2-modal" id="selectPaciente" style="width:100%">
+                            <option></option>
+                            <option value="1">Juan Pérez</option>
+                            <option value="2">Maria Rodriguez</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="citaFecha" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Hora Inicio</label>
+                            <input type="time" class="form-control" id="citaHora" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Odontólogo</label>
+                        <select class="form-select" id="selectOdontologo">
+                            <option value="1">Dr. Juan Pérez (Ortodoncia)</option>
+                            <option value="2">Dra. Ana Gómez (General)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Motivo / Tratamiento</label>
+                        <textarea class="form-control" rows="2" placeholder="Ej. Limpieza general, dolor de muela..."></textarea>
+                    </div>
+
+                    <div class="mb-3" id="divEstado" style="display:none;">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Confirmada">Confirmada</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardar">Guardar Cita</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+
+            // 1. Configuración de FullCalendar
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek', // Vista semanal por defecto
+                locale: 'es',               // Idioma Español
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                slotMinTime: '08:00:00', // La clínica abre a las 8 AM
+                slotMaxTime: '20:00:00', // Cierra a las 8 PM
+                allDaySlot: false,       // Ocultar fila de "Todo el día"
+                hiddenDays: [0],         // Ocultar Domingos (0) si la clínica cierra ese día
+                height: 'auto',
+                navLinks: true,          // Click en día lleva a la vista diaria
+                editable: true,          // Permite arrastrar (Drag & Drop)
+                selectable: true,        // Permite seleccionar huecos vacíos
+
+                // 2. Eventos (Datos Simulados - Esto vendrá de tu API)
+                events: [
+                    {
+                        id: '1',
+                        title: 'Limpieza - Juan P.',
+                        start: '2025-12-29T10:00:00', // FECHA FUTURA FIJA PARA EL EJEMPLO (Ajustar a fecha actual para verla)
+                        end: '2025-12-29T11:00:00',
+                        className: 'bg-cita-confirmada', // Clase CSS personalizada
+                        extendedProps: { doctor: 'Dr. Juan', description: 'Limpieza semestral' }
+                    },
+                    {
+                        id: '2',
+                        title: 'Extracción - Maria R.',
+                        start: '2025-12-30T14:30:00',
+                        end: '2025-12-30T15:30:00',
+                        className: 'bg-cita-pendiente',
+                        extendedProps: { doctor: 'Dra. Ana', description: 'Muela del juicio' }
+                    }
+                ],
+
+                // 3. Al hacer clic en un hueco vacío (Crear)
+                dateClick: function(info) {
+                    // Limpiar formulario
+                    $('#formCita')[0].reset();
+                    $('#citaId').val(0);
+                    $('#modalTitulo').text("Nueva Cita");
+                    $('#divEstado').hide();
+
+                    // Pre-llenar fecha y hora seleccionada
+                    // info.dateStr viene como "2023-10-25T10:00:00"
+                    let fecha = info.dateStr.split('T')[0];
+                    let hora = info.dateStr.split('T')[1].substring(0,5);
+
+                    $('#citaFecha').val(fecha);
+                    $('#citaHora').val(hora);
+
+                    // Abrir Modal
+                    var myModal = new bootstrap.Modal(document.getElementById('modalCita'));
+                    myModal.show();
+                },
+
+                // 4. Al hacer clic en un evento existente (Editar)
+                eventClick: function(info) {
+                    var evento = info.event;
+
+                    // Llenar formulario con datos del evento
+                    $('#citaId').val(evento.id);
+                    $('#modalTitulo').text("Editar Cita");
+                    $('#divEstado').show(); // Mostrar select de estado al editar
+
+                    // Simulación de carga de datos...
+                    // En realidad harías una llamada AJAX para obtener los detalles completos del ID
+
+                    var myModal = new bootstrap.Modal(document.getElementById('modalCita'));
+                    myModal.show();
+                },
+
+                // 5. Al arrastrar y soltar (Cambiar hora rápido)
+                eventDrop: function(info) {
+                    Swal.fire({
+                        title: '¿Confirmar cambio?',
+                        text: "La cita de " + info.event.title + " se moverá al " + info.event.start.toLocaleString(),
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, mover',
+                        cancelButtonText: 'Revertir'
+                    }).then((result) => {
+                        if (!result.isConfirmed) {
+                            info.revert(); // Si cancela, la cita vuelve a su lugar original
+                        } else {
+                            // AQUÍ LLAMAS A TU API PARA GUARDAR EL CAMBIO DE HORA
+                            console.log("Nueva fecha enviada al backend: " + info.event.start.toISOString());
+                        }
+                    });
+                }
+            });
+
+            calendar.render();
+
+            // Inicializar Select2 dentro del Modal (requiere un pequeño hack de parent)
+            $('.select2-modal').select2({
+                dropdownParent: $('#modalCita'), // Importante para que funcione en modales
+                theme: 'bootstrap-5',
+                placeholder: "Buscar paciente..."
+            });
+
+            // Simular fecha actual para que veas los eventos de ejemplo si copias y pegas hoy
+            // En producción, quita esto para que use la fecha real
+            // calendar.gotoDate('2025-12-29');
+        });
+    </script>
+}
+@* 
+@{
+    ViewData["Title"] = "Agenda de Citas";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -64,7 +300,7 @@
                     @foreach (var prop in Model.Filtro.GetType().GetProperties().Where(p => !p.Name.Contains("Disponibles")))
                     {
                         var value = prop.GetValue(Model.Filtro);
-                        if (value != null)
+                        if (value != null && prop.Name != "Page" && prop.Name != "PageSize")
                         {
                             <input type="hidden" name="Filtro.@prop.Name" value="@value" />
                         }
@@ -108,7 +344,7 @@
                                 }
                                 else
                                 {
-                                    <tr><td colspan="5" class="text-center text-muted p-4">No se encontraron resultados.</td></tr>
+                                    <tr><td colspan="6" class="text-center text-muted p-4">No se encontraron resultados.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -123,7 +359,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> *@
 
 
 

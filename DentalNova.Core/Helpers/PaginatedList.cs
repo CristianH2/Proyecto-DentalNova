@@ -30,5 +30,12 @@ namespace DentalNova.Core.Helpers
             // Devuelve una nueva instancia de sí misma con los resultados y los datos de paginación.
             return new PaginatedList<T>(items, count, pageIndex, pageSize);
         }
+
+
+        // Crea una PaginatedList a partir de una lista de objetos y metadatos ya existentes (API).
+        public static PaginatedList<T> Create(IEnumerable<T> source, int count, int pageIndex, int pageSize)
+        {
+            return new PaginatedList<T>(source.ToList(), count, pageIndex, pageSize);
+        }
     }
 }

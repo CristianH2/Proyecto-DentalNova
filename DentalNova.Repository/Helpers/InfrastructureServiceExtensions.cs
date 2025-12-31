@@ -30,6 +30,9 @@ namespace DentalNova.Repository.Helpers
             services.AddScoped<ICitaTratamientoRepository, CitaTratamientoRepository>();
             services.AddScoped<IHorarioOdontologoRepository, HorarioOdontologoRepository>();
             services.AddScoped<IOdontologoRepository, OdontologoRepository>();
+            services.AddScoped<IEspecialidadRepository, EspecialidadRepository>();
+
+            services.AddScoped<IRolRepository, RolRepository>();
 
             // "Unidad de Trabajo" del repositorio
             services.AddScoped<IRepository, Repositorio>();

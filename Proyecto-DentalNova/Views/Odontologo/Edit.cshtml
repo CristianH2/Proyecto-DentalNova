@@ -1,24 +1,36 @@
-﻿@model Proyecto_DentalNova.Models.OdontologoViewModel.OdontologoVM;
+﻿@model Proyecto_DentalNova.Models.OdontologoViewModel.OdontologoVM
 
 @{
-    ViewData["Title"] = "Editar Información del Odontólogo";
+    ViewData["Title"] = "Editar Odontólogo";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>@ViewData["Title"]</h1>
-<hr />
-<div class="row">
-    <div class="col-12">
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-0">Editar Perfil Médico</h2>
+                <p class="text-muted mb-0">Actualización de credenciales y especialidades.</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+
         <form asp-action="Edit" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Odontologo.Id" />
-            <input type="hidden" asp-for="Odontologo.UsuarioId" />
+
+          @*   <input type="hidden" asp-for="Odontologo.UsuarioId" /> *@
 
             <partial name="_OdontologoFormulario" model="Model" />
 
-            <div class="form-group mt-4">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar Cambios</button>
-                <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
+            <div class="d-flex justify-content-end gap-2 mt-4 pb-5">
+                <a asp-action="Index" class="btn btn-light border px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                    <i class="fas fa-sync-alt me-2"></i> Guardar Cambios
+                </button>
             </div>
         </form>
     </div>
@@ -28,4 +40,24 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function() {
+            $('.select2-usuario').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar usuario...',
+                width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+            });
+
+            $('.select2-especialidades').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Seleccione especialidades...',
+                width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+                closeOnSelect: false
+            });
+            
+            $('#usuarioSelect').prop('disabled', true);
+        });
+
+    </script>
 }

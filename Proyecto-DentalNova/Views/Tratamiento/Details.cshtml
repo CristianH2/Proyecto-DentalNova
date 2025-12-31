@@ -1,60 +1,134 @@
-﻿@model DentalNova.Core.Repository.Entities.Tratamiento
+﻿@model DentalNova.Core.Dtos.TratamientoDto
 
 @{
-    ViewData["Title"] = $"Detalles del Tratamiento";
+    ViewData["Title"] = $"Servicio: {Model.Nombre}";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <div class="card shadow border-info">
-        <div class="card-header bg-light p-4">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-file-medical display-4 me-3 text-primary"></i>
-                <div>
-                    <h2 class="mb-0">@Model.Nombre</h2>
-                    <p class="mb-0 text-muted">Ficha de Información del Tratamiento</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Detalle del Servicio</h2>
+        <p class="text-muted mb-0">Información técnica y comercial del tratamiento.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Volver al Catálogo
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-12 col-md-5 col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-4">
+
+                <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex justify-content-center align-items-center mx-auto mb-4"
+                     style="width: 100px; height: 100px;">
+                    <i class="fas fa-tooth fa-3x"></i>
                 </div>
-            </div>
-        </div>
 
-        <div class="card-body p-4">
-            @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
-            {
-                <h5 class="text-primary"><i class="bi bi-card-text"></i> Descripción</h5>
-                <hr>
-                <p class="fst-italic">@Model.Descripcion</p>
-            }
+                <div class="mb-3">
+                    <span class="badge bg-dark text-white rounded-pill px-3 py-2 font-monospace">
+                        CÓDIGO: #@Model.Id
+                    </span>
+                </div>
 
-            <h5 class="text-primary mt-4"><i class="bi bi-info-circle"></i> Detalles Adicionales</h5>
-            <hr>
-            <dl class="row">
-                <dt class="col-sm-4">Costo del Tratamiento</dt>
-                <dd class="col-sm-8">@Model.Costo.ToString("C")</dd>
+                <h5 class="fw-bold text-muted text-uppercase small mb-2">Costo Actual</h5>
+                <h2 class="display-5 fw-bold text-success mb-4">@Model.Costo.ToString("C")</h2>
 
-                <dt class="col-sm-4">Duración Estimada</dt>
-                <dd class="col-sm-8">@Model.DuracionDias días</dd>
-
-                <dt class="col-sm-4">Estado Actual</dt>
-                <dd class="col-sm-8">
+                <div class="d-grid">
                     @if (Model.Activo)
                     {
-                        <span class="badge bg-success fs-6">Activo</span>
+                        <div class="p-3 bg-success bg-opacity-10 rounded border border-success border-opacity-25">
+                            <i class="fas fa-check-circle text-success fs-4 mb-2"></i>
+                            <h6 class="fw-bold text-success mb-0">DISPONIBLE</h6>
+                            <small class="text-muted">Habilitado para citas</small>
+                        </div>
                     }
                     else
                     {
-                        <span class="badge bg-danger fs-6">Inactivo</span>
+                        <div class="p-3 bg-secondary bg-opacity-10 rounded border border-secondary border-opacity-25">
+                            <i class="fas fa-ban text-secondary fs-4 mb-2"></i>
+                            <h6 class="fw-bold text-secondary mb-0">NO DISPONIBLE</h6>
+                            <small class="text-muted">Deshabilitado del catálogo</small>
+                        </div>
                     }
-                </dd>
-            </dl>
-        </div>
+                </div>
+                <div class="d-grid gap-2 mt-4">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm fw-bold">
+                        <i class="fas fa-pen me-2"></i> Editar Tratamiento
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-light text-danger border">
+                        <i class="fas fa-trash me-2"></i> Eliminar Tratamiento
+                    </a>
+                </div>
 
-        <div class="card-footer text-end bg-light p-3">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-                <i class="bi bi-pencil-square"></i> Editar Tratamiento
-            </a>
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left-circle"></i> Volver a la Lista
-            </a>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-12 col-md-7 col-lg-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="fas fa-info-circle me-2"></i> Ficha Técnica
+                </h6>
+            </div>
+            <div class="card-body p-4">
+
+                <h3 class="fw-bold text-dark mb-4">@Model.Nombre</h3>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-12 col-sm-6">
+                        <div class="d-flex align-items-center p-3 border rounded bg-light h-100">
+                            <div class="bg-white p-3 rounded-circle shadow-sm text-primary me-3">
+                                <i class="far fa-clock fa-2x"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted fw-bold text-uppercase d-block">Duración Estimada</small>
+                                <span class="fs-5 fw-bold text-dark">@Model.DuracionDias días</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                        <div class="d-flex align-items-center p-3 border rounded bg-light h-100">
+                            <div class="bg-white p-3 rounded-circle shadow-sm text-primary me-3">
+                                <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted fw-bold text-uppercase d-block">Facturación</small>
+                                <span class="fs-5 fw-bold text-dark">Servicio Médico</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-muted text-uppercase fw-bold small mb-2">Descripción del Procedimiento</h6>
+                    @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+                    {
+                        <div class="p-3 bg-light rounded border text-secondary" style="min-height: 100px;">
+                            @Model.Descripcion
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted fst-italic p-3 bg-light rounded border">
+                            Sin descripción registrada para este tratamiento.
+                        </div>
+                    }
+                </div>
+
+                <div class="text-end border-top pt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-server me-1"></i> Registro interno del sistema dental.
+                    </small>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>

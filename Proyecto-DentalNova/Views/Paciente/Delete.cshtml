@@ -1,4 +1,69 @@
-﻿@model DentalNova.Core.Repository.Entities.Paciente
+﻿@model DentalNova.Core.Dtos.PacienteAdminDto
+
+@{
+    ViewData["Title"] = "Eliminar Expediente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Generar iniciales para el avatar
+    var iniciales = (!string.IsNullOrEmpty(Model.Nombre) ? Model.Nombre.Substring(0, 1) : "") +
+                    (!string.IsNullOrEmpty(Model.Apellidos) ? Model.Apellidos.Substring(0, 1) : "");
+}
+
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+
+        <div class="card shadow border-0 border-top border-danger border-5">
+            <div class="card-body p-5 text-center">
+
+                <div class="mb-4">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex justify-content-center align-items-center mx-auto"
+                         style="width: 100px; height: 100px;">
+                        <i class="fas fa-folder-minus fa-3x"></i>
+                    </div>
+                </div>
+
+                <h2 class="fw-bold text-dark">¿Eliminar Expediente?</h2>
+                <p class="text-muted mb-4">Se eliminará permanentemente al siguiente paciente:</p>
+
+                <div class="card bg-light border-0 mb-4 text-start">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center me-3 fw-bold flex-shrink-0"
+                             style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            @iniciales
+                        </div>
+                        <div class="overflow-hidden">
+                            <h5 class="fw-bold mb-0 text-dark text-truncate">@Model.Nombre @Model.Apellidos</h5>
+                            <small class="text-muted d-block text-truncate">Expediente ID: #@Model.Id</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger d-flex align-items-start small text-start">
+                    <i class="fas fa-exclamation-circle me-2 mt-1 flex-shrink-0"></i>
+                    <div>
+                        <strong>Acción Irreversible:</strong> Se perderá todo el historial clínico, citas agendadas y datos de contacto.
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post" class="mt-4 d-grid gap-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <button type="submit" class="btn btn-danger btn-lg fw-bold shadow-sm">
+                        <i class="fas fa-trash-alt me-2"></i> Confirmar Eliminación
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-light text-muted border">
+                        Cancelar
+                    </a>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+@* @model DentalNova.Core.Dtos.PacienteAdminDto;
 
 @{
     ViewData["Title"] = "Eliminar Paciente";
@@ -16,8 +81,8 @@
 
                 <div class="my-4">
                     <i class="bi bi-person-x display-1 text-danger"></i>
-                    <h3 class="display-6 mt-3">@Model.Usuario?.Nombre @Model.Usuario?.Apellidos</h3>
-                    <p class="text-muted fs-5">@Model.Usuario?.CorreoElectronico</p>
+                    <h3 class="display-6 mt-3">@Model.Nombre @Model.Apellidos</h3>
+                    <p class="text-muted fs-5">@Model.CorreoElectronico</p>
                 </div>
 
                 <div class="alert alert-warning" role="alert">
@@ -39,4 +104,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> *@

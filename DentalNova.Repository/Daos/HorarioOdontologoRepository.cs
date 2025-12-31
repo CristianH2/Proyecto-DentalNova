@@ -2,12 +2,12 @@
 using DentalNova.Core.Repository.Interfaces;
 using DentalNova.Repository.DataContext;
 using Microsoft.EntityFrameworkCore;
+using static DentalNova.Core.Repository.Entities.Enumerables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static DentalNova.Core.Repository.Entities.Enumerables;
 
 namespace DentalNova.Repository.Daos
 {

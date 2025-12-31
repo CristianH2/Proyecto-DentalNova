@@ -1,7 +1,196 @@
-﻿@model DentalNova.Core.Repository.Entities.Paciente
+﻿@model DentalNova.Core.Dtos.PacienteAdminDto
 
 @{
-    ViewData["Title"] = $"Expediente de {Model.Usuario?.Nombre} {Model.Usuario?.Apellidos}";
+    ViewData["Title"] = $"Expediente: {Model.Nombre}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var iniciales = (!string.IsNullOrEmpty(Model.Nombre) ? Model.Nombre.Substring(0, 1) : "") +
+                    (!string.IsNullOrEmpty(Model.Apellidos) ? Model.Apellidos.Substring(0, 1) : "");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Expediente Clínico</h2>
+        <p class="text-muted mb-0">Visualización detallada del paciente.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Volver
+        </a>
+        @* <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm">
+            <i class="fas fa-pen me-2"></i> Editar Datos
+        </a> *@
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-12 col-lg-4 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-4">
+
+                <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3"
+                     style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+                    @iniciales
+                </div>
+
+                <h4 class="fw-bold mb-1">@Model.Nombre</h4>
+                <h5 class="fw-light text-muted mb-3">@Model.Apellidos</h5>
+
+                <div class="badge bg-dark text-white mb-4 px-3 py-2 rounded-pill font-monospace">
+                    EXPEDIENTE #@Model.Id
+                </div>
+
+                <hr class="my-3" />
+
+                <div class="text-start">
+                    <div class="mb-3">
+                        <label class="small text-muted fw-bold text-uppercase">Edad Actual</label>
+                        <div class="fs-5 fw-bold text-dark"><i class="fas fa-birthday-cake text-primary me-2 opacity-50"></i> @Model.Edad años</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-muted fw-bold text-uppercase">Teléfono</label>
+                        <div class="fs-6"><i class="fas fa-phone text-primary me-2 opacity-50"></i> @(Model.Telefono ?? "--")</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-muted fw-bold text-uppercase">Correo</label>
+                        <div class="fs-6 text-break"><i class="fas fa-envelope text-primary me-2 opacity-50"></i> @Model.CorreoElectronico</div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="small text-muted fw-bold text-uppercase">Fecha Registro</label>
+                        <div class="fs-6"><i class="fas fa-calendar-alt text-primary me-2 opacity-50"></i> @Model.FechaCreacion.ToShortDateString()</div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm fw-bold">
+                        <i class="fas fa-pen me-2"></i> Editar Perfil
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-light text-danger border">
+                        <i class="fas fa-trash me-2"></i> Eliminar Expediente
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-8 col-xl-9">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-notes-medical me-2"></i> Antecedentes Médicos</h6>
+            </div>
+            <div class="card-body p-4">
+
+                @if (!Model.ConAlergias && !Model.ConEnfermedadesCronicas && !Model.ConMedicamentosActuales && !Model.ConAntecedentesFamiliares)
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-heartbeat fa-4x mb-3 text-success opacity-50"></i>
+                        <h5>Paciente sin antecedentes registrados</h5>
+                        <p>No se reportaron alergias, enfermedades o medicamentos.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @if (Model.ConAlergias)
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-warning border-0 border-start border-warning border-4 shadow-sm mb-0">
+                                    <h6 class="alert-heading fw-bold text-dark">
+                                        <i class="fas fa-allergies me-2"></i> Alergias Reportadas
+                                    </h6>
+                                    <p class="mb-0 text-dark">@Model.Alergias</p>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.ConEnfermedadesCronicas)
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-danger border-0 border-start border-danger border-4 shadow-sm mb-0">
+                                    <h6 class="alert-heading fw-bold text-dark">
+                                        <i class="fas fa-procedures me-2"></i> Enfermedades Crónicas
+                                    </h6>
+                                    <p class="mb-0 text-dark">@Model.EnfermedadesCronicas</p>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.ConMedicamentosActuales)
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-info border-0 border-start border-info border-4 shadow-sm mb-0">
+                                    <h6 class="alert-heading fw-bold text-dark">
+                                        <i class="fas fa-pills me-2"></i> Medicación Actual
+                                    </h6>
+                                    <p class="mb-0 text-dark">@Model.MedicamentosActuales</p>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.ConAntecedentesFamiliares)
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-secondary border-0 border-start border-secondary border-4 shadow-sm mb-0">
+                                    <h6 class="alert-heading fw-bold text-dark">
+                                        <i class="fas fa-dna me-2"></i> Antecedentes Familiares
+                                    </h6>
+                                    <p class="mb-0 text-dark">@Model.AntecedentesFamiliares</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Observaciones))
+                {
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold text-muted small text-uppercase mb-2">Observaciones Adicionales</h6>
+                        <div class="bg-light p-3 rounded border">
+                            <i class="fas fa-quote-left text-muted me-2 opacity-50"></i>
+                            @Model.Observaciones
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+            @* <div class="card-footer bg-white border-top-0 text-end py-3">
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-light text-danger">
+                    <i class="fas fa-trash me-2"></i> Eliminar Expediente
+                </a>
+            </div> *@
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* <script>
+        function confirmarEliminar(id) {
+            Swal.fire({
+                title: '¿Eliminar Expediente?',
+                text: "Se borrará todo el historial médico.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                     window.location.href = '@Url.Action("Delete")/' + id;
+                }
+            })
+        }
+    </script> *@
+}
+@* @model DentalNova.Core.Dtos.PacienteAdminDto;
+
+@{
+    ViewData["Title"] = $"Expediente de {Model.Nombre} {Model.Apellidos}";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <div class="container mt-4">
@@ -10,7 +199,7 @@
             <div class="d-flex align-items-center">
                 <i class="bi bi-file-earmark-person display-4 me-3 text-primary"></i>
                 <div>
-                    <h2 class="mb-0">@Model.Usuario?.Nombre @Model.Usuario?.Apellidos</h2>
+                    <h2 class="mb-0">@Model.Nombre @Model.Apellidos</h2>
                     <p class="mb-0 text-muted">Expediente Clínico del Paciente</p>
                 </div>
             </div>
@@ -26,10 +215,10 @@
                         <dd class="col-sm-8">@Model.Edad años</dd>
 
                         <dt class="col-sm-4">Correo</dt>
-                        <dd class="col-sm-8">@Model.Usuario?.CorreoElectronico</dd>
+                        <dd class="col-sm-8">@Model.CorreoElectronico</dd>
 
                         <dt class="col-sm-4">Teléfono</dt>
-                        <dd class="col-sm-8">@(Model.Usuario?.Telefono ?? "No proporcionado")</dd>
+                        <dd class="col-sm-8">@(Model.Telefono ?? "No proporcionado")</dd>
 
                         <dt class="col-sm-4">Registrado</dt>
                         <dd class="col-sm-8">@Model.FechaCreacion.ToLongDateString()</dd>
@@ -92,4 +281,4 @@
             </a>
         </div>
     </div>
-</div>
+</div> *@

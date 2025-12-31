@@ -10,5 +10,6 @@ namespace DentalNova.Core.Repository.Interfaces
     public interface IRolRepository
     {
         Task AgregarAsync(Rol rol);
+        Task EliminarPorUsuarioIdAsync(int usuarioId);
     }
 }

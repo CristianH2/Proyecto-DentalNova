@@ -1,13 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36616.10
+VisualStudioVersion = 17.14.36623.8 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proyecto-DentalNova", "Proyecto-DentalNova\Proyecto-DentalNova.csproj", "{E6FECBEF-4376-4433-A16B-88199BBE410E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Core", "DentalNova.Core\DentalNova.Core.csproj", "{6BB05A84-160D-4912-AC3A-216B23C7E996}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Api", "DentalNova.Api\DentalNova.Api.csproj", "{9CA5A048-C8F6-49C8-BBD1-2A31B9BB8F28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Core.Repository", "DentalNova.Core.Repository\DentalNova.Core.Repository.csproj", "{4274DE55-AA68-4622-26DF-602374E0EAF1}"
 EndProject
@@ -16,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Business", "DentalNova.Business\DentalNova.Business.csproj", "{5D3C5F41-0912-402F-B84D-2069F744571B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Security", "DentalNova.Security\DentalNova.Security.csproj", "{92A6D09D-A69A-4E5F-BCCD-F83C4AC048FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Api", "DentalNova.Api\DentalNova.Api.csproj", "{656D9329-3E8D-57EB-38E4-20235AF09BD2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,10 +31,6 @@ Global
 		{6BB05A84-160D-4912-AC3A-216B23C7E996}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BB05A84-160D-4912-AC3A-216B23C7E996}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BB05A84-160D-4912-AC3A-216B23C7E996}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9CA5A048-C8F6-49C8-BBD1-2A31B9BB8F28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9CA5A048-C8F6-49C8-BBD1-2A31B9BB8F28}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9CA5A048-C8F6-49C8-BBD1-2A31B9BB8F28}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9CA5A048-C8F6-49C8-BBD1-2A31B9BB8F28}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4274DE55-AA68-4622-26DF-602374E0EAF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4274DE55-AA68-4622-26DF-602374E0EAF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4274DE55-AA68-4622-26DF-602374E0EAF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,6 +47,10 @@ Global
 		{92A6D09D-A69A-4E5F-BCCD-F83C4AC048FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92A6D09D-A69A-4E5F-BCCD-F83C4AC048FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92A6D09D-A69A-4E5F-BCCD-F83C4AC048FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{656D9329-3E8D-57EB-38E4-20235AF09BD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{656D9329-3E8D-57EB-38E4-20235AF09BD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{656D9329-3E8D-57EB-38E4-20235AF09BD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{656D9329-3E8D-57EB-38E4-20235AF09BD2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

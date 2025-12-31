@@ -31,5 +31,42 @@ namespace DentalNova.Repository.Daos
             // Busca la entidad Tratamiento por su ID
             return await _context.Tratamientos.FindAsync(id);
         }
+
+        public IQueryable<Tratamiento> ObtenerQueryableParaFiltro()
+        {
+            return _context.Tratamientos.AsNoTracking();
+        }
+
+        public async Task AgregarAsync(Tratamiento tratamiento)
+        {
+            await _context.Tratamientos.AddAsync(tratamiento);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarAsync(Tratamiento tratamiento)
+        {
+            _context.Tratamientos.Update(tratamiento);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarAsync(int id)
+        {
+            var tratamiento = await _context.Tratamientos.FindAsync(id);
+            if (tratamiento != null)
+            {
+                _context.Tratamientos.Remove(tratamiento);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<bool> ExisteNombreAsync(string nombre, int? idExcluir = null)
+        {
+            var query = _context.Tratamientos.AsNoTracking();
+            if (idExcluir.HasValue)
+            {
+                query = query.Where(t => t.Id != idExcluir.Value);
+            }
+            return await query.AnyAsync(t => t.Nombre == nombre);
+        }
     }
 }

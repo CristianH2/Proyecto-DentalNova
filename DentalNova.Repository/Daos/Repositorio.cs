@@ -19,6 +19,7 @@ namespace DentalNova.Repository.Daos
         public ICitaTratamientoRepository CitaTratamiento { get; }
         public IHorarioOdontologoRepository HorarioOdontologo { get; }
         public IOdontologoRepository Odontologo { get; }
+        public IEspecialidadRepository Especialidad { get; }
 
         public Repositorio( 
             ITratamientoRepository tratamientoRepository, 
@@ -30,7 +31,9 @@ namespace DentalNova.Repository.Daos
             ICitaRepository citaRepository,
             ICitaTratamientoRepository citaTratamientoRepository,
             IHorarioOdontologoRepository horarioOdontologoRepository,
-            IOdontologoRepository odontologoRepository
+            IOdontologoRepository odontologoRepository,
+
+            IEspecialidadRepository especialidadRepository
             )
         {
             Tratamiento = tratamientoRepository;
@@ -43,6 +46,7 @@ namespace DentalNova.Repository.Daos
             CitaTratamiento = citaTratamientoRepository;
             HorarioOdontologo = horarioOdontologoRepository;
             Odontologo = odontologoRepository;
+            Especialidad = especialidadRepository;
         }
     }
 }

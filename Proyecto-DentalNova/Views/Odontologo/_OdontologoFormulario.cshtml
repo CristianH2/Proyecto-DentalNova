@@ -1,71 +1,103 @@
-﻿@model Proyecto_DentalNova.Models.OdontologoViewModel.OdontologoVM;
+﻿@model Proyecto_DentalNova.Models.OdontologoViewModel.OdontologoVM
 
-<div class="card shadow-sm">
-    <div class="card-body p-4">
+<div class="row g-4">
 
-        <h4><i class="bi bi-person-check-fill"></i> Asignación de Usuario</h4>
-        <hr class="mt-2 mb-4">
-        <div class="form-group mb-3">
-            <label asp-for="Odontologo.UsuarioId" class="form-label"></label>
-            <select asp-for="Odontologo.UsuarioId" class="form-select" asp-items="Model.UsuariosDisponibles">
-                <option value="">-- Seleccione un Usuario para asignar como Odontólogo --</option>
-            </select>
-            <span asp-validation-for="Odontologo.UsuarioId" class="text-danger"></span>
-            <div class="form-text">Solo se muestran usuarios activos que no han sido asignados como pacientes u odontólogos.</div>
-        </div>
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-user-lock me-2"></i> Acceso al Sistema</h6>
+            </div>
+            <div class="card-body">
 
-        <h4 class="mt-5"><i class="bi bi-award-fill"></i> Información Profesional</h4>
-        <hr class="mt-2 mb-4">
+                <div class="alert alert-light border small text-muted mb-4">
+                    <i class="fas fa-info-circle me-1 text-primary"></i>
+                    Seleccione el usuario que tendrá el rol de Odontólogo.
+                </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="Odontologo.CedulaProfesional" class="form-label"></label>
+                <div class="mb-3">
+                    <label asp-for="Odontologo.UsuarioId" class="form-label fw-bold small text-muted text-uppercase">Usuario</label>
+                    <div class="input-group flex-nowrap">
+                        <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
+                        <div class="flex-grow-1" style="min-width: 0;">
+                            <select asp-for="Odontologo.UsuarioId" class="form-select select2-usuario" id="usuarioSelect" asp-items="Model.UsuariosDisponibles" style="width: 100%;">
+                                <option value="">Buscar usuario...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Odontologo.UsuarioId" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Odontologo.FechaIngreso" class="form-label fw-bold small text-muted text-uppercase">Fecha de Ingreso</label>
                     <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-patch-check"></i></span>
-                        <input asp-for="Odontologo.CedulaProfesional" class="form-control" placeholder="Cédula profesional" />
+                        <span class="input-group-text bg-light"><i class="fas fa-calendar-alt"></i></span>
+                        <input asp-for="Odontologo.FechaIngreso" type="date" class="form-control" />
                     </div>
-                    <span asp-validation-for="Odontologo.CedulaProfesional" class="text-danger"></span>
+                    <span asp-validation-for="Odontologo.FechaIngreso" class="text-danger small"></span>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="EspecialidadesSeleccionadasIds" class="form-label">Especialidades</label>
 
-                    <select asp-for="EspecialidadesSeleccionadasIds"
-                            asp-items="Model.TodasLasEspecialidades"
-                            class="form-select"
-                            multiple
-                            size="8">
-                    </select>
-
-                    <span asp-validation-for="EspecialidadesSeleccionadasIds" class="text-danger"></span>
-                    <div class="form-text">
-                        Mantén presionada la tecla <kbd>Ctrl</kbd> (o <kbd>Cmd</kbd> en Mac) para seleccionar varias opciones.
-                    </div>
-                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="Odontologo.Institucion" class="form-label"></label>
-                    <input asp-for="Odontologo.Institucion" class="form-control" placeholder="Universidad de egreso (opcional)" />
-                    <span asp-validation-for="Odontologo.Institucion" class="text-danger"></span>
-                </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-briefcase-medical me-2"></i> Perfil Profesional</h6>
             </div>
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="Odontologo.AnioGraduacion" class="form-label"></label>
-                    <input asp-for="Odontologo.AnioGraduacion" type="number" class="form-control" placeholder="Año (opcional)" />
-                    <span asp-validation-for="Odontologo.AnioGraduacion" class="text-danger"></span>
+            <div class="card-body">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Odontologo.CedulaProfesional" class="form-label fw-bold small text-muted text-uppercase">Cédula Profesional</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-id-card"></i></span>
+                            <input asp-for="Odontologo.CedulaProfesional" class="form-control" placeholder="Ej. 12345678" />
+                        </div>
+                        <span asp-validation-for="Odontologo.CedulaProfesional" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="EspecialidadesSeleccionadasIds" class="form-label fw-bold small text-muted text-uppercase">Especialidades</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-tooth"></i></span>
+
+                            <div class="flex-grow-1">
+                                <select asp-for="EspecialidadesSeleccionadasIds"
+                                        asp-items="Model.TodasLasEspecialidades"
+                                        class="form-select select2-especialidades"
+                                        multiple="multiple"
+                                        style="width: 100%;">
+                                </select>
+                            </div>
+                        </div>
+                        <span asp-validation-for="EspecialidadesSeleccionadasIds" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label asp-for="Odontologo.Institucion" class="form-label fw-bold small text-muted text-uppercase">Institución de Egreso</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-university"></i></span>
+                            <input asp-for="Odontologo.Institucion" class="form-control" placeholder="Ej. Universidad Nacional..." />
+                        </div>
+                        <span asp-validation-for="Odontologo.Institucion" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Odontologo.AnioGraduacion" class="form-label fw-bold small text-muted text-uppercase">Año Graduación</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-graduation-cap"></i></span>
+                            <input asp-for="Odontologo.AnioGraduacion" type="number" class="form-control" placeholder="Ej. 2015" />
+                        </div>
+                        <span asp-validation-for="Odontologo.AnioGraduacion" class="text-danger small"></span>
+                    </div>
                 </div>
+
+                <div class="mt-4 pt-3 border-top text-end">
+                    <small class="text-muted"><i class="fas fa-asterisk text-danger me-1"></i> Campos obligatorios para la facturación y recetas.</small>
+                </div>
+
             </div>
-        </div>
-        <div class="form-group mb-3">
-            <label asp-for="Odontologo.FechaIngreso" class="form-label"></label>
-            <input asp-for="Odontologo.FechaIngreso" type="date" class="form-control" />
-            <span asp-validation-for="Odontologo.FechaIngreso" class="text-danger"></span>
         </div>
     </div>
 </div>

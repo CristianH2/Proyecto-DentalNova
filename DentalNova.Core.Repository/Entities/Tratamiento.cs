@@ -25,7 +25,7 @@ namespace DentalNova.Core.Repository.Entities
         public decimal Costo { get; set; }
 
         [Required(ErrorMessage = "La duración es obligatoria.")]
-        [Range(1, 365, ErrorMessage = "La duración debe estar entre 1 y 365 días.")]
+        [Range(1, 1000, ErrorMessage = "La duración debe estar entre 1 y 1000 días.")]
         [DisplayName("Duración (días)")]
         public int DuracionDias { get; set; }
 

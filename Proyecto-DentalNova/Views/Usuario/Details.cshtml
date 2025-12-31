@@ -1,96 +1,150 @@
-﻿@model DentalNova.Core.Repository.Entities.Usuario
+﻿@model DentalNova.Core.Dtos.UsuarioAdminDto
 
 @{
-    ViewData["Title"] = $"Detalles de {Model.Nombre} {Model.Apellidos}";
+    ViewData["Title"] = $"Perfil: {Model.Nombre}";
+    // Lógica para iniciales
+    var iniciales = (!string.IsNullOrEmpty(Model.Nombre) ? Model.Nombre.Substring(0, 1) : "") +
+                    (!string.IsNullOrEmpty(Model.Apellidos) ? Model.Apellidos.Substring(0, 1) : "");
 }
 
-<div class="container mt-4">
-    <div class="card shadow border-info">
-        <div class="card-header bg-light p-4">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-person-circle display-4 me-3 text-primary"></i>
-                <div>
-                    <h2 class="mb-0">@Model.Nombre @Model.Apellidos</h2>
-                    <p class="mb-0 text-muted">Ficha de Información del Usuario</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Detalles del Usuario</h2>
+        <p class="text-muted mb-0">Visualizando expediente ID: #@Model.Id</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Volver al listado
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center p-5">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center mx-auto mb-4"
+                     style="width: 120px; height: 120px; font-size: 2.5rem; font-weight: bold;">
+                    @iniciales
+                </div>
+
+                <h3 class="fw-bold mb-1">@Model.Nombre</h3>
+                <h5 class="fw-normal text-muted mb-3">@Model.Apellidos</h5>
+
+                <div class="mb-4">
+                    @if (Model.Activo)
+                    {
+                        <span class="badge bg-success bg-opacity-10 text-success fs-6 px-3 py-2 rounded-pill">
+                            <i class="fas fa-check-circle me-1"></i> Cuenta Activa
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger bg-opacity-10 text-danger fs-6 px-3 py-2 rounded-pill">
+                            <i class="fas fa-ban me-1"></i> Cuenta Inactiva
+                        </span>
+                    }
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm fw-bold">
+                        <i class="fas fa-pen me-2"></i> Editar Perfil
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id"  class="btn btn-light text-danger border">
+                        <i class="fas fa-trash me-2"></i> Eliminar
+                    </a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="card-body p-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5 class="text-primary"><i class="bi bi-person-vcard"></i> Información Personal</h5>
-                    <hr>
-                    <dl class="row">
-                        <dt class="col-sm-5">ID</dt>
-                        <dd class="col-sm-7">@Model.Id</dd>
+    <div class="col-12 col-xl-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-primary">
+                    <i class="fas fa-info-circle me-2"></i> Información del Expediente
+                </h6>
+            </div>
+            <div class="card-body p-4">
 
-                        <dt class="col-sm-5">Nombre Completo</dt>
-                        <dd class="col-sm-7">@Model.Nombre @Model.Apellidos</dd>
-
-                        <dt class="col-sm-5">Fecha de Nacimiento</dt>
-                        <dd class="col-sm-7">@(Model.FechaNacimiento?.ToLongDateString() ?? "No especificado")</dd>
-
-                        <dt class="col-sm-5">Género</dt>
-                        <dd class="col-sm-7">
+                <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Datos Personales</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-bold">Fecha de Nacimiento</label>
+                        <div class="fs-6 text-dark">
+                            <i class="fas fa-birthday-cake text-primary me-2 opacity-50"></i>
+                            @(Model.FechaNacimiento?.ToLongDateString() ?? "No especificado")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-bold">Género</label>
+                        <div class="fs-6 text-dark">
                             @switch (Model.Genero)
                             {
                                 case 'M':
+                                    <i class="fas fa-mars text-primary me-2"></i>
                                     <span>Masculino</span>
-                                    ; break;
+                                ; break;
                                 case 'F':
-
+                                    <i class="fas fa-venus text-danger me-2"></i>
                                     <span>Femenino</span>
-                                    ; break;
-                                case 'O':
-
-                                    <span>Otro</span>
-                                    ; break;
+                                ; break;
                                 default:
-
-                                    <span>No especificado</span>
-                                    ; break;
+                                    <i class="fas fa-genderless text-muted me-2"></i>
+                                    <span>Otro / No especificado</span>
+                                ; break;
                             }
-                        </dd>
-
-                        <dt class="col-sm-5">CURP</dt>
-                        <dd class="col-sm-7">@Model.CURP</dd>
-                    </dl>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-bold">CURP</label>
+                        <div class="fs-6 text-dark font-monospace">
+                            <i class="fas fa-id-card text-primary me-2 opacity-50"></i>
+                            @(string.IsNullOrEmpty(Model.CURP) ? "---" : Model.CURP)
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-6">
-                    <h5 class="text-primary"><i class="bi bi-key-fill"></i> Contacto y Cuenta</h5>
-                    <hr>
-                    <dl class="row">
-                        <dt class="col-sm-5">Correo Electrónico</dt>
-                        <dd class="col-sm-7">@Model.CorreoElectronico</dd>
-
-                        <dt class="col-sm-5">Teléfono</dt>
-                        <dd class="col-sm-7">@(Model.Telefono ?? "No proporcionado")</dd>
-
-                        <dt class="col-sm-5">Estado de la Cuenta</dt>
-                        <dd class="col-sm-7">
-                            @if (Model.Activo)
-                            {
-                                <span class="badge bg-success fs-6">Activo</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger fs-6">Inactivo</span>
-                            }
-                        </dd>
-                    </dl>
+                <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2 mt-4">Contacto</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-bold">Correo Electrónico</label>
+                        <div class="fs-6 text-dark">
+                            <i class="fas fa-envelope text-primary me-2 opacity-50"></i>
+                            @Model.CorreoElectronico
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted fw-bold">Teléfono Móvil</label>
+                        <div class="fs-6 text-dark">
+                            <i class="fas fa-phone text-primary me-2 opacity-50"></i>
+                            @(Model.Telefono ?? "No registrado")
+                        </div>
+                    </div>
                 </div>
+                @* Para saber el Id y que Roles de Usuarios Son (Pacientes, Odontólogos o Administradores) *@
+                <div class="alert alert-light border mt-5 mb-0 small text-muted">
+                    <i class="fas fa-server me-2"></i>
+                    <strong>ID Interno de Sistema:</strong> @Model.Id <br/>
+                    <i class="fas fa-server me-2"></i>
+                    <strong>Lista de Roles:</strong>
+                    @if(Model.Roles == null || !Model.Roles.Any())
+                    {
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary ms-1 px-2 py-1 rounded-pill">
+                            <i class="fas fa-user-slash me-1"></i> Sin Roles Asignados
+                        </span>
+                    } else {
+                        @foreach (var rol in Model.Roles)
+                        {
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary ms-1 px-2 py-1 rounded-pill">
+                                <i class="fas fa-user-tag me-1"></i> @rol
+                            </span>
+                        }
+                    }
+                </div>
+
             </div>
-        </div>
-
-        <div class="card-footer text-end bg-light p-3">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-                <i class="bi bi-pencil-square"></i> Editar Usuario
-            </a>
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left-circle"></i> Volver a la Lista
-            </a>
         </div>
     </div>
 </div>
+
+@section Scripts {
+}

@@ -5,17 +5,38 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Crear Nuevo Usuario</h1>
-<hr />
-<div class="row">
-    <div class="col-12">
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-0">Nuevo Usuario</h2>
+                <p class="text-muted mb-0">Registre un nuevo miembro del personal o administrador.</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+
         <form asp-action="Create" method="post">
             @Html.AntiForgeryToken()
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Por favor corrija los errores del formulario.
+                    <div asp-validation-summary="ModelOnly" class="text-danger mt-2"></div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
             <partial name="_UsuarioFormulario" />
 
-            <div class="form-group mt-4">
-                <button type="submit" class="btn btn-primary">Crear Usuario</button>
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            <div class="d-flex justify-content-end gap-2 mt-4 pb-5">
+                <a asp-action="Index" class="btn btn-light border px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                    <i class="fas fa-save me-2"></i> Crear Usuario
+                </button>
             </div>
         </form>
     </div>
@@ -25,4 +46,55 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function() {
+            // ----------------------------------------------------
+            // LÓGICA DE ROLES
+            // ----------------------------------------------------
+            $(document).on('click', '.form-check', function(e) {
+                // Evitar doble acción si se clickea el input/label directo
+                if ($(e.target).is('input') || $(e.target).is('label')) {
+                    return;
+                }
+
+                var checkbox = $(this).find('input[type="checkbox"]');
+                if (checkbox.length > 0) {
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                    checkbox.trigger('change'); // Forzar actualización visual
+                }
+            });
+
+            // ----------------------------------------------------
+            // LÓGICA DE PASSWORD
+            // ----------------------------------------------------
+            $(document).on('click', '.toggle-password', function(e) {
+                e.preventDefault();
+                var input = $(this).closest('.input-group').find('input');
+                var icon = $(this).find('i');
+
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+
+            // ----------------------------------------------------
+            // EFECTO VISUAL (Iluminar Seleccionado)
+            // ----------------------------------------------------
+            $(document).on('change', 'input[name="RolesSeleccionados"]', function() {
+                var tarjeta = $(this).closest('.form-check');
+                if ($(this).is(':checked')) {
+                    tarjeta.addClass('border-primary shadow-sm bg-white').removeClass('bg-light');
+                } else {
+                    tarjeta.removeClass('border-primary shadow-sm bg-white').addClass('bg-light');
+                }
+            });
+
+            // Inicializar estado visual al cargar
+            $('input[name="RolesSeleccionados"]').trigger('change');
+        });
+    </script>
 }

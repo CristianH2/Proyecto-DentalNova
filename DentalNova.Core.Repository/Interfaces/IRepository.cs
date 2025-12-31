@@ -18,5 +18,6 @@ namespace DentalNova.Core.Repository.Interfaces
         ICitaTratamientoRepository CitaTratamiento { get; }
         IHorarioOdontologoRepository HorarioOdontologo { get; }
         IOdontologoRepository Odontologo { get; }
+        IEspecialidadRepository Especialidad { get; }
     }
 }

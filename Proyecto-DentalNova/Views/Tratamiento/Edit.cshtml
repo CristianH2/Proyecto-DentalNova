@@ -1,21 +1,38 @@
-﻿@model DentalNova.Core.Repository.Entities.Tratamiento
+﻿@model Proyecto_DentalNova.Models.TratamientoViewModel.TratamientoVM
 
 @{
     ViewData["Title"] = "Editar Tratamiento";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>@ViewData["Title"]</h1>
-<hr />
-<form asp-action="Edit" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <partial name="_TratamientoFormulario" model="Model" />
-    <div class="form-group mt-4">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar Cambios</button>
-        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-8">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-0">Editar Servicio</h2>
+                <p class="text-muted mb-0">Modificar costos o detalles del tratamiento.</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Tratamiento.Id" />
+
+            <partial name="_TratamientoFormulario" model="Model" />
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pb-5">
+                <a asp-action="Index" class="btn btn-light border px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                    <i class="fas fa-sync-alt me-2"></i> Actualizar Servicio
+                </button>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 
 @section Scripts {
     @{
