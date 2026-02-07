@@ -8,7 +8,7 @@ namespace DentalNova.Repository.Configurations
     {
         public void Configure(EntityTypeBuilder<Recordatorio> builder)
         {
-            builder.Property(prop => prop.FechaEnvio).IsRequired(false);
+            builder.Property(prop => prop.FechaEnvio).IsRequired();
             builder.Property(prop => prop.Mensaje).HasMaxLength(500).IsRequired(false);
             builder.Property(prop => prop.Enviado).HasDefaultValue(false);
         }

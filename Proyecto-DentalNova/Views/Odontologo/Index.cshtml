@@ -20,7 +20,7 @@
     <div class="col-12 col-xl-3">
         <div class="card shadow-sm border-0 sticky-top" style="top: 1rem; z-index: 100;">
             <div class="card-header bg-white py-3 border-bottom">
-                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros</h6>
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros de Búsqueda</h6>
             </div>
             <div class="card-body">
                 <form method="get" class="vstack gap-3">
@@ -95,14 +95,16 @@
 
             <div class="card-body p-0">
                 <form method="get" class="m-0 p-0">
-                    @foreach (var prop in Model.Filtro.GetType().GetProperties().Where(p => !p.Name.Contains("Disponibles")))
-                    {
-                        var value = prop.GetValue(Model.Filtro);
-                        if (value != null && prop.Name != "Page" && prop.Name != "PageSize")
-                        {
-                            <input type="hidden" name="Filtro.@prop.Name" value="@value" />
-                        }
-                    }
+                    <input type="hidden" asp-for="Filtro.Id" />
+                    <input type="hidden" asp-for="Filtro.NombreLike" />
+                    <input type="hidden" asp-for="Filtro.ApellidosLike" />
+                    <input type="hidden" asp-for="Filtro.CorreoLike" />
+                    <input type="hidden" asp-for="Filtro.CedulaLike" />
+                    <input type="hidden" asp-for="Filtro.EspecialidadId" />
+                    <input type="hidden" asp-for="Filtro.PageSize" />
+
+                    <input type="hidden" name="Filtro.FechaIngresoDesde" value="@(Model.Filtro.FechaIngresoDesde?.ToString("yyyy-MM-dd"))" />
+                    <input type="hidden" name="Filtro.FechaIngresoHasta" value="@(Model.Filtro.FechaIngresoHasta?.ToString("yyyy-MM-dd"))" />
 
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -173,15 +175,15 @@
                                             </td>
 
                                             <td class="text-end pe-4">
-                                                <div class="btn-group">
-                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Ver Perfil" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-user-md"></i>
+                                                <div class="btn-group shadow-sm">
+                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Ver Perfil" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-user-md text-secondary"></i>
                                                     </a>
-                                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-pen"></i>
+                                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Editar" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-pen text-primary"></i>
                                                     </a>
-                                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Eliminar" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-trash"></i>
+                                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Eliminar" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-trash text-danger"></i>
                                                     </a>
                                                 </div>
                                             </td>

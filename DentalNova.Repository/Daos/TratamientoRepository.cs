@@ -28,7 +28,6 @@ namespace DentalNova.Repository.Daos
 
         public async Task<Tratamiento> ObtenerPorIdAsync(int id)
         {
-            // Busca la entidad Tratamiento por su ID
             return await _context.Tratamientos.FindAsync(id);
         }
 

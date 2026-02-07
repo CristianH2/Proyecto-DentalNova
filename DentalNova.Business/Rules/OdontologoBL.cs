@@ -26,7 +26,7 @@ namespace DentalNova.Business.Rules
         {
             var query = _repositorio.Odontologo.ObtenerQueryableParaFiltro();
 
-            // --- Filtros ---
+            // Filtros
             if (filtro.Id.HasValue)
                 query = query.Where(o => o.Id == filtro.Id.Value);
 
@@ -53,7 +53,7 @@ namespace DentalNova.Business.Rules
             }
 
             // Ordenamiento
-            query = query.OrderBy(o => o.Usuario.Apellidos);
+            query = query.OrderBy(o => o.Usuario.Id);
 
             // Paginación y Mapeo
             var pagedEntities = await PaginatedList<Odontologo>.CreateAsync(query, filtro.Page, filtro.PageSize);
@@ -80,7 +80,7 @@ namespace DentalNova.Business.Rules
             {
                 UsuarioId = dto.UsuarioId
             };
-            nuevoOdontologo.MapFromDto(dto); // Mapea campos básicos
+            nuevoOdontologo.MapFromDto(dto);
 
             // Asignar Especialidades
             if (dto.EspecialidadesIds != null && dto.EspecialidadesIds.Any())
@@ -122,7 +122,8 @@ namespace DentalNova.Business.Rules
         {
             // IDs ocupados por odontólogos
             var idsOcupados = await _repositorio.Odontologo.ObtenerIdsUsuariosOcupadosAsync();
-            // IDs ocupados por pacientes (tampoco queremos que un paciente sea odontólogo a la vez, ¿o sí?)
+
+            // IDs ocupados por pacientes
             var idsPacientes = await _repositorio.Paciente.ObtenerIdsUsuariosOcupadosAsync();
 
             var todosOcupados = idsOcupados.Union(idsPacientes).ToList();

@@ -1,4 +1,5 @@
 ﻿using DentalNova.Core.Dtos;
+using DentalNova.Core.Repository.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,11 @@ namespace DentalNova.Core.Interfaces
 {
     public interface ICitaBL
     {
-        Task<CitaAgendadaDto> AgendarCitaPacienteAsync(int usuarioId, CitaDtoIn dto);
-        Task<IEnumerable<HistorialCitaDto>> ObtenerHistorialPacienteAsync(int usuarioId);
-        Task<bool> CancelarCitaAsync(int usuarioId, int citaId);
+        Task<PagedResultDto<CitaDto>> ObtenerListaPaginadaAsync(CitaFilterDto filtro, int page, int pageSize);
+        Task<CitaDto> ObtenerPorIdAsync(int id);
+        Task<int> CrearAsync(CitaDtoIn dto);
+        Task ActualizarAsync(CitaDtoIn dto);
+        Task CambiarEstatusAsync(int id, Enumerables.EstatusCita nuevoEstatus);
+        Task EliminarAsync(int id);
     }
 }

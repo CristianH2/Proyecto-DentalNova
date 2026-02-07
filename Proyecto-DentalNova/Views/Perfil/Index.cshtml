@@ -1,0 +1,176 @@
+﻿@model Proyecto_DentalNova.Models.PerfilViewModel.PerfilViewModel
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+
+    // Detecion de Roles
+    bool esAdmin = User.IsInRole("Administrador");
+    bool esOdontologo = User.IsInRole("Odontologo");
+
+    // LÓGICA DE LAYOUT DINÁMICO
+    if (esOdontologo)
+    {
+        Layout = "~/Views/Shared/_LayoutOdontologo.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-primary mb-0"><i class="fas fa-id-card me-2"></i>Mi Perfil</h2>
+        <p class="text-muted mb-0">Gestione su información personal y seguridad.</p>
+    </div>
+</div>
+
+@if (TempData["MensajeExito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["MensajeExito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["MensajeError"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["MensajeError"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom text-center">
+                <div class="mb-3 mt-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                        <span class="display-4 fw-bold">@Model.NombreCompleto.Substring(0, 1)</span>
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">@Model.NombreCompleto</h5>
+                <span class="badge bg-secondary rounded-pill px-3">@Model.Rol</span>
+            </div>
+
+            <div class="card-body p-4">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Información de Cuenta</h6>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Correo Electrónico</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-secondary"></i></span>
+                        <input type="text" class="form-control bg-light border-start-0" value="@Model.Correo" readonly />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Teléfono</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-phone text-secondary"></i></span>
+                        <input type="text" class="form-control bg-light border-start-0" value="@(string.IsNullOrEmpty(Model.Telefono) ? "No registrado" : Model.Telefono)" readonly />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Fecha de Nacimiento</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-calendar text-secondary"></i></span>
+                        <input type="text" class="form-control bg-light border-start-0" value="@Model.FechaNacimiento" readonly />
+                    </div>
+                </div>
+                @if (esOdontologo)
+                {
+                    <div class="alert alert-info border-0 d-flex align-items-center small mt-4">
+                        <i class="fas fa-info-circle fs-4 me-3"></i>
+                        <div>
+                            Para modificar sus datos personales, por favor contacte al administrador del sistema.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-lock me-2"></i> Seguridad</h6>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="CambiarPassword" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <p class="text-muted small mb-4">
+                        Asegúrese de usar una contraseña segura. Se recomienda usar mayúsculas, números y símbolos.
+                    </p>
+
+                    <div class="mb-4">
+                        <label asp-for="PasswordActual" class="form-label fw-bold small text-muted text-uppercase">Contraseña Actual</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-key"></i></span>
+                            <input asp-for="PasswordActual" class="form-control" placeholder="Ingrese su contraseña actual" required />
+                            <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1"><i class="far fa-eye"></i></button>
+                        </div>
+                        <span asp-validation-for="PasswordActual" class="text-danger small"></span>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25" />
+
+                    <div class="mb-3">
+                        <label asp-for="PasswordNuevo" class="form-label fw-bold small text-muted text-uppercase">Nueva Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-lock"></i></span>
+                            <input asp-for="PasswordNuevo" class="form-control" placeholder="Mínimo 8 caracteres" required />
+                            <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1"><i class="far fa-eye"></i></button>
+                        </div>
+                        <span asp-validation-for="PasswordNuevo" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="PasswordConfirmacion" class="form-label fw-bold small text-muted text-uppercase">Confirmar Nueva Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-check-circle"></i></span>
+                            <input asp-for="PasswordConfirmacion" class="form-control" placeholder="Repita la nueva contraseña" required />
+                            <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1"><i class="far fa-eye"></i></button>
+                        </div>
+                        <span asp-validation-for="PasswordConfirmacion" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid justify-content-end">
+                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                            <i class="fas fa-save me-2"></i> Actualizar Contraseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Script simple para mostrar/ocultar contraseña
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const icon = this.querySelector('i');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+    </script>
+}

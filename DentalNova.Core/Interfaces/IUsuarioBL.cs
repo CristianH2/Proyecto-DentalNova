@@ -12,13 +12,13 @@ namespace DentalNova.Core.Interfaces
     public interface IUsuarioBL
     {
         // --- Métodos de Paciente ---
-        Task<Usuario> ValidarCredencialesAsync(InicioDeSesionDto inicioDeSesion);
+        Task<Usuario> ValidarCredencialesAsync(LoginDto inicioDeSesion);
         Task<UsuarioDto> RegistrarAsync(UsuarioDtoIn registroDto);
         Task<bool> CambiarPasswordAsync(int usuarioId, CambioPasswordDtoIn cambioDto);
         Task<UsuarioDto> ActualizarPerfilUsuarioAsync(int usuarioId, PerfilUsuarioDtoIn dto);
         Task<UsuarioDto> ObtenerPerfilUsuarioAsync(int usuarioId);
 
-        // --- Métodos nuevos para Admin MVC---
+        // --- Métodos Admin MVC---
         Task<PaginatedList<Usuario>> ObtenerListaPaginadaAsync(UsuarioFilterDto filtro);
         Task<Usuario> ObtenerPorIdAdminAsync(int id);
         Task<string> ObtenerFechaNacimientoJsonAsync(int id);
@@ -26,7 +26,7 @@ namespace DentalNova.Core.Interfaces
         Task ActualizarUsuarioAdminAsync(Usuario usuario, string? newPassword, List<string> rolesSeleccionados);
         Task EliminarUsuarioAsync(int id);
 
-        // Métodos de validación (los moveremos aquí desde el controlador)
+        // Métodos de validación
         Task<bool> EmailYaExisteAsync(string email, int? usuarioId = null);
         Task<bool> CurpYaExisteAsync(string curp, int? usuarioId = null);
 

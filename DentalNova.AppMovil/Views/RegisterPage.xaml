@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DentalNova.AppMovil.Views.RegisterPage"
+             xmlns:vm="clr-namespace:DentalNova.AppMovil.ViewModels" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             Title="Nuevo Paciente"
+             BackgroundColor="#F8F9FA">
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="20">
+
+            <Label Text="Crear Cuenta" 
+                   FontSize="22" 
+                   FontAttributes="Bold" 
+                   TextColor="#0d6efd" 
+                   HorizontalOptions="Center"/>
+
+            <Label Text="Información Personal" FontSize="Small" TextColor="Gray" FontAttributes="Bold" Margin="0,10,0,0"/>
+
+            <Entry Placeholder="Nombre(s)" Text="{Binding Nombre}" />
+            <Entry Placeholder="Apellidos" Text="{Binding Apellidos}" />
+            <Entry Placeholder="Correo Electrónico" Text="{Binding CorreoElectronico}" Keyboard="Email" />
+            <Entry Placeholder="CURP (18 caracteres)" Text="{Binding Curp}" MaxLength="18" />
+            <Entry Placeholder="Teléfono" Text="{Binding Telefono}" Keyboard="Telephone" />
+
+            <Grid ColumnDefinitions="*,*">
+                <VerticalStackLayout Grid.Column="0" Spacing="5">
+                    <Label Text="Fecha Nacimiento" FontSize="10" TextColor="Gray"/>
+                    <DatePicker Date="{Binding FechaNacimiento}" MaximumDate="{x:Static sys:DateTime.Now}" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Column="1" Spacing="5" Margin="10,0,0,0">
+                    <Label Text="Género" FontSize="10" TextColor="Gray"/>
+                    <Picker Title="Seleccione" ItemsSource="{Binding Generos}" SelectedItem="{Binding GeneroSeleccionado}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <Entry Placeholder="Contraseña (Mín 8 carácteres)" Text="{Binding Password}" IsPassword="True" />
+            <Entry Placeholder="Confirmar Contraseña" Text="{Binding ConfirmPassword}" IsPassword="True" />
+
+            <BoxView HeightRequest="1" Color="LightGray" Margin="0,15"/>
+
+            <Label Text="Historial Médico" FontSize="Small" TextColor="Gray" FontAttributes="Bold"/>
+
+            <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" BackgroundColor="White" Padding="10" Margin="0,5">
+                <VerticalStackLayout>
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox IsChecked="{Binding ConAlergias}" Color="#0d6efd"/>
+                        <Label Text="¿Tiene Alergias?" VerticalOptions="Center" TextColor="Black"/>
+                    </HorizontalStackLayout>
+                    <Entry Placeholder="Especifique cuáles..." 
+                           Text="{Binding Alergias}" 
+                           IsVisible="{Binding ConAlergias}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" BackgroundColor="White" Padding="10" Margin="0,5">
+                <VerticalStackLayout>
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox IsChecked="{Binding ConCronicas}" Color="#0d6efd"/>
+                        <Label Text="¿Tiene Enfermedades Cronicas?" VerticalOptions="Center" TextColor="Black"/>
+                    </HorizontalStackLayout>
+                    <Entry Placeholder="Especifique cuáles..." 
+                           Text="{Binding EnfermedadesCronicas}" 
+                           IsVisible="{Binding ConCronicas}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" BackgroundColor="White" Padding="10" Margin="0,5">
+                <VerticalStackLayout>
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox IsChecked="{Binding ConMedicamentos}" Color="#0d6efd"/>
+                        <Label Text="¿Esta Medicado?" VerticalOptions="Center" TextColor="Black"/>
+                    </HorizontalStackLayout>
+                    <Entry Placeholder="Especifique cuáles..." 
+                           Text="{Binding MedicamentosActuales}" 
+                           IsVisible="{Binding ConMedicamentos}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" BackgroundColor="White" Padding="10" Margin="0,5">
+                <VerticalStackLayout>
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox IsChecked="{Binding ConAntecedentes}" Color="#0d6efd"/>
+                        <Label Text="¿Tiene Antecedentes Familiares?" VerticalOptions="Center" TextColor="Black"/>
+                    </HorizontalStackLayout>
+                    <Entry Placeholder="Especifique cuáles..." 
+                           Text="{Binding AntecedentesFamiliares}" 
+                           IsVisible="{Binding ConAntecedentes}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="REGISTRARME" 
+                    Command="{Binding RegisterCommand}" 
+                    BackgroundColor="#0d6efd" 
+                    TextColor="White"
+                    CornerRadius="25"
+                    HeightRequest="50"
+                    Margin="0,20,0,0"
+                    FontAttributes="Bold">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsBusy}" Value="True">
+                        <Setter Property="Text" Value="Enviando..." />
+                        <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+
+            <Label Text="Ya tengo cuenta"
+                   TextColor="#6c757d"
+                   HorizontalOptions="Center"
+                   TextDecorations="Underline"
+                   Margin="0,0,0,20">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding LoginCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="#0d6efd" HorizontalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

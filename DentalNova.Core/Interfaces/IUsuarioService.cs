@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace DentalNova.Core.Interfaces
 {
-    // Define qué operaciones puede pedir el MVC a la API
     public interface IUsuarioService
     {
         Task<PagedResultDto<UsuarioAdminDto>> ObtenerUsuariosAsync(UsuarioFilterDto filtro);
@@ -16,5 +15,6 @@ namespace DentalNova.Core.Interfaces
         Task ActualizarUsuarioAsync(int id, UsuarioAdminDtoIn dto);
         Task EliminarUsuarioAsync(int id);
         Task<string> ObtenerFechaNacimientoAsync(int id);
+        Task CambiarContrasenaAsync(int userId, string passwordActual, string passwordNuevo);
     }
 }

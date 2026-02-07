@@ -1,0 +1,290 @@
+﻿@model Proyecto_DentalNova.Models.OdontologoViewModel.OdontologoVM
+
+@{
+    ViewData["Title"] = "Gestionar Horarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Generar iniciales para el avatar pequeño del encabezado
+    var iniciales = (!string.IsNullOrEmpty(Model.OdontologoVisual.Nombre) ? Model.OdontologoVisual.Nombre.Substring(0, 1) : "") +
+                    (!string.IsNullOrEmpty(Model.OdontologoVisual.Apellidos) ? Model.OdontologoVisual.Apellidos.Substring(0, 1) : "");
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm"
+                 style="width: 50px; height: 50px; font-size: 1.2rem; font-weight: bold;">
+                @iniciales
+            </div>
+            <div>
+                <h2 class="fw-bold text-dark mb-0">Configuración de Horarios</h2>
+                <p class="text-muted mb-0">Dr(a). @Model.OdontologoVisual.NombreCompleto</p>
+            </div>
+        </div>
+        <a asp-action="Details" asp-route-id="@Model.OdontologoVisual.Id" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Volver al Perfil
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <div>
+                <h5 class="mb-0 fw-bold text-primary"><i class="far fa-calendar-alt me-2"></i> Turnos Asignados</h5>
+            </div>
+            <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrear">
+                <i class="fas fa-plus me-2"></i> Nuevo Turno
+            </button>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!Model.Horarios.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                        <i class="far fa-calendar-times fa-3x text-muted opacity-50"></i>
+                    </div>
+                    <h5 class="text-muted fw-bold">Sin disponibilidad configurada</h5>
+                    <p class="text-muted small">Agrega el primer horario para habilitar citas.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th class="ps-4">Día de la Semana</th>
+                                <th>Horario (Entrada - Salida)</th>
+                                <th>Consultorio</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Horarios.OrderBy(x => x.DiaSemana).ThenBy(x => x.HoraInicio))
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="badge rounded-pill bg-light text-dark border fw-bold px-3 py-2">
+                                            <i class="far fa-calendar me-2 text-primary"></i> @item.DiaSemanaTexto
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="far fa-clock text-muted me-2"></i>
+                                            <span class="fw-bold text-dark">
+                                                @item.HoraInicio.ToString(@"hh\:mm") <span class="text-muted fw-light mx-1">a</span> @item.HoraFin.ToString(@"hh\:mm")
+                                            </span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Consultorio))
+                                        {
+                                            <span class="d-inline-flex align-items-center text-muted">
+                                                <i class="fas fa-door-open me-2 text-info"></i> @item.Consultorio
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small fst-italic">--</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary btn-editar"
+                                                    title="Editar"
+                                                    data-bs-toggle="modal" data-bs-target="#modalEditar"
+                                                    data-id="@item.Id"
+                                                    data-dia="@((int)item.DiaSemana)"
+                                                    data-inicio="@item.HoraInicio.ToString(@"hh\:mm")"
+                                                    data-fin="@item.HoraFin.ToString(@"hh\:mm")"
+                                                    data-consultorio="@item.Consultorio">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+
+                                            <form id="form-eliminar-@item.Id" asp-action="EliminarHorario" method="post" style="display:none;">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <input type="hidden" name="odontologoId" value="@Model.OdontologoVisual.Id" />
+                                            </form>
+
+                                            <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="confirmarEliminarHorario(@item.Id, '@item.DiaSemanaTexto', '@item.HoraInicio.ToString(@"hh\:mm")')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCrear" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h6 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i> Agregar Disponibilidad</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="AgregarHorario" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" asp-for="NuevoHorario.OdontologoId" />
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Día de la Semana</label>
+                        <select asp-for="NuevoHorario.DiaSemana" class="form-select" required>
+                            <option value="1">Lunes</option>
+                            <option value="2">Martes</option>
+                            <option value="3">Miércoles</option>
+                            <option value="4">Jueves</option>
+                            <option value="5">Viernes</option>
+                            <option value="6">Sábado</option>
+                            <option value="7">Domingo</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Hora Inicio</label>
+                            <input type="time" asp-for="NuevoHorario.HoraInicio" class="form-control" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Hora Fin</label>
+                            <input type="time" asp-for="NuevoHorario.HoraFin" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Ubicación</label>
+                        <select asp-for="NuevoHorario.Consultorio" class="form-select" required>
+                            <option value="">-- Seleccionar Consultorio --</option>
+                            <option value="Consultorio 1">Consultorio 1 (General)</option>
+                            <option value="Consultorio 2">Consultorio 2 (Ortodoncia)</option>
+                            <option value="Consultorio 3">Consultorio 3 (Cirugía)</option>
+                            <option value="Consultorio 4">Consultorio 4</option>
+                            <option value="Consultorio 5">Consultorio 5</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold">Guardar Turno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-white border-bottom">
+                <h6 class="modal-title fw-bold text-primary"><i class="fas fa-pen me-2"></i> Modificar Horario</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditarHorario" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="edit_Id" asp-for="HorarioEdicion.Id" />
+                    <input type="hidden" id="edit_OdontologoId" asp-for="HorarioEdicion.OdontologoId" />
+
+                    <div class="alert alert-info py-2 px-3 small mb-3">
+                        <i class="fas fa-info-circle me-1"></i> Modifica los valores necesarios.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Día</label>
+                        <select id="edit_DiaSemana" asp-for="HorarioEdicion.DiaSemana" class="form-select" required>
+                            <option value="1">Lunes</option>
+                            <option value="2">Martes</option>
+                            <option value="3">Miércoles</option>
+                            <option value="4">Jueves</option>
+                            <option value="5">Viernes</option>
+                            <option value="6">Sábado</option>
+                            <option value="7">Domingo</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Inicio</label>
+                            <input type="time" id="edit_HoraInicio" asp-for="HorarioEdicion.HoraInicio" class="form-control" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Fin</label>
+                            <input type="time" id="edit_HoraFin" asp-for="HorarioEdicion.HoraFin" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Consultorio</label>
+                        <select id="edit_Consultorio" asp-for="HorarioEdicion.Consultorio" class="form-select" required>
+                            <option value="Consultorio 1">Consultorio 1 (General)</option>
+                            <option value="Consultorio 2">Consultorio 2 (Ortodoncia)</option>
+                            <option value="Consultorio 3">Consultorio 3 (Cirugía)</option>
+                            <option value="Consultorio 4">Consultorio 4</option>
+                            <option value="Consultorio 5">Consultorio 5</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // 1. Script para llenar el Modal de Edición
+        document.addEventListener('DOMContentLoaded', function () {
+            var editarBtns = document.querySelectorAll('.btn-editar');
+
+            editarBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = this.getAttribute('data-id');
+                    var dia = this.getAttribute('data-dia');
+                    var inicio = this.getAttribute('data-inicio');
+                    var fin = this.getAttribute('data-fin');
+                    var consultorio = this.getAttribute('data-consultorio');
+
+                    document.getElementById('edit_Id').value = id;
+                    document.getElementById('edit_DiaSemana').value = dia;
+                    document.getElementById('edit_HoraInicio').value = inicio;
+                    document.getElementById('edit_HoraFin').value = fin;
+                    document.getElementById('edit_Consultorio').value = consultorio;
+                });
+            });
+        });
+
+        // 2. Script para Eliminar con SweetAlert
+        function confirmarEliminarHorario(id, dia, hora) {
+            Swal.fire({
+                title: '¿Eliminar Turno?',
+                text: `Se eliminará el horario del ${dia} a las ${hora}.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Buscar el formulario específico y enviarlo
+                    document.getElementById('form-eliminar-' + id).submit();
+                }
+            })
+        }
+    </script>
+}

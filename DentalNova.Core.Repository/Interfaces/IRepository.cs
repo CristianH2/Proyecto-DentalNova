@@ -13,11 +13,12 @@ namespace DentalNova.Core.Repository.Interfaces
         IArticuloRepository Articulo { get; }
         IRolRepository Rol { get; }
         IPacienteRepository Paciente { get; }
-
         ICitaRepository Cita { get; }
         ICitaTratamientoRepository CitaTratamiento { get; }
         IHorarioOdontologoRepository HorarioOdontologo { get; }
         IOdontologoRepository Odontologo { get; }
         IEspecialidadRepository Especialidad { get; }
+        IPagoRepository Pago { get; }
+        IRecordatorioRepository Recordatorio { get; }
     }
 }

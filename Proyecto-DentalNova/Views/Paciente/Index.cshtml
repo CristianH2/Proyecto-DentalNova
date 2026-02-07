@@ -20,7 +20,7 @@
     <div class="col-12 col-xl-3">
         <div class="card shadow-sm border-0 sticky-top" style="top: 1rem; z-index: 100;">
             <div class="card-header bg-white py-3 border-bottom">
-                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Búsqueda Avanzada</h6>
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros de Búsqueda</h6>
             </div>
             <div class="card-body">
                 <form method="get" class="vstack gap-3">
@@ -96,14 +96,19 @@
 
             <div class="card-body p-0">
                 <form method="get" class="m-0 p-0">
-                    @foreach (var prop in Model.Filtro.GetType().GetProperties())
-                    {
-                        var value = prop.GetValue(Model.Filtro);
-                        if (value != null && prop.Name != "Page" && prop.Name != "PageSize" && (value.GetType() != typeof(bool) || (bool)value))
-                        {
-                            <input type="hidden" name="Filtro.@prop.Name" value="@value" />
-                        }
-                    }
+                    <input type="hidden" asp-for="Filtro.Id" />
+                    <input type="hidden" asp-for="Filtro.NombreLike" />
+                    <input type="hidden" asp-for="Filtro.ApellidosLike" />
+                    <input type="hidden" asp-for="Filtro.EdadMin" />
+                    <input type="hidden" asp-for="Filtro.EdadMax" />
+                    <input type="hidden" asp-for="Filtro.PageSize" />
+
+                    <input type="hidden" asp-for="Filtro.ConAlergias" />
+                    <input type="hidden" asp-for="Filtro.ConEnfermedadesCronicas" />
+                    <input type="hidden" asp-for="Filtro.ConMedicamentosActuales" />
+
+                    <input type="hidden" name="Filtro.FechaDesde" value="@(Model.Filtro.FechaDesde?.ToString("yyyy-MM-dd"))" />
+                    <input type="hidden" name="Filtro.FechaHasta" value="@(Model.Filtro.FechaHasta?.ToString("yyyy-MM-dd"))" />
 
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -172,16 +177,16 @@
                                             </td>
 
                                             <td class="text-end pe-4">
-                                                <div class="btn-group">
-                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Expediente">
-                                                        <i class="fas fa-file-medical"></i>
+                                                <div class="btn-group shadow-sm">
+                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Expediente">
+                                                        <i class="fas fa-file-medical text-secondary"></i>
                                                     </a>
-                                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
-                                                        <i class="fas fa-pen"></i>
+                                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Editar">
+                                                        <i class="fas fa-pen text-primary"></i>
                                                     </a>
 
-                                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                                        <i class="fas fa-trash"></i>
+                                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Eliminar">
+                                                        <i class="fas fa-trash text-danger"></i>
                                                     </a>
                                                 </div>
                                             </td>
@@ -217,49 +222,4 @@
 </div>
 
 @section Scripts {
-    @* <script>
-        // Función para SweetAlert (Eliminar)
-        function confirmarEliminar(id) {
-            Swal.fire({
-                title: '¿Eliminar Expediente?',
-                text: "Se borrará todo el historial médico de este paciente.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Crea un form oculto para enviar POST seguro
-                    var form = document.createElement('form');
-                    form.method = 'post';
-                    form.action = '@Url.Action("Delete")/' + id;
-
-                    // Token Antiforgery (Busca el token que genera .NET en cualquier otro form de la página)
-                    // Si no hay otro form, asegúrate de poner @Html.AntiForgeryToken() en algún lado oculto.
-                    var tokenInput = document.createElement('input');
-                    tokenInput.type = 'hidden';
-                    tokenInput.name = '__RequestVerificationToken';
-                    // Intentamos obtener el token de algún lugar común o creamos uno si usamos el helper
-                    // En este caso, para simplificar, asumiremos que usas el método GET para la vista Delete
-                    // O si usas POST directo, descomenta la siguiente línea si tienes el token en la página:
-                    // tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
-                    // form.appendChild(tokenInput);
-                    // document.body.appendChild(form);
-                    // form.submit();
-
-                    // MODO SIMPLE (Redirige a la vista de confirmación si prefieres eso):
-                    window.location.href = '@Url.Action("Delete")/' + id;
-                }
-            })
-        }
-
-        // Inicializar Tooltips (para que los badges muestren "Tiene Alergias" al pasar el mouse)
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
-    </script> *@
 }

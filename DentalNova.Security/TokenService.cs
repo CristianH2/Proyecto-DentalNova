@@ -9,11 +9,9 @@ namespace DentalNova.Security
 {
     public class TokenService : ITokenService
     {
-        // Esta es la "llave secreta" (reutilizable)
         private readonly SymmetricSecurityKey _key;
         private readonly IConfiguration _config;
 
-        // CONSTRUCTOR: Prepara la llave secreta una sola vez
         public TokenService(IConfiguration config)
         {
             _config = config;
@@ -27,18 +25,28 @@ namespace DentalNova.Security
             {
                 new Claim(JwtRegisteredClaimNames.NameId, usuario.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, usuario.CorreoElectronico),
+                new Claim(ClaimTypes.Name, $"{usuario.Nombre} {usuario.Apellidos}") // Nombre para mostrar
             };
 
-            // FIRMA: Credenciales con la llave secreta y el algoritmo más fuerte
+            // Agregamos un Claim por cada rol que tenga el usuario
+            if (usuario.Roles != null && usuario.Roles.Any())
+            {
+                foreach (var rol in usuario.Roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, rol.Nombre));
+                }
+            }
+
+            // FIRMA: Credenciales con la llave secreta
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
             // DESCRIPTOR: El "plano" del token
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),       // El payload
-                Expires = DateTime.Now.AddMinutes(20),      // Expira en 20 minuto
-                NotBefore = DateTime.Now,                   // Válido desde ahora
-                IssuedAt = DateTime.Now,                    // Emitido ahora
+                Expires = DateTime.UtcNow.AddHours(4),      // Expira en 20 minuto
+                NotBefore = DateTime.UtcNow,                // Válido desde ahora
+                IssuedAt = DateTime.UtcNow,                 // Emitido ahora
                 SigningCredentials = creds,                 // La firma
                 Issuer = _config["Jwt:Issuer"],             // Quién lo emite (la app)
                 Audience = _config["Jwt:Audience"]          // Para quién es (la app)

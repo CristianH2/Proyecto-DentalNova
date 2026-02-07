@@ -31,17 +31,15 @@ namespace DentalNova.Business.Rules
             var usuario = await _repositorio.Usuario.ObtenerPorIdAsync(usuarioId);
             if (usuario == null)
             {
-                return null; // No se encontró el usuario
+                return null;
             }
 
             // Actualizar solo los campos permitidos del DTO
             usuario.Telefono = dto.Telefono;
             usuario.Genero = dto.Genero;
 
-            // Guardar los cambios en la base de datos
             await _repositorio.Usuario.ActualizarAsync(usuario);
 
-            // Devolver el DTO de salida actualizado
             return usuario.ToDto();
         }
 
@@ -51,7 +49,7 @@ namespace DentalNova.Business.Rules
             var usuario = await _repositorio.Usuario.ObtenerPorIdAsync(usuarioId);
             if (usuario == null)
             {
-                return false; // No debería pasar si el token es válido
+                return false;
             }
 
             // Verificar la contraseña ACTUAL
@@ -59,34 +57,33 @@ namespace DentalNova.Business.Rules
 
             if (!esPasswordActualValido)
             {
-                return false; // La contraseña actual no coincide
+                return false;
             }
 
-            var nuevoHash = BCrypt.Net.BCrypt.HashPassword(cambioDto.PasswordNueva);
+            var nuevoHash = BCrypt.Net.BCrypt.HashPassword(cambioDto.PasswordNuevo);
 
             // Guardar el nuevo hash en la base de datos
             return await _repositorio.Usuario.ActualizarPasswordAsync(usuarioId, nuevoHash);
         }
 
-        public async Task<Usuario> ValidarCredencialesAsync(InicioDeSesionDto inicioDeSesion)
+        public async Task<Usuario> ValidarCredencialesAsync(LoginDto inicioDeSesion)
         {
             // Buscar al usuario (incluyendo roles para el token/cookie)
             var usuario = await _repositorio.Usuario.ObtenerPorEmailAsync(inicioDeSesion.Correo);
 
             if (usuario == null)
             {
-                return null; // Usuario no existe
+                return null;
             }
 
-            // 2. Validar contraseña
+            // Validar contraseña
             bool esPasswordValido = BCrypt.Net.BCrypt.Verify(inicioDeSesion.Password, usuario.Password);
 
             if (!esPasswordValido)
             {
-                return null; // Contraseña incorrecta
+                return null; 
             }
 
-            // Devolver la entidad Usuario completa
             return usuario;
         }
 
@@ -97,10 +94,9 @@ namespace DentalNova.Business.Rules
 
             if (usuario == null)
             {
-                return null; // No se encontró el usuario
+                return null;
             }
 
-            // Mapear la entidad al DTO de salida
             return usuario.ToDto();
         }
 
@@ -110,11 +106,12 @@ namespace DentalNova.Business.Rules
             var usuarioExistente = await _repositorio.Usuario.ObtenerPorEmailAsync(usuarioDtoIn.CorreoElectronico);
             if (usuarioExistente != null)
             {
-                return null; // No se puede registrar
+                return null;
             }
 
-            // Mapear DTO a Entidad 
             var nuevoUsuario = usuarioDtoIn.ToEntidad();
+            nuevoUsuario.Password = BCrypt.Net.BCrypt.HashPassword(usuarioDtoIn.Password);
+            nuevoUsuario.Activo = true;
 
             // Agregar el nuevo usuario a la BD
             var usuarioCreado = await _repositorio.Usuario.AgregarAsync(nuevoUsuario);
@@ -137,9 +134,7 @@ namespace DentalNova.Business.Rules
         // --- Métodos para Admin MVC ---
 
 
-        // Obtiene la lista paginada de usuarios aplicando filtros.
-        // (Mueve la lógica de UsuarioController.Index)
-
+        // Obtiene la lista paginada de usuarios aplicando filtros
         public async Task<PaginatedList<Usuario>> ObtenerListaPaginadaAsync(UsuarioFilterDto filtro)
         {
             // Obtiene la consulta base del repositorio
@@ -161,23 +156,19 @@ namespace DentalNova.Business.Rules
             if (filtro.Activo.HasValue)
                 query = query.Where(u => u.Activo == filtro.Activo.Value);
 
-            // Aplica ordenamiento
-            //query = query.OrderBy(u => u.Apellidos).ThenBy(u => u.Nombre); 
+            // Ordenamiento
             query = query.OrderBy(u => u.Id);
 
-            // Ejecuta la paginación
             return await PaginatedList<Usuario>.CreateAsync(query, filtro.Page, filtro.PageSize);
         }
 
-        // Obtiene un usuario por ID (para Details o Edit).
+        // Obtiene un usuario por ID (para Details o Edit)
         public async Task<Usuario> ObtenerPorIdAdminAsync(int id)
         {
-            // (Usamos el 'ObtenerPorIdAsync' que ya incluye roles)
             return await _repositorio.Usuario.ObtenerPorIdAsync(id);
         }
 
         // Obtiene la fecha de nacimiento formateada para JSON.
-        // (Mueve la lógica de UsuarioController.GetUsuarioFechaNacimiento)
         public async Task<string> ObtenerFechaNacimientoJsonAsync(int id)
         {
             var usuario = await _repositorio.Usuario.ObtenerPorIdAsync(id);
@@ -188,11 +179,9 @@ namespace DentalNova.Business.Rules
             return usuario.FechaNacimiento.Value.ToString("yyyy-MM-dd");
         }
 
-        // Crea un nuevo usuario (admin).
-        // (Mueve la lógica de UsuarioController.Create POST)
+        // Crea un nuevo usuario (admin)
         public async Task CrearUsuarioAdminAsync(Usuario usuario, string newPassword, List<string> rolesSeleccionados)
         {
-            // Hashea la contraseña
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
             // Esto guarda y obtiene el ID
@@ -212,25 +201,25 @@ namespace DentalNova.Business.Rules
             }
         }
 
-        // Actualiza un usuario (admin).
-        // (Mueve la lógica de UsuarioController.Edit POST)
+
+
+        // Actualiza un usuario (admin)
         public async Task ActualizarUsuarioAdminAsync(Usuario usuario, string? newPassword, List<string> rolesSeleccionados)
         {
             bool actualizarPassword = !string.IsNullOrEmpty(newPassword);
 
             if (actualizarPassword)
             {
-                // Hashea la nueva contraseña si se proporcionó
                 usuario.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
             }
 
-            // Actualiza la entidad Usuario (esto llama a SaveChanges())
+            // Actualiza la entidad Usuario
             await _repositorio.Usuario.ActualizarUsuarioAdminAsync(usuario, actualizarPassword);
 
-            // Borra todos los roles antiguos de este usuario (llama a SaveChanges())
+            // Borra todos los roles antiguos
             await _repositorio.Rol.EliminarPorUsuarioIdAsync(usuario.Id);
 
-            // Re-agrega los nuevos roles seleccionados (cada uno llama a SaveChanges())
+            // Re-agrega los nuevos roles seleccionados
             foreach (var nombreRol in rolesSeleccionados)
             {
                 var nuevoRol = new Rol
@@ -243,8 +232,7 @@ namespace DentalNova.Business.Rules
             }
         }
 
-        // Elimina un usuario (admin).
-        // (Mueve la lógica de UsuarioController.DeleteConfirmed)
+        // Elimina un usuario (admin)
         public async Task EliminarUsuarioAsync(int id)
         {
             await _repositorio.Usuario.EliminarAsync(id);

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DentalNova.Core.Dtos
 {
-    public class UsuarioFilterDto : PaginacionDto // Reutilizamos el DTO de paginación
+    public class UsuarioFilterDto : PaginacionDto
     {
         public int? Id { get; set; }
         public string? NombreLike { get; set; }
@@ -18,7 +18,6 @@ namespace DentalNova.Core.Dtos
         public bool? Activo { get; set; }
     }
 
-    // DTO base para paginación
     public class PaginacionDto
     {
         public int Page { get; set; } = 1;

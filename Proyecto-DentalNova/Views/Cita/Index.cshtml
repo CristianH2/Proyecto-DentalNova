@@ -1,416 +1,291 @@
 ﻿@model Proyecto_DentalNova.Models.CitaViewModel.CitaIndexViewModel
+@using DentalNova.Core.Repository.Entities
 
 @{
     ViewData["Title"] = "Agenda de Citas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-@section Styles {
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <style>
-        /* Ajuste para que el calendario se vea bien con Bootstrap */
-        .fc-event {
-            cursor: pointer;
-            border: none;
-        }
-
-        .fc-toolbar-title {
-            font-size: 1.25rem !important;
-            text-transform: capitalize;
-        }
-        /* Colores de estado personalizados */
-        .bg-cita-confirmada {
-            background-color: #198754 !important;
-            border-left: 4px solid #0f5132 !important;
-        }
-
-        .bg-cita-pendiente {
-            background-color: #ffc107 !important;
-            color: #000;
-            border-left: 4px solid #ba8b00 !important;
-        }
-
-        .bg-cita-cancelada {
-            background-color: #dc3545 !important;
-            border-left: 4px solid #842029 !important;
-        }
-    </style>
-}
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold text-dark mb-0">Agenda Clínica</h2>
-
-    <div class="d-flex align-items-center gap-2">
-        <label class="fw-bold text-muted small mb-0">Ver agenda de:</label>
-        <select class="form-select form-select-sm" style="width: 200px;">
-            <option value="0">Todos los Odontólogos</option>
-            <option value="1">Dr. Juan Pérez</option>
-            <option value="2">Dra. Ana Gómez</option>
-        </select>
-        <button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#modalCita">
-            <i class="fas fa-plus"></i> Nueva
-        </button>
+@Html.AntiForgeryToken()
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">@ViewData["Title"]</h2>
+        <p class="text-muted mb-0">Gestión de agenda y seguimiento de consultas.</p>
     </div>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fas fa-calendar-plus me-2"></i> Agendar Nueva Cita
+    </a>
 </div>
 
-<div class="card shadow-sm border-0 h-100">
-    <div class="card-body p-0">
-        <div id="calendar" style="min-height: 800px;"></div>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between"
+         data-bs-toggle="collapse" data-bs-target="#collapseFiltros" style="cursor: pointer;">
+        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros de Búsqueda</h6>
+        <i class="fas fa-chevron-down text-muted small"></i>
     </div>
-</div>
 
-<div class="modal fade" id="modalCita" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalTitulo">Agendar Cita</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formCita">
-                    <input type="hidden" id="citaId" name="Id" value="0">
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Paciente</label>
-                        <select class="form-select select2-modal" id="selectPaciente" style="width:100%">
-                            <option></option>
-                            <option value="1">Juan Pérez</option>
-                            <option value="2">Maria Rodriguez</option>
-                        </select>
+    <div class="collapse show" id="collapseFiltros">
+        <div class="card-body bg-light bg-opacity-25">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Rango de Fechas</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="far fa-calendar-alt"></i></span>
+                        <input asp-for="Filtro.FechaInicio" type="date" class="form-control" placeholder="Desde" />
+                        <span class="input-group-text bg-light">-</span>
+                        <input asp-for="Filtro.FechaFin" type="date" class="form-control" placeholder="Hasta" />
                     </div>
+                </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label">Fecha</label>
-                            <input type="date" class="form-control" id="citaFecha" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Hora Inicio</label>
-                            <input type="time" class="form-control" id="citaHora" required>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Paciente</label>
+                    <div class="input-group input-group-sm flex-nowrap">
+                        <span class="input-group-text bg-white"><i class="fas fa-user-injured"></i></span>
+                        <div class="flex-grow-1" style="min-width: 0;">
+                            <select asp-for="Filtro.PacienteId" asp-items="Model.Pacientes" class="form-select select2-filtro">
+                                <option value="">(Todos los Pacientes)</option>
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Odontólogo</label>
-                        <select class="form-select" id="selectOdontologo">
-                            <option value="1">Dr. Juan Pérez (Ortodoncia)</option>
-                            <option value="2">Dra. Ana Gómez (General)</option>
-                        </select>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Odontólogo</label>
+                    <div class="input-group input-group-sm flex-nowrap">
+                        <span class="input-group-text bg-white"><i class="fas fa-user-md"></i></span>
+                        <div class="flex-grow-1" style="min-width: 0;">
+                            <select asp-for="Filtro.OdontologoId" asp-items="Model.Odontologos" class="form-select select2-filtro">
+                                <option value="">(Todos los Doctores)</option>
+                            </select>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Motivo / Tratamiento</label>
-                        <textarea class="form-control" rows="2" placeholder="Ej. Limpieza general, dolor de muela..."></textarea>
-                    </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Estado</label>
+                    <select asp-for="Filtro.Estatus" asp-items="Model.Estatus" class="form-select form-select-sm">
+                        <option value="">(Todos)</option>
+                    </select>
+                </div>
 
-                    <div class="mb-3" id="divEstado" style="display:none;">
-                        <label class="form-label">Estado</label>
-                        <select class="form-select">
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Confirmada">Confirmada</option>
-                            <option value="Cancelada">Cancelada</option>
-                        </select>
+                <div class="col-md-1 d-flex align-items-end">
+                    <div class="d-grid w-100 gap-1">
+                        <button type="submit" class="btn btn-sm btn-primary fw-bold" title="Buscar"><i class="fas fa-search me-1"></i> Buscar</button>
+                        <a asp-action="Index" class="btn btn-sm btn-light border text-muted" title="Limpiar"><i class="fas fa-eraser me-1"></i> Limpiar</a>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="btnGuardar">Guardar Cita</button>
-            </div>
+                </div>
+            </form>
         </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 fw-bold text-primary">Citas Programadas</h6>
+        <span class="badge bg-primary rounded-pill">Total: @(Model.Resultados.TotalCount)</span>
+    </div>
+
+    <div class="card-body p-0">
+        <form method="get" id="paginacionForm" class="m-0 p-0">
+            <input type="hidden" asp-for="Filtro.PacienteId" />
+            <input type="hidden" asp-for="Filtro.OdontologoId" />
+            <input type="hidden" asp-for="Filtro.Estatus" />
+            <input type="hidden" asp-for="Filtro.PageSize" />
+
+            <input type="hidden" name="Filtro.FechaInicio" value="@(Model.Filtro.FechaInicio?.ToString("yyyy-MM-dd"))" />
+            <input type="hidden" name="Filtro.FechaFin" value="@(Model.Filtro.FechaFin?.ToString("yyyy-MM-dd"))" />
+
+            @if (Model.Resultados == null && !Model.Resultados.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                        <i class="far fa-calendar-check fa-3x text-muted opacity-50"></i>
+                    </div>
+                    <h5 class="text-muted fw-bold">Agenda Libre</h5>
+                    <p class="text-muted small mb-0">No se encontraron citas con los criterios actuales.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th class="ps-4">Fecha</th>
+                                <th>Horario</th>
+                                <th>Paciente</th>
+                                <th>Doctor</th>
+                                <th>Estado</th>
+                                <th class="text-end pe-4">Gestión</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Resultados)
+                            {
+                                // Configuración de Estilos según Estado
+                                string badgeClass = item.EstatusCita switch
+                                {
+                                    Enumerables.EstatusCita.Programada => "bg-primary bg-opacity-10 text-primary border-primary border-opacity-25",
+                                    Enumerables.EstatusCita.Completada => "bg-success bg-opacity-10 text-success border-success border-opacity-25",
+                                    Enumerables.EstatusCita.Cancelada => "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25",
+                                    Enumerables.EstatusCita.NoAsistida => "bg-warning bg-opacity-10 text-dark border-warning border-opacity-25",
+                                    _ => "bg-secondary bg-opacity-10 text-secondary"
+                                };
+
+                                string iconClass = item.EstatusCita switch
+                                {
+                                    Enumerables.EstatusCita.Programada => "fa-clock",
+                                    Enumerables.EstatusCita.Completada => "fa-check-circle",
+                                    Enumerables.EstatusCita.Cancelada => "fa-ban",
+                                    Enumerables.EstatusCita.NoAsistida => "fa-user-slash",
+                                    _ => "fa-circle"
+                                };
+
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light border rounded text-center p-2 me-3" style="min-width: 50px;">
+                                                <span class="d-block small text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">
+                                                    @item.FechaHora.ToString("MMM")
+                                                </span>
+                                                <span class="d-block fs-5 fw-bold text-dark lh-1">
+                                                    @item.FechaHora.Day
+                                                </span>
+                                            </div>
+                                            <div class="d-none d-lg-block">
+                                                <span class="small text-muted d-block">@item.FechaHora.ToString("dddd")</span>
+                                                <span class="small text-muted">@item.FechaHora.ToString("yyyy")</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="fw-bold text-dark">
+                                            @item.FechaHora.ToString("hh:mm tt")
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-hourglass-half me-1"></i> @((int)item.DuracionMinutos) min
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-2"
+                                                 style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <span class="fw-bold text-dark">@item.PacienteNombre</span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-2"
+                                                 style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                <i class="fas fa-user-md"></i>
+                                            </div>
+                                            <span class="text-muted small">Dr. @item.OdontologoNombre</span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge @badgeClass rounded-pill border px-3 py-2 fw-normal">
+                                            <i class="fas @iconClass me-1"></i> @item.EstatusTexto
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group shadow-sm">
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Ver Detalle" data-bs-toggle="tooltip">
+                                                <i class="fas fa-eye text-secondary"></i>
+                                            </a>
+
+                                            @if (item.EstatusCita == Enumerables.EstatusCita.Programada)
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white border" title="Reprogramar" data-bs-toggle="tooltip">
+                                                    <i class="fas fa-pen text-primary"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-white border text-danger"
+                                                        title="Cancelar Cita" data-bs-toggle="tooltip"
+                                                        onclick="confirmarCancelacion(@item.Id, '@Html.Raw(item.PacienteNombre)')">
+                                                    <i class="fas fa-times-circle"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer bg-white border-top-0 py-3">
+                    @await Html.PartialAsync("_Pagination", Model.Resultados)
+                </div>
+            }
+        </form>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
+        $(document).ready(function() {
 
-            // 1. Configuración de FullCalendar
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek', // Vista semanal por defecto
-                locale: 'es',               // Idioma Español
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                slotMinTime: '08:00:00', // La clínica abre a las 8 AM
-                slotMaxTime: '20:00:00', // Cierra a las 8 PM
-                allDaySlot: false,       // Ocultar fila de "Todo el día"
-                hiddenDays: [0],         // Ocultar Domingos (0) si la clínica cierra ese día
-                height: 'auto',
-                navLinks: true,          // Click en día lleva a la vista diaria
-                editable: true,          // Permite arrastrar (Drag & Drop)
-                selectable: true,        // Permite seleccionar huecos vacíos
-
-                // 2. Eventos (Datos Simulados - Esto vendrá de tu API)
-                events: [
-                    {
-                        id: '1',
-                        title: 'Limpieza - Juan P.',
-                        start: '2025-12-29T10:00:00', // FECHA FUTURA FIJA PARA EL EJEMPLO (Ajustar a fecha actual para verla)
-                        end: '2025-12-29T11:00:00',
-                        className: 'bg-cita-confirmada', // Clase CSS personalizada
-                        extendedProps: { doctor: 'Dr. Juan', description: 'Limpieza semestral' }
-                    },
-                    {
-                        id: '2',
-                        title: 'Extracción - Maria R.',
-                        start: '2025-12-30T14:30:00',
-                        end: '2025-12-30T15:30:00',
-                        className: 'bg-cita-pendiente',
-                        extendedProps: { doctor: 'Dra. Ana', description: 'Muela del juicio' }
-                    }
-                ],
-
-                // 3. Al hacer clic en un hueco vacío (Crear)
-                dateClick: function(info) {
-                    // Limpiar formulario
-                    $('#formCita')[0].reset();
-                    $('#citaId').val(0);
-                    $('#modalTitulo').text("Nueva Cita");
-                    $('#divEstado').hide();
-
-                    // Pre-llenar fecha y hora seleccionada
-                    // info.dateStr viene como "2023-10-25T10:00:00"
-                    let fecha = info.dateStr.split('T')[0];
-                    let hora = info.dateStr.split('T')[1].substring(0,5);
-
-                    $('#citaFecha').val(fecha);
-                    $('#citaHora').val(hora);
-
-                    // Abrir Modal
-                    var myModal = new bootstrap.Modal(document.getElementById('modalCita'));
-                    myModal.show();
-                },
-
-                // 4. Al hacer clic en un evento existente (Editar)
-                eventClick: function(info) {
-                    var evento = info.event;
-
-                    // Llenar formulario con datos del evento
-                    $('#citaId').val(evento.id);
-                    $('#modalTitulo').text("Editar Cita");
-                    $('#divEstado').show(); // Mostrar select de estado al editar
-
-                    // Simulación de carga de datos...
-                    // En realidad harías una llamada AJAX para obtener los detalles completos del ID
-
-                    var myModal = new bootstrap.Modal(document.getElementById('modalCita'));
-                    myModal.show();
-                },
-
-                // 5. Al arrastrar y soltar (Cambiar hora rápido)
-                eventDrop: function(info) {
-                    Swal.fire({
-                        title: '¿Confirmar cambio?',
-                        text: "La cita de " + info.event.title + " se moverá al " + info.event.start.toLocaleString(),
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: 'Sí, mover',
-                        cancelButtonText: 'Revertir'
-                    }).then((result) => {
-                        if (!result.isConfirmed) {
-                            info.revert(); // Si cancela, la cita vuelve a su lugar original
-                        } else {
-                            // AQUÍ LLAMAS A TU API PARA GUARDAR EL CAMBIO DE HORA
-                            console.log("Nueva fecha enviada al backend: " + info.event.start.toISOString());
-                        }
-                    });
-                }
-            });
-
-            calendar.render();
-
-            // Inicializar Select2 dentro del Modal (requiere un pequeño hack de parent)
-            $('.select2-modal').select2({
-                dropdownParent: $('#modalCita'), // Importante para que funcione en modales
+            // Select2
+            $('.select2-filtro').select2({
                 theme: 'bootstrap-5',
-                placeholder: "Buscar paciente..."
+                width: '100%',
+                placeholder: '(Seleccione)',
+                allowClear: true
             });
 
-            // Simular fecha actual para que veas los eventos de ejemplo si copias y pegas hoy
-            // En producción, quita esto para que use la fecha real
-            // calendar.gotoDate('2025-12-29');
+            // Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
         });
+
+        // SweetAlert
+        function confirmarCancelacion(id, paciente) {
+            Swal.fire({
+                title: '¿Cancelar Cita?',
+                text: `Se cancelará la cita programada para ${paciente}.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545', // Rojo
+                cancelButtonColor: '#6c757d', // Gris
+                confirmButtonText: 'Sí, cancelar cita',
+                cancelButtonText: 'No, mantener'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    enviarPost('@Url.Action("Delete")', id);
+                }
+            })
+        }
+
+        // Función auxiliar para POST
+        function enviarPost(url, id) {
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = url;
+
+            var inputId = document.createElement('input');
+            inputId.type = 'hidden';
+            inputId.name = 'id';
+            inputId.value = id;
+            form.appendChild(inputId);
+
+            // Token AntiForgery
+            var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if(tokenInput) {
+                var inputToken = inputId.cloneNode();
+                inputToken.name = '__RequestVerificationToken';
+                inputToken.value = tokenInput.value;
+                form.appendChild(inputToken);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
     </script>
 }
-@* 
-@{
-    ViewData["Title"] = "Agenda de Citas";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
-<h1>@ViewData["Title"]</h1>
-<hr />
-
-<div class="row g-3">
-    <div class="col-12 col-xl-3">
-        <div class="card shadow-sm">
-            <div class="card-header d-flex align-items-center"><i class="bi bi-funnel-fill me-2"></i><strong>Filtro de Búsqueda</strong></div>
-            <div class="card-body">
-                <form method="get" class="vstack gap-3">
-                    <div>
-                        <label asp-for="Filtro.Id" class="form-label"></label>
-                        <input asp-for="Filtro.Id" class="form-control" />
-                    </div>
-                    <div>
-                        <label asp-for="Filtro.PacienteNombreLike" class="form-label"></label>
-                        <input asp-for="Filtro.PacienteNombreLike" class="form-control" placeholder="Nombre o Apellido..." />
-                    </div>
-                    <div>
-                        <label asp-for="Filtro.OdontologoNombreLike" class="form-label"></label>
-                        <input asp-for="Filtro.OdontologoNombreLike" class="form-control" placeholder="Nombre o Apellido..." />
-                    </div>
-                    <div class="row g-2">
-                        <div class="col">
-                            <label asp-for="Filtro.FechaDesde" class="form-label small"></label>
-                            <input asp-for="Filtro.FechaDesde" type="date" class="form-control" />
-                        </div>
-                        <div class="col">
-                            <label asp-for="Filtro.FechaHasta" class="form-label small"></label>
-                            <input asp-for="Filtro.FechaHasta" type="date" class="form-control" />
-                        </div>
-                    </div>
-                    <div>
-                        <label asp-for="Filtro.Estatus" class="form-label"></label>
-                        <select asp-for="Filtro.Estatus" asp-items="@Model.Filtro.EstatusDisponibles" class="form-select">
-                            <option value="">(Todos los Estatus)</option>
-                        </select>
-                    </div>
-
-                    <div class="d-grid gap-2 mt-2">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Aplicar Filtro</button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
-                    </div>
-                </form>
-                <hr />
-                <a class="btn btn-success w-100" asp-action="Create"><i class="bi bi-plus-circle"></i> Agendar Nueva Cita</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-xl-9">
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Resultados (@Model.Resultados?.TotalCount ?? 0)</span>
-            </div>
-            <div class="card-body p-0">
-                <form method="get" class="m-0 p-0">
-                    @foreach (var prop in Model.Filtro.GetType().GetProperties().Where(p => !p.Name.Contains("Disponibles")))
-                    {
-                        var value = prop.GetValue(Model.Filtro);
-                        if (value != null && prop.Name != "Page" && prop.Name != "PageSize")
-                        {
-                            <input type="hidden" name="Filtro.@prop.Name" value="@value" />
-                        }
-                    }
-
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Fecha y Hora</th>
-                                    <th>Paciente</th>
-                                    <th>Odontólogo</th>
-                                    <th>Estatus</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.Resultados != null && Model.Resultados.Any())
-                                {
-                                    foreach (var item in Model.Resultados)
-                                    {
-                                        <tr>
-                                            <td><strong>@item.Id</strong></td>
-                                            <td><strong>@item.FechaHora.ToString("g")</strong></td>
-                                            <td>@item.Paciente?.Usuario?.Nombre @item.Paciente?.Usuario?.Apellidos</td>
-                                            <td>@item.Odontologo?.Usuario?.Nombre @item.Odontologo?.Usuario?.Apellidos</td>
-                                            <td><span class="badge bg-info text-dark">@item.EstatusCita</span></td>
-                                            <td class="text-center">
-                                                <div class="btn-group" role="group">
-                                                    <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@item.Id" title="Gestionar Cita">
-                                                        <i class="bi bi-box-arrow-in-right"></i> Gestionar
-                                                    </a>
-                                                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id" title="Eliminar Cita">
-                                                        <i class="bi bi-trash"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                                else
-                                {
-                                    <tr><td colspan="6" class="text-center text-muted p-4">No se encontraron resultados.</td></tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    @if (Model.Resultados != null && Model.Resultados.Any())
-                    {
-                        <div class="p-3">
-                            @await Html.PartialAsync("_Pagination", Model.Resultados)
-                        </div>
-                    }
-                </form>
-            </div>
-        </div>
-    </div>
-</div> *@
-
-
-
-
-@* @model IEnumerable<DentalNova.Core.Entities.Cita>
-
-@{
-    ViewData["Title"] = "Agenda de Citas";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
-<div class="row mb-3">
-    <div class="col-6"><h1>@ViewData["Title"]</h1></div>
-    <div class="col-6 text-end"><a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Agendar Nueva Cita</a></div>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover table-striped">
-                <thead class="table-light">
-                    <tr>
-                        <th>Fecha y Hora</th>
-                        <th>Paciente</th>
-                        <th>Odontólogo</th>
-                        <th>Estatus</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td><strong>@item.FechaHora.ToString("g")</strong></td>
-                            <td>@item.Paciente?.Usuario?.Nombre @item.Paciente?.Usuario?.Apellidos</td>
-                            <td>@item.Odontologo?.Usuario?.Nombre @item.Odontologo?.Usuario?.Apellidos</td>
-                            <td>
-                                <span class="badge bg-info text-dark">@item.EstatusCita</span>
-                            </td>
-                            <td class="text-center">
-                                <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-id="@item.Id" title="Ver y Gestionar Cita">
-                                    <i class="bi bi-box-arrow-in-right"></i> Gestionar
-                                </a>
-                                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id" title="Eliminar Cita">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div> *@

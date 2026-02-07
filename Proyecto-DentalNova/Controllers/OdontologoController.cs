@@ -1,6 +1,7 @@
 ﻿using DentalNova.Core.Dtos;
 using DentalNova.Core.Helpers;
 using DentalNova.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,17 +10,19 @@ using Proyecto_DentalNova.Models.OdontologoViewModel;
 
 namespace Proyecto_DentalNova.Controllers
 {
-    // [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Administrador")]
     public class OdontologoController : Controller
     {
         private readonly IOdontologoService _odontologoService;
+        private readonly IHorarioOdontologoService _horarioOdontologoService;
 
-        public OdontologoController(IOdontologoService odontologoService)
+        public OdontologoController(IOdontologoService odontologoService, IHorarioOdontologoService horarioOdontologoService )
         {
             _odontologoService = odontologoService;
+            _horarioOdontologoService = horarioOdontologoService;
         }
 
-        // Método auxiliar para el filtro
+        // --- Método auxiliar para el filtro ---
         private async Task HydrateFilterAsync(OdontologoFilterViewModel filtro)
         {
             var especialidades = await _odontologoService.ObtenerEspecialidadesAsync();
@@ -60,7 +63,7 @@ namespace Proyecto_DentalNova.Controllers
             return vm;
         }
 
-        // GET: Odontologo
+        // --- GET: Odontologo ---
         public async Task<IActionResult> Index([Bind(Prefix = "Filtro")] OdontologoFilterViewModel filtro)
         {
             await HydrateFilterAsync(filtro);
@@ -97,33 +100,45 @@ namespace Proyecto_DentalNova.Controllers
             return View(vm);
         }
 
-        // GET: Odontologo/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null) return NotFound();
+            var odontologoDto = await _odontologoService.ObtenerOdontologoPorIdAsync(id);
+            if (odontologoDto == null) return NotFound();
 
-            try
+            var horarios = await _horarioOdontologoService.ObtenerPorOdontologoAsync(id);
+
+            var viewModel = new OdontologoVM
             {
-                var dto = await _odontologoService.ObtenerOdontologoPorIdAsync(id.Value);
-                return View(dto);
-            }
-            catch (HttpRequestException) { return NotFound(); }
+                OdontologoVisual = odontologoDto,
+                Horarios = horarios
+            };
+
+            return View(viewModel);
         }
 
-        // GET: Odontologo/Create
+
+        // --- GET: Odontologo/Create ---
         public async Task<IActionResult> Create()
         {
             var vm = await BuildOdontologoVMAsync();
             return View(vm);
         }
 
-        // POST: Odontologo/Create
+        // --- POST: Odontologo/Create ---
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(OdontologoVM vm)
         {
+            // Aún no cargamos los horarios
+            var propiedadesAIgnorar = new[] { "NuevoHorario", "HorarioEdicion", "Horarios", "OdontologoVisual" };
+
+            foreach (var clave in ModelState.Keys.Where(k => propiedadesAIgnorar.Any(p => k.StartsWith(p))).ToList())
+            {
+                ModelState.Remove(clave);
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -143,11 +158,11 @@ namespace Proyecto_DentalNova.Controllers
             }
 
             var reloadedVm = await BuildOdontologoVMAsync(vm.Odontologo);
-            TempData["Error"] = "Error al crear el odontólogo. Por favor, revise los datos e intente nuevamente.";
+            TempData["MensajeError"] = "Error al crear el odontólogo. Por favor, revise los datos e intente nuevamente.";
             return View(reloadedVm);
         }
 
-        // GET: Odontologo/Edit/5
+        // --- GET: Odontologo/Edit/5 ---
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -174,7 +189,7 @@ namespace Proyecto_DentalNova.Controllers
             catch (HttpRequestException) { return NotFound(); }
         }
 
-        // POST: Odontologo/Edit/5
+        // --- POST: Odontologo/Edit/5 ---
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
@@ -201,12 +216,12 @@ namespace Proyecto_DentalNova.Controllers
             }
 
             var reloadedVm = await BuildOdontologoVMAsync(vm.Odontologo);
-            TempData["Error"] = "Error al actualizar el odontólogo. Por favor, revise los datos e intente nuevamente.";
+            TempData["MensajeError"] = "Error al actualizar el odontólogo. Por favor, revise los datos e intente nuevamente.";
             return View(reloadedVm);
         }
 
 
-        // GET: Odontologo/Delete/5
+        // --- GET: Odontologo/Delete/5 ---
         public async Task<IActionResult> Delete(int? id)
         {
             try
@@ -220,7 +235,7 @@ namespace Proyecto_DentalNova.Controllers
             }
         }
 
-        // POST: Odontologo/Delete/5
+        // --- POST: Odontologo/Delete/5 ---
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -236,5 +251,94 @@ namespace Proyecto_DentalNova.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
+        // --- GET: Odontologo/Horarios/5 ---
+        public async Task<IActionResult> Horarios(int id)
+        {
+            var odontologoDto = await _odontologoService.ObtenerOdontologoPorIdAsync(id);
+            if (odontologoDto == null) return NotFound();
+
+            var horarios = await _horarioOdontologoService.ObtenerPorOdontologoAsync(id);
+
+            var viewModel = new OdontologoVM
+            {
+                OdontologoVisual = odontologoDto,
+                Horarios = horarios,
+                NuevoHorario = new HorarioOdontologoDtoIn { OdontologoId = id },
+                HorarioEdicion = new HorarioOdontologoDtoIn { OdontologoId = id }
+            };
+
+            return View(viewModel);
+        }
+
+        // --- POST: Agregar Horario ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AgregarHorario(OdontologoVM model)
+        {
+            if (model.NuevoHorario.HoraInicio >= model.NuevoHorario.HoraFin)
+            {
+                TempData["MensajeError"] = "La hora de inicio debe ser menor a la hora fin.";
+                return RedirectToAction(nameof(Horarios), new { id = model.NuevoHorario.OdontologoId });
+            }
+
+            try
+            {
+                await _horarioOdontologoService.CrearAsync(model.NuevoHorario);
+                TempData["MensajeExito"] = "Horario agregado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = ex.Message;
+            }
+
+            // Redirige a la vista de gestión (Horarios)
+            return RedirectToAction(nameof(Horarios), new { id = model.NuevoHorario.OdontologoId });
+        }
+
+        // --- POST: Editar Horario ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditarHorario(OdontologoVM model)
+        {
+            // Nota: model.HorarioEdicion viene lleno desde el Modal de Edición
+            if (model.HorarioEdicion.HoraInicio >= model.HorarioEdicion.HoraFin)
+            {
+                TempData["MensajeError"] = "La hora de inicio debe ser menor a la hora fin.";
+                return RedirectToAction(nameof(Horarios), new { id = model.HorarioEdicion.OdontologoId });
+            }
+
+            try
+            {
+                await _horarioOdontologoService.ActualizarAsync(model.HorarioEdicion.Id, model.HorarioEdicion);
+                TempData["MensajeExito"] = "Horario actualizado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Horarios), new { id = model.HorarioEdicion.OdontologoId });
+        }
+
+        // --- POST: Eliminar Horario ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarHorario(int id, int odontologoId)
+        {
+            try
+            {
+                await _horarioOdontologoService.EliminarAsync(id);
+                TempData["MensajeExito"] = "Horario eliminado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al eliminar: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Horarios), new { id = odontologoId });
+        }
+
+
     }
 }

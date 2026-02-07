@@ -1,16 +1,16 @@
 ﻿using DentalNova.Core.Dtos;
 using DentalNova.Core.Helpers;
 using DentalNova.Core.Interfaces; // Para IUsuarioService
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Proyecto_DentalNova.Models.UsuarioViewModel;
 
 namespace Proyecto_DentalNova.Controllers
 {
-    // [Authorize(Roles = "Administrador")] 
+    [Authorize(Roles = "Administrador")] 
     public class UsuarioController : Controller
     {
-        // CAMBIO: Inyectamos el Servicio API, no el UnitOfWork
         private readonly IUsuarioService _usuarioService;
 
         public UsuarioController(IUsuarioService usuarioService)
@@ -23,7 +23,6 @@ namespace Proyecto_DentalNova.Controllers
         {
             var vm = new UsuarioVM
             {
-                // Si es null (Create), inicializamos uno nuevo activo.
                 Usuario = usuarioDto ?? new UsuarioAdminDtoIn { Activo = true },
 
                 // Listas para la UI (Dropdowns y Checkboxes)
@@ -42,8 +41,6 @@ namespace Proyecto_DentalNova.Controllers
                 }
             };
 
-            // Como en el DTO los roles ya vienen como List<string> ["Admin", "Paciente"],
-            // podemos asignarlos directamente a RolesSeleccionados.
             if (usuarioDto != null && usuarioDto.Roles != null)
             {
                 vm.RolesSeleccionados = usuarioDto.Roles;
@@ -69,13 +66,13 @@ namespace Proyecto_DentalNova.Controllers
                 };
         }
 
-        // --- GET: Index (Listar) ---
+        // GET: Index (Listar)
         [HttpGet]
         public async Task<IActionResult> Index([Bind(Prefix = "Filtro")] UsuarioFilterViewModel filtro)
         {
             HydrateFilter(filtro);
 
-            // 1. Mapear ViewModel -> DTO de Filtro
+            // Mapear ViewModel -> DTO de Filtro
             var filtroDto = new UsuarioFilterDto
             {
                 Page = filtro.Page,
@@ -89,11 +86,10 @@ namespace Proyecto_DentalNova.Controllers
                 Activo = filtro.Activo
             };
 
-            // 2. LLAMADA A LA API (Devuelve PagedResultDto)
+            // Llama a la API
             var apiResult = await _usuarioService.ObtenerUsuariosAsync(filtroDto);
 
-            // 3. Convertir respuesta API -> PaginatedList para la Vista
-            //    (Usamos el método Create que hicimos en el Paso 1)
+            // Convertir respuesta API -> PaginatedList para la Vista
             var pagedList = PaginatedList<UsuarioAdminDto>.Create(
                 apiResult.Items,
                 apiResult.TotalCount,
@@ -137,14 +133,13 @@ namespace Proyecto_DentalNova.Controllers
                 ModelState.AddModelError("NewPassword", "La contraseña es obligatoria.");
             }
 
-            // Ignoramos validación de Password interno del DTO (si la tuviera)
             ModelState.Remove("Usuario.Password");
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Preparamos el DTO directamente del ViewModel
+                    // Preparamos el DTO
                     var dtoIn = vm.Usuario;
 
                     // Asignamos los campos extra que están fuera de 'vm.Usuario'
@@ -154,14 +149,11 @@ namespace Proyecto_DentalNova.Controllers
                     // Llama API
                     await _usuarioService.CrearUsuarioAsync(dtoIn);
 
-                    // TempData para un mensaje "Toast"
                     TempData["MensajeExito"] = "Usuario creado correctamente.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (HttpRequestException ex)
                 {
-                    // ERROR DE API: Lo agregamos al resumen de validación del formulario
-                    // string.Empty significa que es un error global del formulario, no de un campo específico
                     ModelState.AddModelError(string.Empty, "Error: " + ex.Message);
                 }
                 catch (Exception)
@@ -227,7 +219,7 @@ namespace Proyecto_DentalNova.Controllers
                     dtoIn.Password = vm.NewPassword; // Puede ser null
                     dtoIn.Roles = vm.RolesSeleccionados;
 
-                    // LLAMADA A LA API
+                    // Llama a la API
                     await _usuarioService.ActualizarUsuarioAsync(id, dtoIn);
                     TempData["MensajeExito"] = "Usuario actualizado correctamente.";
                     return RedirectToAction(nameof(Index));

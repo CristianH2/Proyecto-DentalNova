@@ -1,0 +1,179 @@
+﻿@model Proyecto_DentalNova.Models.PagoViewModel.PagoIndexViewModel
+
+@{
+    ViewData["Title"] = "Historial de Pagos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">@ViewData["Title"]</h2>
+        <p class="text-muted mb-0">Registro detallado de ingresos y transacciones.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between"
+         data-bs-toggle="collapse" data-bs-target="#collapseFiltros" style="cursor: pointer;">
+        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros de Búsqueda</h6>
+        <i class="fas fa-chevron-down text-muted small"></i>
+    </div>
+
+    <div class="collapse show" id="collapseFiltros">
+        <div class="card-body bg-light bg-opacity-25">
+            <form asp-action="Index" method="get" class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Fecha Inicio</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="far fa-calendar-alt"></i></span>
+                        <input asp-for="Filtro.FechaInicio" type="date" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Fecha Fin</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="far fa-calendar-alt"></i></span>
+                        <input asp-for="Filtro.FechaFin" type="date" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="col-md-2 offset-md-4 d-flex align-items-end">
+                    <div class="d-grid w-100 gap-1">
+                        <button type="submit" class="btn btn-sm btn-primary fw-bold" title="Filtrar">
+                            <i class="fas fa-search me-1"></i> Filtrar
+                        </button>
+                        <a asp-action="Index" class="btn btn-sm btn-light border text-muted" title="Limpiar">
+                            <i class="fas fa-eraser me-1"></i> Limpiar
+                        </a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+
+        <form method="get" class="m-0 p-0">
+            @if (Model.Filtro.FechaInicio.HasValue)
+            {
+                <input type="hidden" name="Filtro.FechaInicio" value="@Model.Filtro.FechaInicio.Value.ToString("yyyy-MM-dd")" />
+            }
+            @if (Model.Filtro.FechaFin.HasValue)
+            {
+                <input type="hidden" name="Filtro.FechaFin" value="@Model.Filtro.FechaFin.Value.ToString("yyyy-MM-dd")" />
+            }
+
+            @if (Model.Resultados == null || !Model.Resultados.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                        <i class="fas fa-cash-register fa-3x text-secondary opacity-25"></i>
+                    </div>
+                    <h5 class="fw-bold text-secondary">Sin Registros</h5>
+                    <p class="mb-0 small">No hay pagos registrados en este período.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th class="ps-4">Folio / Fecha</th>
+                                <th>Paciente</th>
+                                <th>Referencia</th>
+                                <th>Método de Pago</th>
+                                <th class="text-end pe-4">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Resultados)
+                            {
+                                // Lógica visual para Método de Pago
+                                string badgeClass = "bg-light text-dark border";
+                                string iconClass = "fa-money-bill-wave";
+
+                                if (item.MetodoPago == DentalNova.Core.Repository.Entities.Enumerables.MetodoPago.Efectivo)
+                                {
+                                    badgeClass = "bg-success bg-opacity-10 text-success border-success border-opacity-25";
+                                    iconClass = "fa-coins";
+                                }
+                                else if (item.MetodoPagoTexto.Contains("Tarjeta"))
+                                {
+                                    badgeClass = "bg-primary bg-opacity-10 text-primary border-primary border-opacity-25";
+                                    iconClass = "fa-credit-card";
+                                }
+                                else if (item.MetodoPagoTexto.Contains("Transferencia"))
+                                {
+                                    badgeClass = "bg-info bg-opacity-10 text-info border-info border-opacity-25";
+                                    iconClass = "fa-university";
+                                }
+
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light border rounded p-2 me-3 text-center" style="min-width: 45px;">
+                                                <small class="d-block fw-bold text-muted">#</small>
+                                                <span class="fw-bold text-dark">@item.Id</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">@item.FechaPago.ToString("dd MMM yyyy")</div>
+                                                <small class="text-muted"><i class="far fa-clock me-1"></i> @item.FechaPago.ToString("HH:mm")</small>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-2"
+                                                 style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <span class="fw-bold text-dark">@item.PacienteNombre</span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <a asp-controller="Cita" asp-action="Details" asp-route-id="@item.CitaId"
+                                           class="btn btn-sm btn-link text-decoration-none p-0 text-start">
+                                            <span class="d-block text-primary fw-bold">
+                                                Cita #@item.CitaId <i class="fas fa-external-link-alt small ms-1"></i>
+                                            </span>
+                                            <span class="d-block text-muted small fst-italic">
+                                                Dr. @item.OdontologoNombre
+                                            </span>
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge @badgeClass rounded-pill border px-3 py-2 fw-normal">
+                                            <i class="fas @iconClass me-1"></i> @item.MetodoPagoTexto
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        <span class="d-block fs-6 fw-bold text-success font-monospace">
+                                            + @item.Monto.ToString("C")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.Resultados.TotalPages > 1)
+                {
+                    <div class="card-footer bg-white border-top-0 py-3">
+                        @await Html.PartialAsync("_Pagination", Model.Resultados)
+                    </div>
+                }
+            }
+        </form>
+    </div>
+</div>

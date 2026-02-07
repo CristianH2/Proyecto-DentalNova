@@ -9,6 +9,11 @@ namespace DentalNova.Core.Interfaces
 {
     public interface IArticuloBL
     {
-        Task<IEnumerable<ArticuloDto>> ObtenerCatalogoAsync();
+        Task<PagedResultDto<ArticuloDto>> ObtenerListaPaginadaAsync(ArticuloFilterDto filtro);
+        Task<ArticuloDtoIn> ObtenerParaEditarAsync(int id);
+        Task<int> CrearAsync(ArticuloDtoIn dto);
+        Task ActualizarAsync(ArticuloDtoIn dto);
+        Task EliminarAsync(int id);
+        Task CambiarEstatusAsync(int id);
     }
 }

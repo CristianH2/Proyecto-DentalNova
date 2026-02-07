@@ -1,207 +1,296 @@
-﻿using DentalNova.Core.Dtos;
+﻿using DentalNova.Business.Helpers;
+using DentalNova.Core.Dtos;
 using DentalNova.Core.Interfaces;
 using DentalNova.Core.Repository.Entities;
 using DentalNova.Core.Repository.Interfaces;
-using static DentalNova.Core.Repository.Entities.Enumerables;
+using DentalNova.Repository.Daos;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DentalNova.Core.Repository.Entities.Enumerables;
 
 namespace DentalNova.Business.Rules
 {
     public class CitaBL : ICitaBL
     {
         private readonly IRepository _repositorio;
-        private const int DIAGNOSTICO_TRATAMIENTO_ID = 4; // ID del diagnóstico
-        private const DuracionMinutos DURACION_DEFAULT = DuracionMinutos.Treinta; // Duración default
 
         public CitaBL(IRepository repositorio)
         {
             _repositorio = repositorio;
         }
 
-        public async Task<CitaAgendadaDto> AgendarCitaPacienteAsync(int usuarioId, CitaDtoIn dto)
+        // --- LECTURA ---
+
+        public async Task<CitaDto> ObtenerPorIdAsync(int id)
         {
-            // --- VALIDACIÓN INICIAL ---
-            var paciente = await _repositorio.Paciente.ObtenerPorUsuarioIdAsync(usuarioId);
-            if (paciente == null)
-            {
-                throw new InvalidOperationException("No se encontró un perfil de paciente para este usuario.");
-            }
-
-            var tratamientoDiagnostico = await _repositorio.Tratamiento.ObtenerPorIdAsync(DIAGNOSTICO_TRATAMIENTO_ID);
-            if (tratamientoDiagnostico == null)
-            {
-                throw new InvalidOperationException("El tratamiento de diagnóstico (ID 4) no se encuentra en la base de datos.");
-            }
-
-            // --- LÓGICA DE DISPONIBILIDAD ---
-            var inicioCita = dto.FechaHora;
-            var duracionCita = TimeSpan.FromMinutes((int)DURACION_DEFAULT);
-            var finCita = inicioCita.Add(duracionCita);
-            var diaSemana = ConvertirDiaSemana(inicioCita.DayOfWeek);
-
-            // Encontrar odontólogos que *están trabajando* a esa hora
-            var horariosDisponibles = await _repositorio.HorarioOdontologo.ObtenerHorariosDisponiblesAsync(diaSemana, inicioCita.TimeOfDay, finCita.TimeOfDay);
-            var odontologosConHorarioIds = horariosDisponibles.Select(h => h.Odontologo.Id).Distinct().ToList();
-
-            if (!odontologosConHorarioIds.Any())
-            {
-                throw new InvalidOperationException("No hay odontólogos con horario disponible para la fecha y hora seleccionadas.");
-            }
-
-            // Verificar que esos odontólogos no tengan *otra cita* chocando
-            var citasEnRango = await _repositorio.Cita.ObtenerCitasEnRangoAsync(odontologosConHorarioIds, inicioCita, finCita);
-            var odontologosOcupadosIds = citasEnRango.Select(c => c.OdontologoId).Distinct();
-
-            var odontologosLibresIds = odontologosConHorarioIds.Except(odontologosOcupadosIds);
-
-            if (!odontologosLibresIds.Any())
-            {
-                throw new InvalidOperationException("Todos los odontólogos disponibles ya tienen citas asignadas en ese horario.");
-            }
-
-            // Asignar el primer odontólogo libre
-            var odontologoAsignadoId = odontologosLibresIds.First();
-            var odontologoAsignado = await _repositorio.Odontologo.ObtenerPorIdAsync(odontologoAsignadoId);
-
-            // --- CREAR LAS ENTIDADES ---
-
-            // Crear la Cita
-            var nuevaCita = new Cita
-            {
-                FechaHora = inicioCita,
-                DuracionMinutos = DURACION_DEFAULT,
-                EstatusCita = EstatusCita.Programada, // Default
-                MotivoConsulta = dto.MotivoConsulta,
-                FechaCreacion = DateTime.Now,
-                PacienteId = paciente.Id,
-                OdontologoId = odontologoAsignadoId
-            };
-
-            // Guarda la cita (esto genera el nuevo CitaId)
-            await _repositorio.Cita.AgregarAsync(nuevaCita);
-
-            // Crear el CitaTratamiento
-            var nuevoCitaTratamiento = new CitaTratamiento
-            {
-                CitaId = nuevaCita.Id,
-                TratamientoId = DIAGNOSTICO_TRATAMIENTO_ID,
-                CostoFinal = tratamientoDiagnostico.Costo,
-                EstatusTratamiento = EstatusTratamiento.Pendiente, // Default
-                Observaciones = "Tratamiento inicial de diagnóstico."
-            };
-
-            // Guarda el tratamiento de la cita
-            await _repositorio.CitaTratamiento.AgregarAsync(nuevoCitaTratamiento);
-
-            // --- 4. DEVOLVER RESPUESTA (DTO) ---
-            return new CitaAgendadaDto
-            {
-                Id = nuevaCita.Id,
-                FechaHora = nuevaCita.FechaHora,
-                Estatus = nuevaCita.EstatusCita.ToString(),
-                MotivoConsulta = nuevaCita.MotivoConsulta,
-                // Usamos el nombre del Usuario asociado al Odontólogo
-                OdontologoAsignado = $"{odontologoAsignado.Usuario.Nombre} {odontologoAsignado.Usuario.Apellidos}",
-                TratamientoInicial = tratamientoDiagnostico.Nombre
-            };
+            var entidad = await _repositorio.Cita.ObtenerPorIdAsync(id);
+            return entidad.ToDto();
         }
 
-        /// <summary>
-        /// Convierte el DayOfWeek de .NET (Domingo=0) al enum de la BD (Lunes=1... Domingo=7)
-        /// </summary>
-        private DiaSemana ConvertirDiaSemana(DayOfWeek dia)
+        public async Task<PagedResultDto<CitaDto>> ObtenerListaPaginadaAsync(CitaFilterDto filtro, int page, int pageSize)
         {
-            if (dia == DayOfWeek.Sunday)
-                return DiaSemana.Domingo;
+            // Obtener Queryable base
+            var query = _repositorio.Cita.ObtenerQueryable();
 
-            return (DiaSemana)dia;
-        }
+            // Aplicar Filtros
+            if (filtro.PacienteId.HasValue)
+                query = query.Where(x => x.PacienteId == filtro.PacienteId);
+            if (filtro.OdontologoId.HasValue)
+                query = query.Where(x => x.OdontologoId == filtro.OdontologoId);
+            if (filtro.FechaInicio.HasValue)
+                query = query.Where(x => x.FechaHora >= filtro.FechaInicio.Value);
+            if (filtro.FechaFin.HasValue)
+                query = query.Where(x => x.FechaHora <= filtro.FechaFin.Value);
+            if (filtro.Estatus.HasValue)
+                query = query.Where(x => x.EstatusCita == filtro.Estatus.Value);
 
-        public async Task<IEnumerable<HistorialCitaDto>> ObtenerHistorialPacienteAsync(int usuarioId)
-        {
-            // Obtener el PacienteId a partir del UsuarioId
-            var paciente = await _repositorio.Paciente.ObtenerPorUsuarioIdAsync(usuarioId);
-            if (paciente == null)
-            {
-                return new List<HistorialCitaDto>(); // Si no hay perfil de paciente, no hay historial.
-            }
+            // Paginación
+            var totalCount = query.Count();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
-            // Llamar al repositorio para obtener los datos
-            var citasEntidades = await _repositorio.Cita.ObtenerHistorialPorPacienteIdAsync(paciente.Id);
-
-            // Mapear las Entidades
-            var historialDto = new List<HistorialCitaDto>();
-
-            foreach (var cita in citasEntidades)
-            {
-                var citaDto = new HistorialCitaDto
+            var items = query
+                .OrderByDescending(x => x.FechaHora)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new CitaDto
                 {
-                    Id = cita.Id,
-                    FechaHora = cita.FechaHora,
-                    Estatus = cita.EstatusCita,
-                    MotivoConsulta = cita.MotivoConsulta,
+                    Id = x.Id,
+                    PacienteId = x.PacienteId,
+                    PacienteNombre = x.Paciente.Usuario.Nombre + " " + x.Paciente.Usuario.Apellidos,
+                    OdontologoId = x.OdontologoId,
+                    OdontologoNombre = x.Odontologo.Usuario.Nombre + " " + x.Odontologo.Usuario.Apellidos,
+                    FechaHora = x.FechaHora,
+                    DuracionMinutos = x.DuracionMinutos,
+                    EstatusCita = x.EstatusCita,
+                    MotivoConsulta = x.MotivoConsulta,
+                    CostoTotal = x.CitasTratamientos.Sum(ct => ct.CostoFinal),
 
-                    // Asigna el nombre del odontólogo
-                    OdontologoAsignado = (cita.Odontologo?.Usuario != null)
-                        ? $"{cita.Odontologo.Usuario.Nombre} {cita.Odontologo.Usuario.Apellidos}"
-                        : "No Asignado",
-
-                    // Usa la propiedad calculada de la entidad
-                    CostoTotal = cita.CostoTotalTratamientos,
-
-                    // Mapea la lista anidada de tratamientos
-                    Tratamientos = cita.CitasTratamientos?.Select(ct => new HistorialTratamientoDto
+                    Tratamientos = x.CitasTratamientos.Select(t => new CitaTratamientoDto
                     {
-                        NombreTratamiento = ct.Tratamiento?.Nombre ?? "Tratamiento no especificado",
-                        Estatus = ct.EstatusTratamiento,
-                        CostoFinal = ct.CostoFinal,
-                        Observaciones = ct.Observaciones
-                    }).ToList() ?? new List<HistorialTratamientoDto>()
-                };
+                        TratamientoId = t.TratamientoId,
+                        TratamientoNombre = t.Tratamiento.Nombre,
+                        CostoFinal = t.CostoFinal,
+                        Observaciones = t.Observaciones
+                    }).ToList()
+                })
+                .ToList();
 
-                historialDto.Add(citaDto);
-            }
-
-            return historialDto;
+            return new PagedResultDto<CitaDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                PageIndex = page,
+                HasNextPage = page < totalPages,
+                HasPreviousPage = page > 1
+            };
         }
 
-        public async Task<bool> CancelarCitaAsync(int usuarioId, int citaId)
+        // --- ESCRITURA ---
+
+        public async Task<int> CrearAsync(CitaDtoIn dto)
         {
-            // Obtener el PacienteId
-            var paciente = await _repositorio.Paciente.ObtenerPorUsuarioIdAsync(usuarioId);
-            if (paciente == null)
+            await ValidarCita(dto);
+            var cita = new Cita();
+
+            cita.MapFromDto(dto);
+
+            cita.EstatusCita = EstatusCita.Programada;
+            cita.FechaCreacion = DateTime.Now;
+
+            // Guardamos la cabecera para obtener el ID
+            await _repositorio.Cita.AgregarAsync(cita);
+
+            // Crear Detalles (Tratamientos)
+            if (dto.TratamientosIds != null && dto.TratamientosIds.Any())
             {
-                throw new InvalidOperationException("Este usuario no tiene un perfil de paciente.");
+                // USO DE DISTINCT: Evita que se duplique el registro
+                var tratamientosUnicos = dto.TratamientosIds.Distinct().ToList();
+
+                foreach (var tratamientoId in tratamientosUnicos)
+                {
+                    var tratamiento = await _repositorio.Tratamiento.ObtenerPorIdAsync(tratamientoId);
+                    if (tratamiento != null)
+                    {
+                        // Calcular si es Inicial o Continuación
+                        string notaAutomatica = await GenerarNotaTratamiento(dto.PacienteId, tratamientoId);
+
+                        var detalle = new CitaTratamiento
+                        {
+                            CitaId = cita.Id,
+                            TratamientoId = tratamiento.Id,
+                            CostoFinal = tratamiento.Costo,
+
+                            EstatusTratamiento = EstatusTratamiento.Pendiente,
+                            Observaciones = notaAutomatica
+                        };
+
+                        await _repositorio.CitaTratamiento.AgregarAsync(detalle);
+                    }
+                }
             }
 
-            // Obtener la cita que se desea cancelar
-            var cita = await _repositorio.Cita.ObtenerPorIdAsync(citaId);
-            if (cita == null)
-            {
-                throw new KeyNotFoundException("La cita solicitada no existe.");
-            }
-
-            // ¿Es el dueño de la cita?
-            if (cita.PacienteId != paciente.Id)
-            {
-                throw new UnauthorizedAccessException("No tiene permiso para cancelar esta cita.");
-            }
-
-            // ¿Se puede cancelar?
-            if (cita.EstatusCita == EstatusCita.Completada || cita.EstatusCita == EstatusCita.Cancelada)
-            {
-                throw new InvalidOperationException($"La cita ya está '{cita.EstatusCita}' y no puede ser cancelada.");
-            }
-
-            // Cambiar el estado y guardar
-            cita.EstatusCita = EstatusCita.Cancelada;
-            cita.FechaActualizacion = DateTime.Now;
-
-            return await _repositorio.Cita.ActualizarAsync(cita);
+            return cita.Id;
         }
+
+        public async Task ActualizarAsync(CitaDtoIn dto)
+        {
+            // 1. Obtenemos la cita CON sus detalles actuales
+            var citaDb = await _repositorio.Cita.ObtenerPorIdAsync(dto.Id);
+            if (citaDb == null) throw new Exception("La cita no existe.");
+
+            // Validaciones de Cabecera (Fecha/Hora/Doctor)
+            bool cambioHorario = citaDb.FechaHora != dto.FechaHora ||
+                                 citaDb.OdontologoId != dto.OdontologoId ||
+                                 citaDb.DuracionMinutos != dto.DuracionMinutos;
+
+            if (cambioHorario) await ValidarCita(dto);
+
+            citaDb.MapFromDto(dto);
+            citaDb.FechaActualizacion = DateTime.Now;
+
+            // Sincronización de tratamientos
+
+            // Lista Limpia del Formulario (evitar duplicados de entrada)
+            var idsNuevos = dto.TratamientosIds?.Distinct().ToList() ?? new List<int>();
+
+            // Lista Actual en Base de Datos
+            var tratamientosDb = citaDb.CitasTratamientos.ToList();
+            var idsActuales = tratamientosDb.Select(x => x.TratamientoId).ToList();
+
+            // ELIMINAR
+            var detallesParaBorrar = tratamientosDb
+                .Where(x => !idsNuevos.Contains(x.TratamientoId))
+                .ToList();
+
+            foreach (var item in detallesParaBorrar)
+            {
+                await _repositorio.CitaTratamiento.EliminarAsync(item.Id);
+            }
+
+            // AGREGAR
+            var idsParaAgregar = idsNuevos
+                .Where(id => !idsActuales.Contains(id))
+                .ToList();
+
+            foreach (var tratId in idsParaAgregar)
+            {
+                var tratamientoInfo = await _repositorio.Tratamiento.ObtenerPorIdAsync(tratId);
+                if (tratamientoInfo != null)
+                {
+                    string nota = await GenerarNotaTratamiento(dto.PacienteId, tratId);
+
+                    var nuevoDetalle = new CitaTratamiento
+                    {
+                        CitaId = citaDb.Id,
+                        TratamientoId = tratamientoInfo.Id,
+                        CostoFinal = tratamientoInfo.Costo, // Precio congelado al momento de agregar
+                        EstatusTratamiento = EstatusTratamiento.Pendiente,
+                        Observaciones = nota
+                    };
+
+                    await _repositorio.CitaTratamiento.AgregarAsync(nuevoDetalle);
+                }
+            }
+
+            await _repositorio.Cita.ActualizarAsync(citaDb);
+        }
+
+        public async Task CambiarEstatusAsync(int id, EstatusCita nuevoEstatus)
+        {
+            var cita = await _repositorio.Cita.ObtenerPorIdAsync(id);
+            if (cita == null) throw new Exception("La cita no existe.");
+
+            // Regla de Negocio: REACTIVACIÓN DE CITA
+            bool estabaInactiva = cita.EstatusCita == EstatusCita.Cancelada ||
+                                  cita.EstatusCita == EstatusCita.NoAsistida;
+
+            bool seraActiva = nuevoEstatus == EstatusCita.Programada;
+
+            if (estabaInactiva && seraActiva)
+            {
+                // Calculamos la hora fin original
+                var fechaFin = cita.FechaHora.AddMinutes((int)cita.DuracionMinutos);
+
+                // Verificamos si alguien más tomó ese lugar mientras estuvo cancelada
+                var hayConflicto = await _repositorio.Cita.ExisteConflictoHorarioAsync(
+                    cita.OdontologoId,
+                    cita.FechaHora,
+                    fechaFin,
+                    cita.Id
+                );
+
+                if (hayConflicto)
+                {
+                    throw new Exception("No se puede reactivar la cita: El horario original ya ha sido ocupado por otra cita.");
+                }
+            }
+
+            // Actualizar estado y fecha de modificación
+            cita.EstatusCita = nuevoEstatus;
+            cita.FechaActualizacion = DateTime.Now;
+             
+            await _repositorio.Cita.ActualizarAsync(cita);
+        }
+
+        public async Task EliminarAsync(int id)
+        {
+            var cita = await _repositorio.Cita.ObtenerPorIdAsync(id);
+            if (cita == null) throw new Exception("La cita no existe.");
+
+            if (cita.EstatusCita == EstatusCita.Completada)
+            {
+                throw new Exception("No se puede eliminar una cita que ya fue completada.");
+            }
+
+            // Soft Delete: cambia estatus a Cancelada
+            await _repositorio.Cita.EliminarAsync(id);
+        }
+
+        // --- HELPERS PRIVADOS ---
+
+        private async Task ValidarCita(CitaDtoIn dto)
+
+        {
+            // Validar Fechas coherentes
+            if (dto.FechaHora < DateTime.Now.AddMinutes(-10))
+                throw new Exception("No se pueden agendar citas en el pasado.");
+
+            var fechaFin = dto.FechaHora.AddMinutes((int)dto.DuracionMinutos);
+
+            // Validar Horario Laboral ¿El doctor trabaja a esa hora?
+            var esLaboral = await _repositorio.Cita.EsHorarioLaboralValidoAsync(dto.OdontologoId, dto.FechaHora, fechaFin);
+
+            if (!esLaboral)
+                throw new Exception("El horario seleccionado está fuera del turno laboral del odontólogo.");
+
+            // Validar Conflictos ¿Ya tiene cita a esa hora?
+            var hayConflicto = await _repositorio.Cita.ExisteConflictoHorarioAsync(dto.OdontologoId, dto.FechaHora, fechaFin, dto.Id == 0 ? null : dto.Id);
+
+            if (hayConflicto)
+                throw new Exception("El odontólogo ya tiene una cita agendada o solapada en ese horario.");
+
+        }
+
+        private async Task<string> GenerarNotaTratamiento(int pacienteId, int tratamientoId)
+        {
+            // Verificamos historial
+            int conteoPrevio = await _repositorio.CitaTratamiento
+                .ContarTratamientosPreviosAsync(pacienteId, tratamientoId);
+
+            if (conteoPrevio == 0)
+            {
+                return "Tratamiento inicial de diagnóstico.";
+            }
+            else
+            {
+                return $"Continuación de tratamiento (Sesión #{conteoPrevio + 1}).";
+            }
+        }
+
     }
 }

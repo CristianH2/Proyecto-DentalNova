@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DentalNova.Movil.ViewModels"
+             xmlns:model="clr-namespace:DentalNova.Movil.Models"
+             x:Class="DentalNova.Movil.Pages.CitasPage"
+             Title="{Binding Title}"
+             BackgroundColor="#F5F5F5">
+
+    <RefreshView IsRefreshing="{Binding IsBusy}" 
+                 Command="{Binding CargarCitasCommand}">
+
+        <CollectionView ItemsSource="{Binding Citas}"
+                        SelectionMode="None"
+                        Margin="10">
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                    <Label Text="📅" FontSize="50" HorizontalOptions="Center"/>
+                    <Label Text="No tienes citas agendadas" 
+                           FontSize="18" TextColor="Gray" HorizontalOptions="Center"/>
+                    <Label Text="Tira hacia abajo para actualizar" 
+                           FontSize="12" TextColor="LightGray" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="model:CitaDto">
+                    <Grid Padding="0,5">
+                        <Border Padding="15" 
+                                BackgroundColor="White"
+                                StrokeThickness="0"
+                                Margin="0,2">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10"/>
+                            </Border.StrokeShape>
+
+                            <Border.Shadow>
+                                <Shadow Brush="Black"
+                                        Offset="0,2"
+                                        Radius="5"
+                                        Opacity="0.1" />
+                            </Border.Shadow>
+
+                            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+
+                                <Label Grid.Row="0" Grid.Column="0" 
+                                       Text="{Binding OdontologoNombre, StringFormat='Dr. {0}'}" 
+                                       FontAttributes="Bold" FontSize="16" TextColor="#333"/>
+
+                                <Label Grid.Row="0" Grid.Column="1" 
+                                       Text="{Binding EstatusTexto}" 
+                                       TextColor="#007BFF" FontAttributes="Bold" FontSize="12"
+                                       VerticalOptions="Center"/>
+
+                                <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="5" Margin="0,5">
+                                    <Label Text="🕒" FontSize="14"/>
+                                    <Label Text="{Binding FechaHora, StringFormat='{0:dd MMM yyyy - HH:mm tt}'}" 
+                                           TextColor="#555" FontSize="14"/>
+                                </HorizontalStackLayout>
+
+                                <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                       Text="{Binding MotivoConsulta}" 
+                                       TextColor="Gray" FontSize="13" FontAttributes="Italic"
+                                       LineBreakMode="TailTruncation"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

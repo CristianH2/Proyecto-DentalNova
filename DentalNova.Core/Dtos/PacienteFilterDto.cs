@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DentalNova.Core.Dtos
 {
-    public class PacienteFilterDto : PaginacionDto // Hereda page/pageSize
+    public class PacienteFilterDto : PaginacionDto
     {
         public int? Id { get; set; }
 

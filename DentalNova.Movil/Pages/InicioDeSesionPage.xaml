@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DentalNova.Movil.ViewModels"
+             x:Class="DentalNova.Movil.Pages.InicioDeSesionPage"
+             Title="Bienvenido a DentalNova">
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="Center">
+            <Image Source="logo_dental.png" 
+                   HeightRequest="150" 
+                   HorizontalOptions="Center" 
+                   Margin="0,0,0,20" />
+
+            <Label Text="Iniciar Sesión" 
+                   FontSize="28" 
+                   HorizontalOptions="Center" 
+                   FontAttributes="Bold"/>
+
+            <VerticalStackLayout>
+                <Label Text="Correo Electrónico" />
+                <Entry Placeholder="ejemplo@correo.com" 
+                       Text="{Binding Correo}" 
+                       Keyboard="Email"/>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout>
+                <Label Text="Contraseña" />
+                <Entry Placeholder="******" 
+                       Text="{Binding Password}" 
+                       IsPassword="True"/>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding MensajeError}" 
+                   TextColor="Red" 
+                   HorizontalOptions="Center"/>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               IsVisible="{Binding IsBusy}"
+                               Color="Blue"/>
+
+            <Button Text="Ingresar" 
+                    Command="{Binding LoginCommand}"
+                    IsEnabled="{Binding IsNotBusy}" 
+                    HeightRequest="50"/>
+
+            <Label Text="¿No tienes cuenta?" 
+                   HorizontalOptions="Center" 
+                   Margin="0,20,0,5" 
+                   TextColor="Gray"/>
+
+            <Button Text="Crear cuenta nueva"
+                    Command="{Binding IrARegistroCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="#007BFF"  
+                    FontAttributes="Bold"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

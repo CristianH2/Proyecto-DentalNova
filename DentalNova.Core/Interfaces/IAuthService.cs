@@ -9,7 +9,6 @@ namespace DentalNova.Core.Interfaces
 {
     public interface IAuthService
     {
-        // Devuelve el Token (string) si es exitoso, o lanza excepción si falla
-        Task<TokenDto> LoginAsync(InicioDeSesionDto dto);
+        Task<LoginResponseDto> LoginAsync(LoginDto dto);
     }
 }

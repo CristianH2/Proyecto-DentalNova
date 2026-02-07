@@ -10,7 +10,6 @@ namespace DentalNova.Core.Interfaces
 {
     public interface IOdontologoBL
     {
-        // CRUD Básico
         Task<PaginatedList<OdontologoDto>> ObtenerListaPaginadaAsync(OdontologoFilterDto filtro);
         Task<OdontologoDto> ObtenerPorIdAdminAsync(int id);
         Task CrearOdontologoAdminAsync(OdontologoDtoIn dto);

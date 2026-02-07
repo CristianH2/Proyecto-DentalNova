@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DentalNova.AppMovil.ViewModels"
+             x:Class="DentalNova.AppMovil.Views.LoginPage"
+             Title="Iniciar Sesión"
+             BackgroundColor="#F8F9FA">
+    <ScrollView>
+        <VerticalStackLayout Spacing="25" Padding="30" VerticalOptions="Center">
+
+            <Image Source="tooth_logo.png" 
+                   HeightRequest="120" 
+                   HorizontalOptions="Center" />
+
+            <Label Text="Bienvenido a DentalNova"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="#0d6efd"
+                   HorizontalOptions="Center" />
+
+            <VerticalStackLayout Spacing="15">
+                <Frame BorderColor="#E0E0E0" CornerRadius="10" Padding="0">
+                    <Entry Placeholder="Correo Electrónico"
+                           Text="{Binding Email}"
+                           Keyboard="Email"
+                           Margin="15,5"/>
+                </Frame>
+
+                <Frame BorderColor="#E0E0E0" CornerRadius="10" Padding="0">
+                    <Entry Placeholder="Contraseña"
+                           Text="{Binding Password}"
+                           IsPassword="True"
+                           Margin="15,5"/>
+                </Frame>
+            </VerticalStackLayout>
+
+            <Button Text="INGRESAR"
+                    Command="{Binding LoginCommand}"
+                    BackgroundColor="#0d6efd"
+                    TextColor="White"
+                    CornerRadius="25"
+                    HeightRequest="50"
+                    FontAttributes="Bold">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsBusy}" Value="True">
+                        <Setter Property="Text" Value="Cargando..." />
+                        <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+
+            <Label Text="¿No tienes cuenta? Regístrate aquí"
+                   TextColor="#6c757d"
+                   HorizontalOptions="Center"
+                   TextDecorations="Underline">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding RegisterCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               IsVisible="{Binding IsBusy}"
+                               Color="#0d6efd"
+                               HorizontalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

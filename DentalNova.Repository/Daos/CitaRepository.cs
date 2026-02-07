@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DentalNova.Core.Repository.Entities.Enumerables;
 
 namespace DentalNova.Repository.Daos
 {
@@ -19,44 +20,92 @@ namespace DentalNova.Repository.Daos
             _context = context;
         }
 
-        public async Task<bool> ActualizarAsync(Cita cita)
+        public async Task<Cita> ObtenerPorIdAsync(int id)
         {
-            _context.Citas.Update(cita);
-            return await _context.SaveChangesAsync() > 0; // Devuelve true si se guardaron cambios
+            return await _context.Citas
+                .Include(c => c.Paciente).ThenInclude(p => p.Usuario)
+                .Include(c => c.Odontologo).ThenInclude(o => o.Usuario)
+                .Include(c => c.CitasTratamientos).ThenInclude(ct => ct.Tratamiento)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<Cita> AgregarAsync(Cita cita)
+        public IQueryable<Cita> ObtenerQueryable()
+        {
+            // Retornamos el queryable base con includes necesarios para listados
+            return _context.Citas
+                .Include(c => c.Paciente).ThenInclude(p => p.Usuario)
+                .Include(c => c.Odontologo).ThenInclude(o => o.Usuario)
+                .AsNoTracking();
+        }
+
+        public async Task AgregarAsync(Cita cita)
         {
             await _context.Citas.AddAsync(cita);
             await _context.SaveChangesAsync();
-            return cita;
         }
 
-        public async Task<List<Cita>> ObtenerCitasEnRangoAsync(List<int> odontologoIds, DateTime inicio, DateTime fin)
+        public async Task ActualizarAsync(Cita cita)
         {
-            // Busca citas que se superpongan con el rango de tiempo solicitado para los odontólogos especificados.
-            return await _context.Citas
-                .Where(c => odontologoIds.Contains(c.OdontologoId) && // Solo odontólogos relevantes
-                            c.EstatusCita != Enumerables.EstatusCita.Cancelada && // Ignora citas canceladas
-                            c.FechaHora < fin && // La cita empieza ANTES de que termine el nuevo espacio
-                            (c.FechaHora.AddMinutes((double)c.DuracionMinutos)) > inicio) // La cita termina DESPUÉS de que empiece el nuevo espacio
+            _context.Citas.Update(cita);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarAsync(int id)
+        {
+            var cita = await _context.Citas.FindAsync(id);
+            if (cita != null)
+            {
+                // En lugar de borrar físico, cancelar citas
+                cita.EstatusCita = EstatusCita.Cancelada;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // --- VALIDACIONES ---
+
+        public async Task<bool> ExisteConflictoHorarioAsync(int odontologoId, DateTime inicio, DateTime fin, int? citaIdExcluir = null)
+        {
+            // Conflicto: Una cita existente se solapa con el rango [inicio, fin]
+            // Fórmula: (StartA < EndB) and (EndA > StartB)
+
+            var query = _context.Citas
+                .Where(c => c.OdontologoId == odontologoId &&
+                            c.EstatusCita != EstatusCita.Cancelada && // Ignorar canceladas
+                            c.EstatusCita != EstatusCita.NoAsistida);
+
+            if (citaIdExcluir.HasValue)
+            {
+                query = query.Where(c => c.Id != citaIdExcluir.Value);
+            }
+
+            var citasDelDia = await query
+                .Where(c => c.FechaHora.Date == inicio.Date)
                 .ToListAsync();
+
+            return citasDelDia.Any(c =>
+            {
+                var cInicio = c.FechaHora;
+                var cFin = c.FechaHora.AddMinutes((int)c.DuracionMinutos);
+                return inicio < cFin && fin > cInicio;
+            });
         }
 
-        public async Task<List<Cita>> ObtenerHistorialPorPacienteIdAsync(int pacienteId)
+        public async Task<bool> EsHorarioLaboralValidoAsync(int odontologoId, DateTime inicio, DateTime fin)
         {
-            return await _context.Citas
-                .Where(c => c.PacienteId == pacienteId) // Filtra por el PacienteId
-                .Include(c => c.Odontologo.Usuario)     // Carga el Odontólogo y su Usuario (para el nombre)            
-                .Include(c => c.CitasTratamientos)      // Carga la lista de CitaTratamiento
-                .ThenInclude(ct => ct.Tratamiento)      // Carga el Tratamiento para cada CitaTratamiento
-                .OrderByDescending(c => c.FechaHora)    // Ordena las citas por fecha de la más reciente
-                .ToListAsync();
-        }
+            var diaSemana = (DiaSemana)(int)inicio.DayOfWeek;
+            // DayOfWeek.Sunday es 0 :: Enum Domingo es 7. Ajuste:
+            if (diaSemana == 0) diaSemana = DiaSemana.Domingo;
 
-        public async Task<Cita> ObtenerPorIdAsync(int citaId)
-        {
-            return await _context.Citas.FindAsync(citaId);
+            var horaInicio = inicio.TimeOfDay;
+            var horaFin = fin.TimeOfDay;
+
+            // Buscamos si existe al menos un bloque de horario que cubra totalmente el rango solicitado
+            return await _context.HorariosOdontologos
+                .AnyAsync(h => h.Odontologo.Id == odontologoId &&
+                               h.Activo &&
+                               h.DiaSemana == diaSemana &&
+                               h.HoraInicio <= horaInicio && // Empieza antes o igual a la cita
+                               h.HoraFin >= horaFin);        // Termina después o igual a la cita
         }
     }
 }

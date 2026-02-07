@@ -2,8 +2,8 @@
 using DentalNova.Core.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace Proyecto_DentalNova.Controllers
@@ -18,10 +18,11 @@ namespace Proyecto_DentalNova.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Login()
         {
-            // Verifica si el usuario ya está logueado
-            if (User.Identity != null && User.Identity.IsAuthenticated)
+            // Si ya está logueado
+            if (User.Identity!.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -29,52 +30,87 @@ namespace Proyecto_DentalNova.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(InicioDeSesionDto dto)
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(LoginDto model)
         {
-            if (!ModelState.IsValid) return View(dto);
+            if (!ModelState.IsValid) return View(model);
 
-            // Llamar a la API para obtener el Token
-            var tokenDto = await _authService.LoginAsync(dto);
-
-            if (tokenDto == null)
+            try
             {
-                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
-                return View(dto);
-            }
+                var response = await _authService.LoginAsync(model);
 
-            // Decodificar el Token para leer los Claims (Roles, Nombre, Id)
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(tokenDto.Token);
+                // Definimos los roles permitidos
+                bool esPersonalMedico = response.Roles.Contains("Administrador") ||
+                                        response.Roles.Contains("Odontologo");
 
-            // Crear los Claims para la Cookie
-            var claims = new List<Claim>();
+                if (!esPersonalMedico)
+                {
+                    ViewBag.Error = "Acceso Denegado: Su perfil no tiene permisos para acceder al portal administrativo.";
+                    return View(model);
+                }
 
-            // Copiamos los claims importantes del Token a la Cookie
-            // (Así User.IsInRole("Administrador") funcionará en las Vistas MVC)
-            claims.AddRange(jwtToken.Claims);
+                // Construir los Claims
+                var claims = new List<Claim>
+                            {
+                                new Claim(ClaimTypes.Name, response.NombreCompleto),
+                                new Claim(ClaimTypes.NameIdentifier, response.UsuarioId.ToString()),
+                                new Claim("Token", response.Token)
+                            };
 
-            // Guardamos el Token JWT CRUDO en un claim especial para llamar a la API después
-            claims.Add(new Claim("JWT_TOKEN", tokenDto.Token));
+                if (response.Roles != null)
+                {
+                    foreach (var rol in response.Roles) claims.Add(new Claim(ClaimTypes.Role, rol));
+                }
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                // Si el usuario es paciente u odontólogo, agregar sus IDs
+                if (response.PacienteId.HasValue)
+                    claims.Add(new Claim("PacienteId", response.PacienteId.Value.ToString()));
 
-            // Iniciar Sesión (Crear la Cookie)
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                new AuthenticationProperties
+                if (response.OdontologoId.HasValue)
+                    claims.Add(new Claim("OdontologoId", response.OdontologoId.Value.ToString()));
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var authProperties = new AuthenticationProperties
                 {
                     IsPersistent = true,
-                    ExpiresUtc = tokenDto.Expiracion // Sincronizar expiración
-                });
+                    ExpiresUtc = DateTime.UtcNow.AddHours(4)
+                };
 
-            return RedirectToAction("Index", "Home");
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties);
+
+                HttpContext.Session.SetString("Token", response.Token);
+                if (response.PacienteId.HasValue) HttpContext.Session.SetInt32("PacienteId", response.PacienteId.Value);
+
+                // Redirección
+                if (response.Roles.Contains("Odontologo"))
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View(model);
+            }
         }
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme); // Borrar Cookie
+            HttpContext.Session.Clear(); // Borrar Sesión
+
             return RedirectToAction("Login");
+        }
+
+        [AllowAnonymous]
+        public IActionResult AccesoDenegado()
+        {
+            return View();
         }
     }
 }

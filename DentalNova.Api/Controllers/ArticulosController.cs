@@ -9,31 +9,132 @@ namespace DentalNova.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ArticulosController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        // Inyectamos la "Unidad de Trabajo" principal
         public ArticulosController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
         /// <summary>
-        /// Obtiene el catálogo de todos los artículos activos en inventario.
+        /// Obtiene el catálogo paginado y filtrado de artículos.
         /// </summary>
-        /// <returns>Una lista de artículos con sus detalles.</returns>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ArticuloDto>), 200)] // 200 OK
-        [ProducesResponseType(401)] // 401 Unauthorized
-        public async Task<IActionResult> ObtenerCatalogo()
+        [ProducesResponseType(typeof(PagedResultDto<ArticuloDto>), 200)]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Get([FromQuery] ArticuloFilterDto filtro)
         {
-            // 1. Llama a la capa de lógica de negocio (ArticuloBL)
-            var catalogo = await _unitOfWork.Articulo.ObtenerCatalogoAsync();
+            // Accedemos a la BL a través del UnitOfWork
+            var resultado = await _unitOfWork.Articulo.ObtenerListaPaginadaAsync(filtro);
+            return Ok(resultado);
+        }
 
-            // 2. Devuelve los DTOs como JSON con un código 200 OK
-            return Ok(catalogo);
+        /// <summary>
+        /// Obtiene un artículo por ID para edición.
+        /// </summary>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ArticuloDtoIn), 200)]
+        [ProducesResponseType(404)]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Get(int id)
+        {
+            try
+            {
+                var resultado = await _unitOfWork.Articulo.ObtenerParaEditarAsync(id);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Crea un nuevo artículo en el inventario.
+        /// </summary>
+        [HttpPost]
+        [ProducesResponseType(201)]
+        [ProducesResponseType(400)]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Post([FromBody] ArticuloDtoIn dto)
+        {
+            try
+            {
+                var id = await _unitOfWork.Articulo.CrearAsync(dto);
+                // Retorna 201 Created y la url para consultar el recurso creado
+                return CreatedAtAction(nameof(Get), new { id = id }, new { id = id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la información de un artículo.
+        /// </summary>
+        [HttpPut("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Put(int id, [FromBody] ArticuloDtoIn dto)
+        {
+            if (id != dto.Id)
+            {
+                return BadRequest("El ID de la URL no coincide con el cuerpo de la petición.");
+            }
+
+            try
+            {
+                await _unitOfWork.Articulo.ActualizarAsync(dto);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Realiza un borrado lógico (Soft Delete).
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _unitOfWork.Articulo.EliminarAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Alterna el estatus Activo/Inactivo.
+        /// </summary>
+        [HttpPost("{id}/estatus")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> CambiarEstatus(int id)
+        {
+            try
+            {
+                await _unitOfWork.Articulo.CambiarEstatusAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

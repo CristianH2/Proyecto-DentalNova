@@ -1,8 +1,12 @@
-﻿using DentalNova.Core.Dtos;
+﻿using DentalNova.Business.Helpers;
+using DentalNova.Business.Rules;
+using DentalNova.Core.Dtos;
 using DentalNova.Core.Interfaces;
+using DentalNova.Core.Repository.Entities;
 using DentalNova.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -13,99 +17,59 @@ namespace DentalNova.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ITokenService _tokenService; // Servicio para generar tokens JWT
 
-        public AuthController(IUnitOfWork unitOfWork, ITokenService tokenService)
+        public AuthController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _tokenService = tokenService;
         }
 
         /// <summary>
-        /// Inicia sesión de un usuario y genera un token JWT.
+        /// Endpoint para el login de usuarios.
+        /// <param name="loginDto">Objeto que contiene el correo y la contraseña del usuario
         /// </summary>
-        /// <param name="inicioDeSesionDto">Las credenciales (Correo y Password).</param>
-        /// <returns>Un TokenDto si las credenciales son válidas.</returns>
+
         [HttpPost("login")]
-        [AllowAnonymous]
-        [ProducesResponseType(typeof(TokenDto), 200)] // 200 OK
-        [ProducesResponseType(401)] // 401 Unauthorized
-        public async Task<IActionResult> Login(InicioDeSesionDto inicioDeSesionDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            // Llama a la lógica de negocio para *validar*
-            var usuario = await _unitOfWork.Usuario.ValidarCredencialesAsync(inicioDeSesionDto);
-
-            // Comprueba si falló la validación
-            if (usuario == null)
+            try
             {
-                return Unauthorized(new { Mensaje = "Credenciales inválidas." });
+                var response = await _unitOfWork.Auth.LoginAsync(loginDto);
+                return Ok(response);
             }
-
-            // Si es válido, AHORA genera el token
-            var tokenString = _tokenService.GenerarToken(usuario);
-
-            return Ok(new TokenDto
+            catch (Exception ex)
             {
-                Token = tokenString,
-                Expiracion = DateTime.Now.AddMinutes(20)
-            });
+                // 401 Unauthorized
+                return Unauthorized(new { message = ex.Message });
+            }
         }
 
         /// <summary>
-        /// Registra un nuevo usuario (paciente) en el sistema.
+        /// Endpoint PÚBLICO para registro completo desde la App Móvil.
+        /// Crea Usuario y Paciente en una sola transacción lógica.
         /// </summary>
-        /// <param name="usuarioDtoIn">Los datos del nuevo usuario.</param>
-        /// <returns>Los datos del usuario recién creado.</returns>
-        [HttpPost("registrar")]
-        [AllowAnonymous] // Cualquiera puede registrarse
-        [ProducesResponseType(typeof(UsuarioDto), 201)] // 201 Created
-        [ProducesResponseType(400)] // 400 Bad Request (si el correo ya existe)
-        public async Task<IActionResult> Registrar(UsuarioDtoIn usuarioDtoIn)
+        [HttpPost("RegistroCompleto")]
+        public async Task<IActionResult> RegistroCompleto([FromBody] RegistroCompletoDto dto)
         {
-            var usuarioDto = await _unitOfWork.Usuario.RegistrarAsync(usuarioDtoIn);
+            // Validaciones
+            if (await _unitOfWork.Usuario.EmailYaExisteAsync(dto.Usuario.CorreoElectronico))
+                return BadRequest(new { Mensaje = "El correo electrónico ya está registrado." });
 
-            // Comprueba si el registro falló
-            if (usuarioDto == null)
+            if (!string.IsNullOrEmpty(dto.Usuario.CURP) && await _unitOfWork.Usuario.CurpYaExisteAsync(dto.Usuario.CURP))
+                return BadRequest(new { Mensaje = "La CURP ya está registrada." });
+
+            try
             {
-                // Devolvemos 400 Bad Request.
-                return BadRequest(new { Mensaje = "El correo electrónico ya está en uso." });
+                // Crea usuario
+                UsuarioDto nuevoUsuarioDto = await _unitOfWork.Usuario.RegistrarAsync(dto.Usuario);
+
+                // Crea perfil de paciente asociado
+                await _unitOfWork.Paciente.GuardarPerfilPacienteAsync(nuevoUsuarioDto.Id, dto.Paciente);
+                return Ok(new { Mensaje = "Registro completado exitosamente. Ya puede iniciar sesión." });
             }
-
-            // Si el registro fue exitoso, devuelve 201 Created
-            return CreatedAtAction(nameof(Login), usuarioDto);
-        }
-
-
-        /// <summary>
-        /// Cambia la contraseña de un usuario autenticado.
-        /// </summary>
-        /// <param name="cambioDtoIn">La contraseña actual y la nueva contraseña.</param>
-        /// <returns>Un mensaje de éxito o error.</returns>
-        [HttpPost("cambiar-password")]
-        [Authorize] // Solo usuarios logueados
-        [ProducesResponseType(200)] // OK
-        [ProducesResponseType(400)] // Bad Request (contraseña actual incorrecta)
-        [ProducesResponseType(401)] // Unauthorized (token no válido)
-        public async Task<IActionResult> CambiarPassword(CambioPasswordDtoIn cambioDtoIn)
-        {
-            // Obtener el ID del Usuario desde el Token
-            var idClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-
-            if (idClaim == null || !int.TryParse(idClaim.Value, out int usuarioId))
+            catch (Exception ex)
             {
-                return Unauthorized(new { Mensaje = "Token inválido o no contiene ID de usuario." });
+                return BadRequest(new { Mensaje = "Error al registrar: " + ex.Message });
             }
-
-            // Aplicar reglas de negocio
-            var exito = await _unitOfWork.Usuario.CambiarPasswordAsync(usuarioId, cambioDtoIn);
-
-            // Devolver la respuesta
-            if (!exito)
-            {
-                return BadRequest(new { Mensaje = "La contraseña actual es incorrecta." });
-            }
-
-            return Ok(new { Mensaje = "Contraseña cambiada exitosamente." });
         }
     }
 }

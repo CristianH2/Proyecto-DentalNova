@@ -13,11 +13,6 @@ namespace DentalNova.Core.Repository.Entities
         [DisplayName("Cédula Profesional")]
         public string CedulaProfesional { get; set; }
 
-        //[Required(ErrorMessage = "La especialidad es obligatoria.")]
-        //[StringLength(100)]
-        //[DisplayName("Especialidad")]
-        //public string Especialidad { get; set; }
-
         [Range(1950, 2100, ErrorMessage = "El año de graduación no es válido.")]
         [DisplayName("Año de Graduación")]
         public int? AnioGraduacion { get; set; }

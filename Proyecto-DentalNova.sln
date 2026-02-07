@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36623.8 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11426.168
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proyecto-DentalNova", "Proyecto-DentalNova\Proyecto-DentalNova.csproj", "{E6FECBEF-4376-4433-A16B-88199BBE410E}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Security", "DentalNova.Security\DentalNova.Security.csproj", "{92A6D09D-A69A-4E5F-BCCD-F83C4AC048FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Api", "DentalNova.Api\DentalNova.Api.csproj", "{656D9329-3E8D-57EB-38E4-20235AF09BD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalNova.Movil", "DentalNova.Movil\DentalNova.Movil.csproj", "{FF986AFF-7A6E-44FA-94A5-EDC3005EBEF0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,11 @@ Global
 		{656D9329-3E8D-57EB-38E4-20235AF09BD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{656D9329-3E8D-57EB-38E4-20235AF09BD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{656D9329-3E8D-57EB-38E4-20235AF09BD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF986AFF-7A6E-44FA-94A5-EDC3005EBEF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF986AFF-7A6E-44FA-94A5-EDC3005EBEF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF986AFF-7A6E-44FA-94A5-EDC3005EBEF0}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{FF986AFF-7A6E-44FA-94A5-EDC3005EBEF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF986AFF-7A6E-44FA-94A5-EDC3005EBEF0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

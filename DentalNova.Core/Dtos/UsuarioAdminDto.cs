@@ -11,7 +11,7 @@ namespace DentalNova.Core.Dtos
     public class UsuarioAdminDtoIn
     {
         [DisplayName("ID")]
-        public int Id { get; set; } // 0 para crear, >0 para editar
+        public int Id { get; set; } // 0 para crear, > 0 para editar
 
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         [StringLength(50, ErrorMessage = "El nombre no puede exceder los 50 caracteres.")]

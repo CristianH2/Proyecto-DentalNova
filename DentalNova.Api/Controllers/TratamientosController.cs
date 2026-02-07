@@ -8,7 +8,6 @@ namespace DentalNova.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Administrador")]
     public class TratamientosController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -24,6 +23,7 @@ namespace DentalNova.Api.Controllers
         /// <returns>Una lista de tratamientos con su Id, Nombre, Descripción y Costo.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<TratamientoDto>), 200)] // 200 OK
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<IActionResult> ObtenerCatalogo()
         {
             var catalogo = await _unitOfWork.Tratamiento.ObtenerCatalogoAsync();
@@ -31,8 +31,8 @@ namespace DentalNova.Api.Controllers
             return Ok(catalogo);
         }
 
-        [HttpGet("admin")] // Ruta: /api/Tratamientos/admin (para diferenciar del catálogo simple)
-        //[Authorize(Roles = "Administrador")]
+        [HttpGet("admin")] // ** /api/Tratamientos/admin (para diferenciar del catálogo simple)
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<ActionResult<PagedResultDto<TratamientoDto>>> GetTratamientosAdmin([FromQuery] TratamientoFilterDto filtro)
         {
             var pagedList = await _unitOfWork.Tratamiento.ObtenerListaPaginadaAsync(filtro);
@@ -50,7 +50,7 @@ namespace DentalNova.Api.Controllers
         }
 
         [HttpGet("admin/{id}")]
-        //[Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<ActionResult<TratamientoDto>> GetTratamientoAdmin(int id)
         {
             var dto = await _unitOfWork.Tratamiento.ObtenerPorIdAdminAsync(id);
@@ -59,7 +59,7 @@ namespace DentalNova.Api.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult> CreateTratamiento(TratamientoDtoIn dto)
         {
             try
@@ -74,7 +74,7 @@ namespace DentalNova.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> UpdateTratamiento(int id, TratamientoDtoIn dto)
         {
             if (id != dto.Id) return BadRequest("El ID no coincide.");
@@ -90,7 +90,7 @@ namespace DentalNova.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteTratamiento(int id)
         {
             await _unitOfWork.Tratamiento.EliminarTratamientoAsync(id);

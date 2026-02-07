@@ -1,0 +1,581 @@
+﻿@model Proyecto_DentalNova.Models.CitaViewModel.CitaIndexViewModel
+@using DentalNova.Core.Repository.Entities
+
+@{
+    ViewData["Title"] = "Mi Agenda";
+}
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">@ViewData["Title"]</h2>
+        <p class="text-muted mb-0">Gestión de pacientes y consultas del día.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-white border shadow-sm d-print-none">
+            <i class="fas fa-print me-2"></i> Imprimir
+        </button>
+        <a asp-action="Agendar" class="btn btn-primary shadow-sm fw-bold d-print-none">
+            <i class="fas fa-plus me-2"></i> Nueva Cita
+        </a>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4 d-print-none" id="agendaTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold" id="lista-tab" data-bs-toggle="tab" data-bs-target="#lista" type="button" role="tab">
+            <i class="fas fa-list-ul me-2"></i> Vista de Lista
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="calendario-tab" data-bs-toggle="tab" data-bs-target="#calendario" type="button" role="tab">
+            <i class="far fa-calendar-alt me-2"></i> Vista Mensual / Semanal
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="agendaTabsContent">
+
+    <div class="tab-pane fade show active" id="lista" role="tabpanel">
+
+        <div class="card shadow-sm border-0 mb-4 d-print-none">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between"
+                 data-bs-toggle="collapse" data-bs-target="#collapseFiltros" style="cursor: pointer;">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros de Búsqueda</h6>
+                <i class="fas fa-chevron-down text-muted small"></i>
+            </div>
+
+            <div class="collapse show" id="collapseFiltros">
+                <div class="card-body bg-light bg-opacity-25">
+                    <form asp-action="MisCitas" method="get" class="row g-3 align-items-end">
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Fecha</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="far fa-calendar-alt"></i></span>
+                                <input asp-for="Filtro.FechaInicio" type="date" class="form-control" />
+                                <span class="input-group-text bg-light">-</span>
+                                <input asp-for="Filtro.FechaFin" type="date" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Paciente</label>
+                            <div class="input-group input-group-sm flex-nowrap">
+                                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <select asp-for="Filtro.PacienteId" asp-items="Model.Pacientes" class="form-select select2-filtro">
+                                        <option value="">(Todos)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Estado</label>
+                            <select asp-for="Filtro.Estatus" asp-items="Model.Estatus" class="form-select form-select-sm">
+                                <option value="">(Todos)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="d-grid w-100 gap-1">
+                                <button type="submit" class="btn btn-sm btn-primary fw-bold"><i class="fas fa-filter me-1"></i> Filtrar</button>
+                                <a asp-action="MisCitas" class="btn btn-sm btn-light border text-muted"><i class="fas fa-eraser me-1"></i> Limpiar</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+
+                <form method="get" class="m-0 p-0">
+
+                    <input type="hidden" asp-for="Filtro.FechaInicio" />
+                    <input type="hidden" asp-for="Filtro.FechaFin" />
+                    <input type="hidden" asp-for="Filtro.PacienteId" />
+                    <input type="hidden" asp-for="Filtro.Estatus" />
+                    <input type="hidden" asp-for="Filtro.PageSize" />
+
+                    @if (Model.Resultados == null || !Model.Resultados.Any())
+                    {
+                        <div class="text-center py-5">
+                            <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                                <i class="fas fa-mug-hot fa-3x text-secondary opacity-25"></i>
+                            </div>
+                            <h5 class="text-muted fw-bold">Agenda Libre</h5>
+                            <p class="text-muted small mb-0">No tienes citas programadas con los filtros actuales.</p>
+                            <div class="mt-3 d-print-none">
+                                <a asp-action="Agendar" class="btn btn-sm btn-outline-primary">Agendar cita manual</a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-uppercase small text-muted">
+                                    <tr>
+                                        <th class="ps-4">Horario</th>
+                                        <th>Paciente</th>
+                                        <th>Motivo / Tratamiento</th>
+                                        <th>Estado</th>
+                                        <th class="text-end pe-4 d-print-none">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Resultados)
+                                    {
+                                        string badgeClass = item.EstatusCita switch
+                                        {
+                                            Enumerables.EstatusCita.Programada => "bg-primary bg-opacity-10 text-primary border-primary border-opacity-25",
+                                            Enumerables.EstatusCita.Completada => "bg-success bg-opacity-10 text-success border-success border-opacity-25",
+                                            Enumerables.EstatusCita.Cancelada => "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25",
+                                            Enumerables.EstatusCita.NoAsistida => "bg-warning bg-opacity-10 text-dark border-warning border-opacity-25",
+                                            _ => "bg-secondary bg-opacity-10 text-secondary"
+                                        };
+
+                                        <tr>
+                                            <td class="ps-4" style="width: 180px;">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-light border rounded text-center p-2 me-3" style="min-width: 60px;">
+                                                        <span class="d-block fw-bold fs-6 text-dark lh-1">@item.FechaHora.ToString("HH:mm")</span>
+                                                        <span class="d-block small text-muted text-uppercase" style="font-size: 0.65rem;">@item.FechaHora.ToString("tt")</span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="d-block fw-bold text-dark">@item.FechaHora.ToString("dd MMM")</span>
+                                                        <span class="small text-muted"><i class="fas fa-clock me-1"></i> @((int)item.DuracionMinutos) min</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-2"
+                                                         style="width: 35px; height: 35px;">
+                                                        <span class="fw-bold">@item.PacienteNombre.Substring(0, 1)</span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-bold text-dark d-block">@item.PacienteNombre</span>
+                                                        <a asp-controller="Expediente" asp-action="Details" asp-route-id="@item.PacienteId" class="small text-muted text-decoration-none d-print-none hover-primary">
+                                                            <i class="fas fa-folder-open me-1"></i> Ver expediente
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                @if (item.Tratamientos.Any())
+                                                {
+                                                    <span class="badge bg-light text-dark border fw-normal mb-1">
+                                                        <i class="fas fa-tooth me-1 text-info"></i> @item.Tratamientos.First().TratamientoNombre
+                                                    </span>
+                                                    @if (item.Tratamientos.Count > 1)
+                                                    {
+                                                        <small class="text-muted ms-1">+( @(item.Tratamientos.Count - 1) más)</small>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small fst-italic">Consulta General</span>
+                                                }
+
+                                                @if (!string.IsNullOrEmpty(item.MotivoConsulta))
+                                                {
+                                                    <div class="small text-secondary mt-1 text-truncate" style="max-width: 250px;">
+                                                        "@item.MotivoConsulta"
+                                                    </div>
+                                                }
+                                            </td>
+
+                                            <td>
+                                                <span class="badge @badgeClass rounded-pill fw-normal px-3 py-1">
+                                                    @item.EstatusTexto
+                                                </span>
+                                            </td>
+
+                                            <td class="text-end pe-4 d-print-none">
+                                                @if (item.EstatusCita == Enumerables.EstatusCita.Programada)
+                                                {
+                                                    <a asp-controller="Consulta" asp-action="Atender" asp-route-id="@item.Id" class="btn btn-sm btn-primary fw-bold shadow-sm me-1" title="Iniciar Consulta">
+                                                        <i class="fas fa-stethoscope me-1"></i> Atender
+                                                    </a>
+                                                }
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-white border text-secondary" title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="card-footer bg-white border-top-0 py-3 d-print-none">
+                            @await Html.PartialAsync("_Pagination", Model.Resultados)
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="calendario" role="tabpanel">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div id="calendar" style="min-height: 700px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 1. Inicializar Select2 para filtros
+            $('.select2-filtro').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '(Todos)',
+                allowClear: true
+            });
+
+            // 2. Configuración de FullCalendar
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek', // Vista semanal por defecto
+                locale: 'es',               // Español
+                themeSystem: 'bootstrap5',
+
+                // Barra de herramientas superior
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+
+                eventDisplay: 'block',
+                dayMaxEvents: true,
+
+                // Configuración de horarios visuales
+                slotMinTime: '07:00:00', // Hora inicio visual
+                slotMaxTime: '21:00:00', // Hora fin visual
+                allDaySlot: false,       // Ocultar fila de "Todo el día"
+                height: 'auto',          // Altura automática
+                expandRows: true,        // Expandir filas para llenar huecos
+                nowIndicator: true,      // Línea roja de hora actual
+
+                // FUENTE DE DATOS
+                events: '@Url.Action("GetMisEventos", "Cita")',
+
+                // ACCIÓN AL HACER CLIC: Ir al detalle de la cita
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault(); // Evitar comportamiento por defecto
+
+                    // Redirigir a los detalles (usando el ID del evento)
+                    var urlDetalle = '@Url.Action("Details", "Cita")/' + info.event.id;
+                    window.location.href = urlDetalle;
+                },
+
+                // DISEÑO PERSONALIZADO DE LA TARJETA (EVENTO)
+                eventContent: function(arg) {
+                    // arg.timeText: "10:00 - 11:00"
+                    // arg.event.title: "Juan Pérez (Programada)" (Viene del Controller)
+
+                    let time = arg.timeText;
+                    let title = arg.event.title;
+
+                    // Extraemos estado para color (opcional, si quisieras lógica JS extra)
+                    // Pero el color de fondo ya viene del controller (backgroundColor)
+
+                    // HTML interno de la tarjeta del calendario
+                    let htmlContent = `
+                        <div class="fc-content p-1 text-truncate">
+                            <div class="fw-bold small mb-0"><i class="far fa-clock me-1"></i>${time}</div>
+                            <div class="small text-white text-wrap" style="line-height: 1.2;">${title}</div>
+                        </div>
+                    `;
+
+                    return { html: htmlContent };
+                },
+
+                // Tooltip al pasar el mouse (Opcional, requiere Popper.js/Bootstrap)
+                eventDidMount: function(info) {
+                    var tooltip = new bootstrap.Tooltip(info.el, {
+                        title: info.event.title,
+                        placement: 'top',
+                        trigger: 'hover',
+                        container: 'body'
+                    });
+                }
+            });
+
+            // Renderizar Calendario SOLO (cuando la pestaña se muestra)
+            var tabCalendario = document.getElementById('calendario-tab');
+            tabCalendario.addEventListener('shown.bs.tab', function (e) {
+                calendar.render();
+                // calendar.refetchEvents();
+            });
+
+            // Renderizado inicial si la pestaña activa por defecto fuera calendario (raro, pero preventivo)
+            if (tabCalendario.classList.contains('active')) {
+                calendar.render();
+            }
+        });
+    </script>
+}
+    @* <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 1. Inicializar Select2
+            $('.select2-filtro').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '(Todos)',
+                allowClear: true
+            });
+
+            // 2. Configurar FullCalendar
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'es',
+                themeSystem: 'bootstrap5',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                slotMinTime: '07:00:00',
+                slotMaxTime: '21:00:00',
+                allDaySlot: false,
+                height: 'auto',
+
+                // Cargar eventos (Asumimos que GetCitasCalendario filtra por el doctor logueado si no se envía ID,
+                // o puedes inyectar el ID del usuario actual aquí si está disponible en el Model)
+                events: '@Url.Action("GetCitasCalendario", "Cita")',
+
+                eventClick: function(info) {
+                    // Al hacer clic, ir al detalle
+                    window.location.href = '@Url.Action("Details", "Cita")/' + info.event.id;
+                },
+
+                // Diseño personalizado del evento
+                eventContent: function(arg) {
+                    let time = arg.timeText;
+                    let title = arg.event.title; // Viene como "Paciente (Estado)"
+                    return { html: `<div class="fc-content p-1"><div class="fw-bold small">${time}</div><div class="small">${title}</div></div>` };
+                }
+            });
+
+            // 3. Renderizar Calendario al cambiar de Pestaña
+            // (Es necesario porque FullCalendar no se renderiza bien si está oculto)
+            var tabCalendario = document.getElementById('calendario-tab');
+            tabCalendario.addEventListener('shown.bs.tab', function (e) {
+                calendar.render();
+            });
+
+        });
+    </script> *@
+@* @model Proyecto_DentalNova.Models.CitaViewModel.CitaIndexViewModel
+@using DentalNova.Core.Repository.Entities
+
+@{
+    ViewData["Title"] = "Mi Agenda";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-primary mb-0"><i class="fas fa-calendar-day me-2"></i>@ViewData["Title"]</h2>
+        <p class="text-muted mb-0">Gestión de pacientes programados.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-sm btn-outline-secondary d-print-none">
+            <i class="fas fa-print me-2"></i> Imprimir
+        </button>
+        <a asp-action="Agendar" class="btn btn-sm btn-primary shadow-sm fw-bold">
+            <i class="fas fa-plus-circle me-2"></i> Agendar Cita
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4 d-print-none">
+    <div class="card-body bg-light bg-opacity-50">
+        <form asp-action="MisCitas" method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted text-uppercase">Fecha</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="far fa-calendar-alt"></i></span>
+                    <input asp-for="Filtro.FechaInicio" type="date" class="form-control" />
+                    <span class="input-group-text">-</span>
+                    <input asp-for="Filtro.FechaFin" type="date" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted text-uppercase">Paciente</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                    <select asp-for="Filtro.PacienteId" asp-items="Model.Pacientes" class="form-select select2-filtro">
+                        <option value="">(Todos)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted text-uppercase">Estado</label>
+                <select asp-for="Filtro.Estatus" asp-items="Model.Estatus" class="form-select form-select-sm">
+                    <option value="">(Todos)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary fw-bold"><i class="fas fa-filter me-1"></i> Filtrar</button>
+                    <a asp-action="MisCitas" class="btn btn-sm btn-light border text-muted"><i class="fas fa-eraser me-1"></i> Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        @if (Model.Resultados == null || !Model.Resultados.Any())
+        {
+            <div class="text-center py-5">
+                <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                    <i class="fas fa-mug-hot fa-3x text-muted opacity-25"></i>
+                </div>
+                <h5 class="text-muted fw-bold">Agenda Libre</h5>
+                <p class="text-muted small mb-0">No hay citas programadas con los filtros actuales.</p>
+                <div class="mt-3">
+                    <a asp-action="Agendar" class="btn btn-sm btn-outline-primary">Agendar una ahora</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase small text-muted">
+                        <tr>
+                            <th class="ps-4">Horario</th>
+                            <th>Paciente</th>
+                            <th>Motivo / Tratamiento</th>
+                            <th>Estado</th>
+                            <th class="text-end pe-4 d-print-none">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Resultados)
+                        {
+                            string badgeClass = item.EstatusCita switch
+                            {
+                                Enumerables.EstatusCita.Programada => "bg-primary bg-opacity-10 text-primary border-primary border-opacity-25",
+                                Enumerables.EstatusCita.Completada => "bg-success bg-opacity-10 text-success border-success border-opacity-25",
+                                Enumerables.EstatusCita.Cancelada => "bg-danger bg-opacity-10 text-danger border-danger border-opacity-25",
+                                Enumerables.EstatusCita.NoAsistida => "bg-warning bg-opacity-10 text-dark border-warning border-opacity-25",
+                                _ => "bg-secondary bg-opacity-10 text-secondary"
+                            };
+
+                            <tr>
+                                <td class="ps-4" style="width: 180px;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light border rounded text-center p-2 me-3" style="min-width: 60px;">
+                                            <span class="d-block fw-bold fs-4 text-dark lh-1">@item.FechaHora.ToString("HH:mm")</span>
+                                            <span class="d-block small text-muted text-uppercase" style="font-size: 0.65rem;">@item.FechaHora.ToString("tt")</span>
+                                        </div>
+                                        <div>
+                                            <span class="d-block fw-bold text-dark">@item.FechaHora.ToString("dd MMM")</span>
+                                            <span class="small text-muted"><i class="fas fa-clock me-1"></i>@((int)item.DuracionMinutos) min</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px;">
+                                            <span class="fw-bold">@item.PacienteNombre.Substring(0, 1)</span>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block">@item.PacienteNombre</span>
+                                            <a asp-controller="Paciente" asp-action="Details" asp-route-id="@item.PacienteId" class="small text-muted text-decoration-none d-print-none">
+                                                <i class="fas fa-folder-open me-1"></i> Ver expediente
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @if (item.Tratamientos.Any())
+                                    {
+                                        <span class="badge bg-light text-dark border fw-normal mb-1">
+                                            @item.Tratamientos.First().TratamientoNombre
+                                        </span>
+                                        @if (item.Tratamientos.Count > 1)
+                                        {
+                                            <small class="text-muted ms-1">+( @(item.Tratamientos.Count - 1) más)</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small fst-italic">Consulta General</span>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(item.MotivoConsulta))
+                                    {
+                                        <div class="small text-secondary mt-1 text-truncate" style="max-width: 250px;">
+                                            "@item.MotivoConsulta"
+                                        </div>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="badge @badgeClass rounded-pill fw-normal px-3 py-1">
+                                        @item.EstatusTexto
+                                    </span>
+                                </td>
+
+                                <td class="text-end pe-4 d-print-none">
+                                    <div class="btn-group shadow-sm">
+
+                                        @if (item.EstatusCita == Enumerables.EstatusCita.Programada)
+                                        {
+                                            <a asp-controller="Consulta" asp-action="Atender" asp-route-id="@item.Id" class="btn btn-sm btn-primary fw-bold" title="Iniciar Consulta">
+                                                <i class="fas fa-stethoscope me-1"></i> Atender
+                                            </a>
+                                        }
+
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-white border text-secondary" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-footer bg-white border-top-0 py-3 d-print-none">
+                @await Html.PartialAsync("_Pagination", Model.Resultados)
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.select2-filtro').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '(Seleccione)',
+                allowClear: true
+            });
+        });
+    </script>
+} *@

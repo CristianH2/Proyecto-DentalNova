@@ -1,53 +1,189 @@
-﻿@model DentalNova.Core.Dtos.InicioDeSesionDto
+﻿@model DentalNova.Core.Dtos.LoginDto
 
 @{
+    Layout = null;
     ViewData["Title"] = "Iniciar Sesión";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-lg border-0 rounded-3">
-                <div class="card-header bg-primary text-white text-center py-3 rounded-top">
-                    <h3 class="mb-0"><i class="bi bi-shield-lock-fill"></i> Acceso</h3>
-                    <small>DentalNova Administración</small>
-                </div>
-                <div class="card-body p-4">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DentalNova</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .login-header {
+            text-align: center;
+            padding-bottom: 2rem;
+        }
+
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(13, 110, 253, 0.1);
+            color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem auto;
+        }
+
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid #dee2e6;
+            padding-right: 40px; /* Espacio para el icono de ojo */
+        }
+
+            .form-control:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+            }
+
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 12px;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-primary-custom:hover {
+                background-color: #0b5ed7;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+            }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="d-flex justify-content-center">
+
+            <div class="card login-card bg-white p-4 p-md-5">
+                <div class="card-body">
+
+                    <div class="login-header">
+                        <div class="logo-container mb-3">
+                            <i class="fas fa-tooth fa-3x"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-1">DentalNova</h3>
+                        <p class="text-muted small">Ingrese sus credenciales para acceder</p>
+                    </div>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger border-0 d-flex align-items-center mb-4 shadow-sm" role="alert">
+                            <i class="fas fa-exclamation-circle me-2 fs-5"></i>
+                            <div class="small fw-bold">@ViewBag.Error</div>
+                        </div>
+                    }
+
                     <form asp-action="Login" method="post">
 
-                        @* Muestra errores generales (ej. "Credenciales inválidas") *@
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
                         <div class="form-floating mb-3">
-                            <input asp-for="Correo" class="form-control" placeholder="nombre@ejemplo.com" />
-                            <label asp-for="Correo"><i class="bi bi-envelope"></i> Correo Electrónico</label>
-                            <span asp-validation-for="Correo" class="text-danger"></span>
+                            <input asp-for="Correo" class="form-control" id="floatingInput" placeholder="name@example.com">
+                            <label for="floatingInput">Correo Electrónico</label>
+                            <span asp-validation-for="Correo" class="text-danger small ms-1"></span>
                         </div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Password" type="password" class="form-control" placeholder="Contraseña" />
-                            <label asp-for="Password"><i class="bi bi-key"></i> Contraseña</label>
-                            <span asp-validation-for="Password" class="text-danger"></span>
+                        <div class="form-floating mb-4 position-relative">
+                            <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Contraseña">
+                            <label for="floatingPassword">Contraseña</label>
+
+                            @* <i class="far fa-eye password-toggle" id="eyeIcon" onclick="togglePassword()"></i> *@
+
+                            <span asp-validation-for="Password" class="text-danger small ms-1"></span>
                         </div>
 
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Iniciar Sesión <i class="bi bi-box-arrow-in-right"></i>
+                        <div class="d-grid gap-2 mb-4">
+                            <button type="submit" class="btn btn-primary btn-primary-custom text-white">
+                                Iniciar Sesión
                             </button>
+                        </div>
+
+                        <div class="text-center">
+                            <a href="#" class="text-decoration-none small text-muted hover-primary">
+                                ¿Olvidó su contraseña? Contacte con el Administrador
+                            </a>
                         </div>
 
                     </form>
                 </div>
-                <div class="card-footer text-center py-3">
-                    <small class="text-muted">¿No tienes cuenta? Contacta al administrador.</small>
-                </div>
             </div>
         </div>
-    </div>
-</div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+        <div class="fixed-bottom text-center pb-3">
+            <small class="text-muted opacity-50">&copy; @DateTime.Now.Year DentalNova Gestión Clínica</small>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        function togglePassword() {
+            var input = document.getElementById("floatingPassword");
+            var icon = document.getElementById("eyeIcon");
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+                icon.classList.add("text-primary");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.remove("text-primary");
+                icon.classList.add("fa-eye");
+            }
+        }
+    </script>
+</body>
+</html>

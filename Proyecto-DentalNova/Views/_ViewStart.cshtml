@@ -1,3 +1,10 @@
 ﻿@{
-    Layout = "_Layout";
+    if (User.IsInRole("Odontologo"))
+    {
+        Layout = "_LayoutOdontologo";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
 }

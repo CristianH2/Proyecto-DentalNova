@@ -17,8 +17,6 @@ namespace DentalNova.Core.Dtos
         public List<string> Roles { get; set; }
     }
 
-
-
     public class UsuarioDtoIn
     {
         [Required]

@@ -1,89 +1,134 @@
-﻿using DentalNova.Core.Repository.Entities;
+﻿using DentalNova.Core.Dtos;
+using DentalNova.Core.Helpers;
+using DentalNova.Core.Interfaces;
+using DentalNova.Core.Repository.Entities;
 using DentalNova.Repository.DataContext;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Proyecto_DentalNova.Models.ArticuloViewModel;
+using static DentalNova.Core.Repository.Entities.Enumerables;
 
 namespace Proyecto_DentalNova.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class ArticuloController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IArticuloService _articuloService;
 
-        public ArticuloController(ApplicationDbContext context)
+        public ArticuloController(IArticuloService articuloService)
         {
-            _context = context;
+            _articuloService = articuloService;
         }
 
-        // GET: Articulo
-        public async Task<IActionResult> Index()
+        // --- Helper ---
+        private IEnumerable<SelectListItem> ObtenerCategoriasSelectList()
         {
-            return View(await _context.Articulos.ToListAsync());
+            // Convierte el Enum Categoria a SelectListItem
+            return Enum.GetValues(typeof(Categoria)).Cast<Categoria>()
+                .Select(c => new SelectListItem
+                {
+                    Value = ((int)c).ToString(), // Enviamos el int al servidor
+                    Text = c.ToString()          // Mostramos el nombre
+                });
         }
 
-        // GET: Articulo/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // --- GET: Articulo ---
+        public async Task<IActionResult> Index([Bind(Prefix = "Filtro")] ArticuloFilterDto filtro)
         {
-            if (id == null)
+            // Valores por defecto
+            if (filtro.Page < 1) filtro.Page = 1;
+            if (filtro.PageSize < 1) filtro.PageSize = 10;
+
+            // Llamada a API
+            var apiResult = await _articuloService.ObtenerListaPaginadaAsync(filtro);
+
+            // Conversión a PaginatedList
+            var listaPaginada = PaginatedList<ArticuloDto>.Create(
+                apiResult.Items,
+                apiResult.TotalCount,
+                filtro.Page,
+                filtro.PageSize
+            );
+
+            // Construir ViewModel
+            var vm = new ArticuloIndexViewModel
             {
-                return NotFound();
-            }
+                Filtro = filtro,
+                Resultados = listaPaginada,
+                Categorias = ObtenerCategoriasSelectList()
+            };
 
-            var articulo = await _context.Articulos
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (articulo == null)
-            {
-                return NotFound();
-            }
-
-            return View(articulo);
+            return View(vm);
         }
 
-        // GET: Articulo/Create
+        // --- GET: Articulo/Create ---
         public IActionResult Create()
         {
-            return View();
+            var vm = new ArticuloVM
+            {
+                Categorias = ObtenerCategoriasSelectList()
+            };
+            return View(vm);
         }
 
-        // POST: Articulo/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // --- POST: Articulo/Create ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Categoria,Nombre,Descripcion,Codigo,Reutilizable,Stock,Activo")] Articulo articulo)
+        public async Task<IActionResult> Create(ArticuloVM vm)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(articulo);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _articuloService.CrearAsync(vm.Articulo);
+                    TempData["MensajeExito"] = "Artículo registrado correctamente en el inventario.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Errores de API (ej: Código duplicado)
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
+                catch (Exception)
+                {
+                    ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al crear el artículo.");
+                }
+            }
+
+            // Si falla, recargamos la lista
+            vm.Categorias = ObtenerCategoriasSelectList();
+            TempData["MensajeError"] = "No se pudo guardar el artículo. Verifique los errores.";
+            return View(vm);
+        }
+
+        // --- GET: Articulo/Edit/5 ---
+        public async Task<IActionResult> Edit(int id)
+        {
+            try
+            {
+                var dto = await _articuloService.ObtenerParaEditarAsync(id);
+                var vm = new ArticuloVM
+                {
+                    Articulo = dto,
+                    Categorias = ObtenerCategoriasSelectList()
+                };
+                return View(vm);
+            }
+            catch (Exception)
+            {
+                TempData["MensajeError"] = "El artículo solicitado no existe.";
                 return RedirectToAction(nameof(Index));
             }
-            return View(articulo);
         }
 
-        // GET: Articulo/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var articulo = await _context.Articulos.FindAsync(id);
-            if (articulo == null)
-            {
-                return NotFound();
-            }
-            return View(articulo);
-        }
-
-        // POST: Articulo/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // --- POST: Articulo/Edit/5 ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Categoria,Nombre,Descripcion,Codigo,Reutilizable,Stock,Activo")] Articulo articulo)
+        public async Task<IActionResult> Edit(int id, ArticuloVM vm)
         {
-            if (id != articulo.Id)
+            if (id != vm.Articulo.Id)
             {
                 return NotFound();
             }
@@ -92,61 +137,55 @@ namespace Proyecto_DentalNova.Controllers
             {
                 try
                 {
-                    _context.Update(articulo);
-                    await _context.SaveChangesAsync();
+                    await _articuloService.ActualizarAsync(vm.Articulo);
+                    TempData["MensajeExito"] = "Información del artículo actualizada correctamente.";
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (HttpRequestException ex)
                 {
-                    if (!ArticuloExists(articulo.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    ModelState.AddModelError(string.Empty, ex.Message);
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception)
+                {
+                    ModelState.AddModelError(string.Empty, "Error al actualizar el artículo.");
+                }
             }
-            return View(articulo);
+
+            vm.Categorias = ObtenerCategoriasSelectList();
+            return View(vm);
         }
 
-        // GET: Articulo/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var articulo = await _context.Articulos
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (articulo == null)
-            {
-                return NotFound();
-            }
-
-            return View(articulo);
-        }
-
-        // POST: Articulo/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // --- POST: Articulo/Delete/5 ---
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var articulo = await _context.Articulos.FindAsync(id);
-            if (articulo != null)
+            try
             {
-                _context.Articulos.Remove(articulo);
+                await _articuloService.EliminarAsync(id);
+                TempData["MensajeExito"] = "Artículo dado de baja correctamente.";
             }
-
-            await _context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al eliminar: " + ex.Message;
+            }
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ArticuloExists(int id)
+        // --- POST: Articulo/CambiarEstatus/5 ---
+        // Este lo usaremos con AJAX para el toggle switch en el Index
+        [HttpPost]
+        public async Task<IActionResult> CambiarEstatus(int id)
         {
-            return _context.Articulos.Any(e => e.Id == id);
+            try
+            {
+                await _articuloService.CambiarEstatusAsync(id);
+                return Json(new { success = true, message = "Estatus actualizado." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

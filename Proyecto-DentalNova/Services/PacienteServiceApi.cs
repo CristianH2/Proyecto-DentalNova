@@ -8,12 +8,10 @@ namespace Proyecto_DentalNova.Services
     public class PacienteServiceApi : IPacienteService
     {
         private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PacienteServiceApi(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public PacienteServiceApi(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<PagedResultDto<PacienteAdminDto>> ObtenerPacientesAsync(PacienteFilterDto filtro)
@@ -41,19 +39,16 @@ namespace Proyecto_DentalNova.Services
 
             var url = QueryHelpers.AddQueryString("api/Pacientes", queryParams);
 
-            await AddAuthorizationHeader();
             return await _httpClient.GetFromJsonAsync<PagedResultDto<PacienteAdminDto>>(url);
         }
 
         public async Task<PacienteAdminDto> ObtenerPacientePorIdAsync(int id)
         {
-            await AddAuthorizationHeader();
             return await _httpClient.GetFromJsonAsync<PacienteAdminDto>($"api/Pacientes/{id}");
         }
 
         public async Task CrearPacienteAsync(PacienteAdminDtoIn dto)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.PostAsJsonAsync("api/Pacientes", dto);
 
             if (!response.IsSuccessStatusCode)
@@ -66,41 +61,24 @@ namespace Proyecto_DentalNova.Services
 
         public async Task ActualizarPacienteAsync(int id, PacienteAdminDtoIn dto)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.PutAsJsonAsync($"api/Pacientes/{id}", dto);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task EliminarPacienteAsync(int id)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.DeleteAsync($"api/Pacientes/{id}");
             response.EnsureSuccessStatusCode();
         }
 
         public async Task<List<UsuarioDisponibleDto>> ObtenerUsuariosDisponiblesAsync(int? pacienteIdEdicion = null)
         {
-            await AddAuthorizationHeader();
             var url = "api/Pacientes/usuarios-disponibles";
             if (pacienteIdEdicion.HasValue)
             {
                 url += $"?pacienteIdEdicion={pacienteIdEdicion}";
             }
             return await _httpClient.GetFromJsonAsync<List<UsuarioDisponibleDto>>(url);
-        }
-
-        // Método privado para Token (Cópialo de UsuarioServiceApi o crea una clase base)
-        private async Task AddAuthorizationHeader()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user != null && user.Identity.IsAuthenticated)
-            {
-                var token = user.FindFirst("JWT_TOKEN")?.Value;
-                if (!string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-            }
         }
     }
 }

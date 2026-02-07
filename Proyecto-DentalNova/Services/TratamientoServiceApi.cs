@@ -9,12 +9,10 @@ namespace Proyecto_DentalNova.Services
     public class TratamientoServiceApi : ITratamientoService
     {
         private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public TratamientoServiceApi(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public TratamientoServiceApi(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<PagedResultDto<TratamientoDto>> ObtenerTratamientosAdminAsync(TratamientoFilterDto filtro)
@@ -35,20 +33,17 @@ namespace Proyecto_DentalNova.Services
 
             var url = QueryHelpers.AddQueryString("api/Tratamientos/admin", queryParams);
 
-            await AddAuthorizationHeader();
             return await _httpClient.GetFromJsonAsync<PagedResultDto<TratamientoDto>>(url);
         }
 
         public async Task<TratamientoDto> ObtenerTratamientoPorIdAsync(int id)
         {
-            await AddAuthorizationHeader();
             // Nota: El endpoint es 'admin/{id}' según definimos en el controlador API
             return await _httpClient.GetFromJsonAsync<TratamientoDto>($"api/Tratamientos/admin/{id}");
         }
 
         public async Task CrearTratamientoAsync(TratamientoDtoIn dto)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.PostAsJsonAsync("api/Tratamientos", dto);
 
             if (!response.IsSuccessStatusCode)
@@ -61,29 +56,16 @@ namespace Proyecto_DentalNova.Services
 
         public async Task ActualizarTratamientoAsync(int id, TratamientoDtoIn dto)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.PutAsJsonAsync($"api/Tratamientos/{id}", dto);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task EliminarTratamientoAsync(int id)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.DeleteAsync($"api/Tratamientos/{id}");
             response.EnsureSuccessStatusCode();
         }
 
-        private async Task AddAuthorizationHeader()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user != null && user.Identity.IsAuthenticated)
-            {
-                var token = user.FindFirst("JWT_TOKEN")?.Value;
-                if (!string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-            }
-        }
+       
     }
 }

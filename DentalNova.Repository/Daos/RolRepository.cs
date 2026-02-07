@@ -19,9 +19,6 @@ namespace DentalNova.Repository.Daos
             _context = context;
         }
 
-        /// <summary>
-        /// Agrega una nueva entidad Rol a la base de datos.
-        /// </summary>
         public async Task AgregarAsync(Rol rol)
         {
             await _context.Roles.AddAsync(rol);
@@ -35,8 +32,6 @@ namespace DentalNova.Repository.Daos
 
             // Usa ExecuteDeleteAsync para borrarlos todos en una sola consulta
             await rolesAEliminar.ExecuteDeleteAsync();
-
-            // No llamamos a SaveChangesAsync porque ExecuteDeleteAsync lo hace solo.
         }
     }
 }

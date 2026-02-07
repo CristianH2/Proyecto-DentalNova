@@ -19,9 +19,6 @@ namespace DentalNova.Business.Helpers
             // Llama al registrador de la capa de infraestructura
             services.AddInfrastructureServices(configuration);
 
-            // Llama al registrador de la capa de seguridad (se movió)
-            
-
             // Registra las reglas de negocio
             services.AddScoped<ITratamientoBL, TratamientoBL>();
             services.AddScoped<IUsuarioBL, UsuarioBL>();
@@ -29,6 +26,11 @@ namespace DentalNova.Business.Helpers
             services.AddScoped<IPacienteBL, PacienteBL>();
             services.AddScoped<ICitaBL, CitaBL>();
             services.AddScoped<IOdontologoBL, OdontologoBL>();
+            services.AddScoped<IHorarioOdontologoBL, HorarioOdontologoBL>();
+            services.AddScoped<IPagoBL, PagoBL>();
+            services.AddScoped<IRecordatorioBL, RecordatorioBL>();
+            services.AddScoped<IAuthBL, AuthBL>();
+            services.AddScoped<IDashboardBL, DashboardBL>();
 
             // Registra la "Unidad de Trabajo" principal
             services.AddScoped<IUnitOfWork, UnitOfWork>();

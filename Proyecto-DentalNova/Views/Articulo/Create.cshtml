@@ -1,59 +1,127 @@
-﻿@model DentalNova.Core.Repository.Entities.Articulo
+﻿@model Proyecto_DentalNova.Models.ArticuloViewModel.ArticuloVM
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nuevo Artículo";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Create</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-<h4>Articulo</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Categoria" class="control-label"></label>
-                <select asp-for="Categoria" class="form-control"></select>
-                <span asp-validation-for="Categoria" class="text-danger"></span>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-0">Nuevo Artículo</h2>
+                    <p class="text-muted mb-0">Alta de producto en el catálogo.</p>
+                </div>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Volver al Inventario
+                </a>
             </div>
-            <div class="form-group">
-                <label asp-for="Nombre" class="control-label"></label>
-                <input asp-for="Nombre" class="form-control" />
-                <span asp-validation-for="Nombre" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Descripcion" class="control-label"></label>
-                <input asp-for="Descripcion" class="form-control" />
-                <span asp-validation-for="Descripcion" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Codigo" class="control-label"></label>
-                <input asp-for="Codigo" class="form-control" />
-                <span asp-validation-for="Codigo" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Reutilizable" /> @Html.DisplayNameFor(model => model.Reutilizable)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="Stock" class="control-label"></label>
-                <input asp-for="Stock" class="form-control" />
-                <span asp-validation-for="Stock" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+
+            <form asp-action="Create" method="post">
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-box me-2"></i> Información General</h6>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+                                <label asp-for="Articulo.Codigo" class="form-label small fw-bold text-muted text-uppercase">Código / SKU *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-barcode"></i></span>
+                                    <input asp-for="Articulo.Codigo" class="form-control font-monospace text-uppercase" placeholder="Ej. MAT-001" autofocus />
+                                </div>
+                                <span asp-validation-for="Articulo.Codigo" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-8">
+                                <label asp-for="Articulo.Nombre" class="form-label small fw-bold text-muted text-uppercase">Nombre del Producto *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-tag"></i></span>
+                                    <input asp-for="Articulo.Nombre" class="form-control" placeholder="Ej. Resina Compuesta 3M" />
+                                </div>
+                                <span asp-validation-for="Articulo.Nombre" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Articulo.Categoria" class="form-label small fw-bold text-muted text-uppercase">Categoría *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-folder"></i></span>
+                                    <select asp-for="Articulo.Categoria" asp-items="Model.Categorias" class="form-select">
+                                        <option value="">-- Seleccione --</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="Articulo.Categoria" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase d-block">Tipo de Material</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" asp-for="Articulo.Reutilizable" value="false" id="tipoDesechable" checked autocomplete="off">
+                                    <label class="btn btn-outline-secondary" for="tipoDesechable">
+                                        <i class="fas fa-trash-alt me-2"></i> Desechable
+                                    </label>
+
+                                    <input type="radio" class="btn-check" asp-for="Articulo.Reutilizable" value="true" id="tipoReutilizable" autocomplete="off">
+                                    <label class="btn btn-outline-info" for="tipoReutilizable">
+                                        <i class="fas fa-recycle me-2"></i> Reutilizable
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Articulo.Descripcion" class="form-label small fw-bold text-muted text-uppercase">Descripción / Detalles</label>
+                                <textarea asp-for="Articulo.Descripcion" class="form-control" rows="3" placeholder="Especificaciones, marca o detalles adicionales..."></textarea>
+                                <span asp-validation-for="Articulo.Descripcion" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="m-0 fw-bold text-success"><i class="fas fa-cubes me-2"></i> Inventario Inicial</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                                <label asp-for="Articulo.Stock" class="form-label small fw-bold text-muted text-uppercase">Cantidad Inicial</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-light text-success border-success border-opacity-25"><i class="fas fa-plus-circle"></i></span>
+                                    <input asp-for="Articulo.Stock" type="number" class="form-control fw-bold border-success border-opacity-25 text-dark" min="0" value="0" step="1" />
+                                </div>
+                                <span asp-validation-for="Articulo.Stock" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-7">
+                                <div class="alert alert-light border border-dashed d-flex align-items-center mb-0 mt-3 mt-md-0">
+                                    <i class="fas fa-info-circle fs-4 text-info me-3"></i>
+                                    <small class="text-muted">
+                                        Ingrese la cantidad física real disponible al momento del alta. Podrá ajustar esto más tarde mediante entradas/salidas.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-light p-3 text-end">
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                            <i class="fas fa-save me-2"></i> Guardar Artículo
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

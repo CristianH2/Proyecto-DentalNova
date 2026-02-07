@@ -14,5 +14,11 @@ namespace DentalNova.Core.Interfaces
         IPacienteBL Paciente { get; }
         ICitaBL Cita { get; }
         IOdontologoBL Odontologo { get; }
+        IHorarioOdontologoBL HorarioOdontologo { get; }
+        IPagoBL Pago { get; }
+        IRecordatorioBL Recordatorio { get; }
+        IDashboardBL Dashboard { get; }
+        IAuthBL Auth { get; }
+
     }
 }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DentalNova.Movil.ViewModels"
+             x:Class="DentalNova.Movil.Pages.AgendarPage"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             Title="Gestionar Cita"
+             BackgroundColor="#F5F5F5">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <Border IsVisible="{Binding TieneCitaActiva}" 
+                    BackgroundColor="White" Padding="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="15"/>
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="⚠️ Ya tienes una cita activa" 
+                           TextColor="Orange" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+                    <Label Text="{Binding CitaActual.OdontologoNombre, StringFormat='Con: {0}'}" FontSize="18"/>
+                    <Label Text="{Binding CitaActual.FechaFormateada}" FontSize="16" TextColor="Gray"/>
+
+                    <Button Text="Cancelar Cita" 
+                            BackgroundColor="Red" 
+                            Command="{Binding CancelarCitaActualCommand}"/>
+                </VerticalStackLayout>
+            </Border>
+
+
+            <VerticalStackLayout IsVisible="{Binding MostrarFormulario}" Spacing="15">
+
+                <Label Text="Nueva Cita" FontSize="22" FontAttributes="Bold" TextColor="#333"/>
+
+                <Label Text="Odontólogo" TextColor="Gray"/>
+                <Picker ItemsSource="{Binding Odontologos}" 
+                        ItemDisplayBinding="{Binding NombreCompleto}"
+                        SelectedItem="{Binding SelectedOdontologo}"
+                        Title="Selecciona un doctor"/>
+
+                <Label Text="Fecha" TextColor="Gray"/>
+                <DatePicker Date="{Binding FechaSeleccionada}"
+                            MinimumDate="{Binding Source={x:Static sys:DateTime.Today}}" />
+                <Label Text="Hora Disponible" TextColor="Gray"/>
+                <Picker ItemsSource="{Binding HorasDisponibles}" 
+                        SelectedItem="{Binding HoraSeleccionada}"
+                        Title="---:---"/>
+                <Label Text="* Selecciona un Odontólogo y Fecha para ver horas" 
+                       FontSize="10" IsVisible="{Binding HorasDisponibles.Count, Converter={StaticResource InverseBoolConverter}}"/>
+                <Label Text="Motivo de consulta" TextColor="Gray"/>
+                <Editor Text="{Binding Motivo}" HeightRequest="100" Placeholder="Describe tu malestar..."/>
+
+                <Button Text="Confirmar Cita" 
+                        Command="{Binding AgendarCommand}"
+                        CornerRadius="25" HeightRequest="50" Margin="0,20,0,0"/>
+
+            </VerticalStackLayout>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="Blue"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

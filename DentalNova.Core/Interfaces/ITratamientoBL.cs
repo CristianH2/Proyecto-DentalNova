@@ -13,7 +13,7 @@ namespace DentalNova.Core.Interfaces
         // Existente (Catálogo público)
         Task<IEnumerable<TratamientoDto>> ObtenerCatalogoAsync();
 
-        // --- NUEVOS (Gestión Admin) ---
+        // --- Gestión Admin ---
         Task<PaginatedList<TratamientoDto>> ObtenerListaPaginadaAsync(TratamientoFilterDto filtro);
         Task<TratamientoDto> ObtenerPorIdAdminAsync(int id);
         Task CrearTratamientoAdminAsync(TratamientoDtoIn dto);

@@ -20,7 +20,7 @@
     <div class="col-12 col-xl-3">
         <div class="card shadow-sm border-0 sticky-top" style="top: 1rem; z-index: 100;">
             <div class="card-header bg-white py-3 border-bottom">
-                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Buscar Servicio</h6>
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i> Filtros de Búsqueda</h6>
             </div>
             <div class="card-body">
                 <form method="get" class="vstack gap-3">
@@ -31,7 +31,7 @@
                     </div>
 
                     <div>
-                        <label asp-for="Filtro.NombreLike" class="form-label small fw-bold text-muted text-uppercase">Nombre / Descripción</label>
+                        <label asp-for="Filtro.NombreLike" class="form-label small fw-bold text-muted text-uppercase">Nombre</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
                             <input asp-for="Filtro.NombreLike" class="form-control border-start-0" placeholder="Ej. Ortodoncia..." />
@@ -89,17 +89,19 @@
             <div class="card-body p-0">
                 <form method="get" class="m-0 p-0">
                     @Html.AntiForgeryToken()
-                    @foreach (var prop in Model.Filtro.GetType().GetProperties())
-                    {
-                        var value = prop.GetValue(Model.Filtro);
-                        if (value != null && prop.Name != "Page" && prop.Name != "PageSize" && prop.Name != "Activo")
-                        {
-                            <input type="hidden" name="Filtro.@prop.Name" value="@value" />
-                        }
-                    }
+                    <input type="hidden" asp-for="Filtro.Id" />
+                    <input type="hidden" asp-for="Filtro.NombreLike" />
+
+                    <input type="hidden" asp-for="Filtro.CostoMin" />
+                    <input type="hidden" asp-for="Filtro.CostoMax" />
+                    <input type="hidden" asp-for="Filtro.DuracionMin" />
+                    <input type="hidden" asp-for="Filtro.DuracionMax" />
+                    <input type="hidden" asp-for="Filtro.PageSize" />
+
+                    @* Booleano *@
                     @if (Model.Filtro.Activo.HasValue)
                     {
-                        <input type="hidden" name="Filtro.Activo" value="@Model.Filtro.Activo.Value.ToString().ToLower()" />
+                        <input type="hidden" asp-for="Filtro.Activo" />
                     }
 
                     <div class="table-responsive">
@@ -162,19 +164,19 @@
 
                                             <td class="text-end pe-4">
                                                 <div class="btn-group">
-                                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.Id" title="Detalles" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-eye"></i>
+                                                    <a class="btn btn-sm btn-white border" asp-action="Details" asp-route-id="@item.Id" title="Detalles" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-eye text-secondary"></i>
                                                     </a>
-                                                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.Id" title="Editar" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-pen"></i>
+                                                    <a class="btn btn-sm btn-white border" asp-action="Edit" asp-route-id="@item.Id" title="Editar" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-pen text-primary"></i>
                                                     </a>
 
                                                     <button type="button"
                                                             onclick="confirmarCambioEstado(@item.Id, '@Html.Raw(item.Nombre)', @item.Activo.ToString().ToLower())"
-                                                            class="btn btn-sm @(item.Activo ? "btn-outline-danger" : "btn-outline-success")"
+                                                            class="btn btn-sm btn-white border"
                                                             title="@(item.Activo ? "Desactivar" : "Activar")"
                                                             data-bs-toggle="tooltip">
-                                                        <i class="fas @(item.Activo ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                                                        <i class="fas @(item.Activo ? "fa-toggle-on text-danger" : "fa-toggle-off text-success")"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -210,8 +212,6 @@
 
         // Función SweetAlert para Cambiar Estado
         function confirmarCambioEstado(id, nombre, esActivo) {
-
-            // Definir textos y colores según si vamos a Activar o Desactivar
             const titulo = esActivo ? '¿Desactivar Tratamiento?' : '¿Activar Tratamiento?';
             const texto = esActivo
                 ? `El tratamiento "${nombre}" dejará de estar visible para nuevas citas.`
@@ -234,7 +234,7 @@
                     // Enviar formulario POST dinámico
                     var form = document.createElement('form');
                     form.method = 'post';
-                    form.action = '@Url.Action("ToggleActivo")'; // Asegúrate que esta acción exista en tu controlador
+                    form.action = '@Url.Action("ToggleActivo")';
 
                     // Input ID
                     var inputId = document.createElement('input');
@@ -243,12 +243,12 @@
                     inputId.value = id;
                     form.appendChild(inputId);
 
-                    // Token Antiforgery (Importante para seguridad)
+                    // Token Antiforgery
                     var inputToken = document.createElement('input');
                     inputToken.type = 'hidden';
                     inputToken.name = '__RequestVerificationToken';
 
-                    // Intentamos obtener el valor de un token existente en la página
+                    // Token
                     var existingToken = document.querySelector('input[name="__RequestVerificationToken"]');
                     if(existingToken) {
                         inputToken.value = existingToken.value;

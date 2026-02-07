@@ -20,7 +20,6 @@ namespace DentalNova.Repository.Daos
         }
 
         // --- MÉTODOS DE LECTURA ---
-
         public async Task<Odontologo> ObtenerPorIdAsync(int id)
         {
             // Carga al odontólogo y su entidad Usuario para obtener el nombre
@@ -28,7 +27,6 @@ namespace DentalNova.Repository.Daos
                                  .Include(o => o.Usuario)
                                  .FirstOrDefaultAsync(o => o.Id == id);
         }
-
         public IQueryable<Odontologo> ObtenerQueryableParaFiltro()
         {
             // Incluimos Usuario (para filtrar por nombre) y Especialidades (para filtrar por esp.)
@@ -37,7 +35,6 @@ namespace DentalNova.Repository.Daos
                            .Include(o => o.Especialidades)
                            .AsNoTracking();
         }
-
         public async Task<Odontologo> ObtenerDetalleCompletoAsync(int id)
         {
             // Carga completa para Edición/Detalles
@@ -46,7 +43,6 @@ namespace DentalNova.Repository.Daos
                                  .Include(o => o.Especialidades)
                                  .FirstOrDefaultAsync(m => m.Id == id);
         }
-
         public async Task<List<int>> ObtenerIdsUsuariosOcupadosAsync()
         {
             // Obtenemos IDs de usuarios que YA son odontólogos
@@ -54,7 +50,6 @@ namespace DentalNova.Repository.Daos
                                  .Select(o => o.UsuarioId)
                                  .ToListAsync();
         }
-
         public async Task<bool> ExisteOdontologoParaUsuarioAsync(int usuarioId)
         {
             return await _context.Odontologos.AnyAsync(o => o.UsuarioId == usuarioId);
@@ -67,13 +62,11 @@ namespace DentalNova.Repository.Daos
             await _context.Odontologos.AddAsync(odontologo);
             await _context.SaveChangesAsync();
         }
-
         public async Task ActualizarAsync(Odontologo odontologo)
         {
             _context.Odontologos.Update(odontologo);
             await _context.SaveChangesAsync();
         }
-
         public async Task EliminarAsync(int id)
         {
             var odontologo = await _context.Odontologos.FindAsync(id);
@@ -82,6 +75,12 @@ namespace DentalNova.Repository.Daos
                 _context.Odontologos.Remove(odontologo);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<Odontologo> ObtenerPorUsuarioIdAsync(int usuarioId)
+        {
+            return await _context.Odontologos
+                           .FirstOrDefaultAsync(o => o.UsuarioId == usuarioId);
         }
     }
 }

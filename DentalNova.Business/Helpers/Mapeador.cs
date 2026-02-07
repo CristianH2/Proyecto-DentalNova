@@ -1,16 +1,19 @@
-﻿using DentalNova.Core.Dtos;
+﻿using DentalNova.Business.Rules;
+using DentalNova.Core.Dtos;
 using DentalNova.Core.Repository.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DentalNova.Core.Repository.Entities.Enumerables;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DentalNova.Business.Helpers
 {
     public static class Mapeador
     {
-        // Convierte UsuarioDtoIn a Usuario
+        // ---- Usuario Mappings --- //
         public static Usuario ToEntidad(this UsuarioDtoIn dto)
         {
             if (dto == null) return null;
@@ -32,7 +35,6 @@ namespace DentalNova.Business.Helpers
             };
         }
 
-        // Convierte la Entidad Usuario al DTO (salida)
         public static UsuarioDto ToDto(this Usuario entidad)
         {
             if (entidad == null) return null;
@@ -48,7 +50,7 @@ namespace DentalNova.Business.Helpers
             };
         }
 
-        // De Entidad -> DTO de Salida Admin
+        // ---- UsuarioAdmin Mappings --- //
         public static UsuarioAdminDto ToAdminDto(this Usuario entidad)
         {
             if (entidad == null) return null;
@@ -68,8 +70,7 @@ namespace DentalNova.Business.Helpers
             };
         }
 
-        // De DTO de Entrada Admin -> Entidad (Para Crear/Editar)
-        public static void MapFromAdminDto(this Usuario entidad, UsuarioAdminDtoIn dto)
+        public static void MapFromDto(this Usuario entidad, UsuarioAdminDtoIn dto)
         {
             entidad.Nombre = dto.Nombre;
             entidad.Apellidos = dto.Apellidos;
@@ -81,7 +82,7 @@ namespace DentalNova.Business.Helpers
             entidad.Activo = dto.Activo;
         }
 
-        // Convierte la Entidad Paciente al DTO (salida)
+        // ---- Paciente Mappings --- //
         public static PacienteDto ToDto(this Paciente entidad)
         {
             if (entidad == null) return null;
@@ -117,10 +118,11 @@ namespace DentalNova.Business.Helpers
                 CorreoElectronico = entidad.Usuario?.CorreoElectronico ?? "N/A",
                 Telefono = entidad.Usuario?.Telefono,
                 // Datos del paciente
+                Genero = entidad.Usuario?.Genero ?? '-' ,
                 Edad = entidad.Edad,
                 FechaCreacion = entidad.FechaCreacion,
                 ConAlergias = entidad.ConAlergias,
-                ConEnfermedadesCronicas = entidad.ConEnfermedadesCronicas ,
+                ConEnfermedadesCronicas = entidad.ConEnfermedadesCronicas,
                 ConMedicamentosActuales = entidad.ConMedicamentosActuales,
                 ConAntecedentesFamiliares = entidad.ConAntecedentesFamiliares,
                 Alergias = entidad.Alergias,
@@ -128,17 +130,6 @@ namespace DentalNova.Business.Helpers
                 MedicamentosActuales = entidad.MedicamentosActuales,
                 AntecedentesFamiliares = entidad.AntecedentesFamiliares,
                 Observaciones = entidad.Observaciones
-            };
-        }
-
-        public static UsuarioDisponibleDto ToDisponibleDto(this Usuario entidad)
-        {
-            return new UsuarioDisponibleDto
-            {
-                Id = entidad.Id,
-                NombreCompleto = $"{entidad.Apellidos}, {entidad.Nombre}",
-                Correo = entidad.CorreoElectronico,
-                FechaNacimiento = entidad.FechaNacimiento
             };
         }
 
@@ -156,6 +147,19 @@ namespace DentalNova.Business.Helpers
             entidad.Observaciones = dto.Observaciones;
         }
 
+        // ---- UsuarioDisponible Mappings --- //
+        public static UsuarioDisponibleDto ToDisponibleDto(this Usuario entidad)
+        {
+            return new UsuarioDisponibleDto
+            {
+                Id = entidad.Id,
+                NombreCompleto = $"{entidad.Apellidos}, {entidad.Nombre}",
+                Correo = entidad.CorreoElectronico,
+                FechaNacimiento = entidad.FechaNacimiento
+            };
+        }
+
+        // ---- Odontologo Mappings --- //
         public static OdontologoDto ToDto(this Odontologo entidad)
         {
             if (entidad == null) return null;
@@ -173,19 +177,10 @@ namespace DentalNova.Business.Helpers
                 AnioGraduacion = entidad.AnioGraduacion,
                 Institucion = entidad.Institucion,
                 FechaIngreso = entidad.FechaIngreso,
+                Activo = entidad.Usuario?.Activo ?? false,
                 // Mapeo de Especialidades (Nombres e IDs)
                 Especialidades = entidad.Especialidades?.Select(e => e.Nombre).ToList() ?? new List<string>(),
                 EspecialidadesIds = entidad.Especialidades?.Select(e => e.Id).ToList() ?? new List<int>()
-            };
-        }
-
-        public static EspecialidadDto ToDto(this Especialidad entidad)
-        {
-            return new EspecialidadDto
-            {
-                Id = entidad.Id,
-                Nombre = entidad.Nombre,
-                //Descripcion = entidad.Descripcion
             };
         }
 
@@ -198,6 +193,19 @@ namespace DentalNova.Business.Helpers
             // Nota: Las especialidades se manejan manualmente en el BL, no aquí.
         }
 
+        // ---- Especialidad Mappings --- //
+        public static EspecialidadDto ToDto(this Especialidad entidad)
+        {
+            return new EspecialidadDto
+            {
+                Id = entidad.Id,
+                Nombre = entidad.Nombre,
+                //Descripcion = entidad.Descripcion
+            };
+        }
+
+
+        // ---- Tratamiento Mappings --- //
         public static TratamientoDto ToDto(this Tratamiento entidad)
         {
             return new TratamientoDto
@@ -219,6 +227,236 @@ namespace DentalNova.Business.Helpers
             entidad.DuracionDias = dto.DuracionDias;
             entidad.Activo = dto.Activo;
         }
-        
+
+
+        // ---- HorarioOdontologo Mappings --- //
+        public static HorarioOdontologoDto ToDto(this HorarioOdontologo entidad)
+        {
+            if (entidad == null) return null;
+
+            // Obtener el nombre completo
+            string nombreCompleto = "Desconocido";
+            if (entidad.Odontologo?.Usuario != null)
+            {
+                nombreCompleto = $"{entidad.Odontologo.Usuario.Nombre} {entidad.Odontologo.Usuario.Apellidos}";
+            }
+
+            return new HorarioOdontologoDto
+            {
+                Id = entidad.Id,
+                OdontologoId = entidad.Odontologo?.Id ?? 0,
+                OdontologoNombre = nombreCompleto,
+                DiaSemana = entidad.DiaSemana,
+                HoraInicio = entidad.HoraInicio,
+                HoraFin = entidad.HoraFin,
+                Consultorio = entidad.Consultorio,
+                Activo = entidad.Activo
+            };
+        }
+
+
+        public static HorarioOdontologo MapFromDto(HorarioOdontologoDtoIn dto, HorarioOdontologo entidadExistente = null)
+        {
+            var entidad = entidadExistente ?? new HorarioOdontologo();
+
+            entidad.DiaSemana = dto.DiaSemana;
+            entidad.HoraInicio = dto.HoraInicio;
+            entidad.HoraFin = dto.HoraFin;
+            entidad.Consultorio = dto.Consultorio;
+            entidad.Activo = dto.Activo;
+
+            return entidad;
+        }
+
+        // ---- Recordatorio Mappings --- //
+
+        public static RecordatorioDto ToDto(this Recordatorio entidad)
+        {
+            if (entidad == null) return null;
+
+            return new RecordatorioDto
+            {
+                Id = entidad.Id,
+                FechaEnvio = entidad.FechaEnvio,
+                Mensaje = entidad.Mensaje,
+                Enviado = entidad.Enviado,
+                CitaId = entidad.CitaId,
+
+                // Aplanado de datos (Flattening) con validación de nulos segura
+                FechaCita = entidad.Cita != null ? entidad.Cita.FechaHora : DateTime.MinValue,
+
+                DoctorNombre = entidad.Cita?.Odontologo?.Usuario != null
+                    ? $"{entidad.Cita.Odontologo.Usuario.Nombre} {entidad.Cita.Odontologo.Usuario.Apellidos}"
+                    : "Doctor no disponible",
+
+                PacienteNombre = entidad.Cita?.Paciente?.Usuario != null
+                    ? $"{entidad.Cita.Paciente.Usuario.Nombre} {entidad.Cita.Paciente.Usuario.Apellidos}"
+                    : "Paciente no disponible"
+            };
+        }
+
+        public static void MapFromDto(this Recordatorio entidad, RecordatorioDtoIn dto)
+        {
+            if (dto == null) return;
+
+            entidad.CitaId = dto.CitaId;
+
+            // Solo mapeamos el mensaje si viene personalizado.
+            if (!string.IsNullOrEmpty(dto.MensajePersonalizado))
+            {
+                entidad.Mensaje = dto.MensajePersonalizado;
+            }
+        }
+
+        // ---- Articulo Mappings --- //
+
+        public static ArticuloDto ToDto(this Articulo entidad)
+        {
+            if (entidad == null) return null;
+
+            return new ArticuloDto
+            {
+                Id = entidad.Id,
+                Nombre = entidad.Nombre,
+                Codigo = entidad.Codigo,
+                Descripcion = entidad.Descripcion,
+                Stock = entidad.Stock,
+                Reutilizable = entidad.Reutilizable,
+                Activo = entidad.Activo,
+                Categoria = entidad.Categoria,
+                CategoriaTexto = entidad.Categoria.ToString() // Conversión de Enum a String
+            };
+        }
+
+        public static ArticuloDtoIn ToDtoIn(this Articulo entidad)
+        {
+            if (entidad == null) return null;
+
+            return new ArticuloDtoIn
+            {
+                Id = entidad.Id,
+                Nombre = entidad.Nombre,
+                Descripcion = entidad.Descripcion,
+                Codigo = entidad.Codigo,
+                Categoria = entidad.Categoria,
+                Reutilizable = entidad.Reutilizable,
+                Stock = entidad.Stock,
+                Activo = entidad.Activo
+            };
+        }
+
+        public static void MapFromDto(this Articulo entidad, ArticuloDtoIn dto)
+        {
+            if (dto == null) return;
+
+            entidad.Nombre = dto.Nombre;
+            entidad.Descripcion = dto.Descripcion;
+            entidad.Codigo = dto.Codigo;
+            entidad.Categoria = dto.Categoria;
+            entidad.Reutilizable = dto.Reutilizable;
+            entidad.Stock = dto.Stock;
+            entidad.Activo = dto.Activo;
+        }
+
+        // ---- CitaTratamiento Mappings --- //
+        public static CitaTratamientoDto ToDto(this CitaTratamiento entidad)
+        {
+            if (entidad == null) return null;
+
+            return new CitaTratamientoDto
+            {
+                Id = entidad.Id,
+                TratamientoId = entidad.TratamientoId,
+                TratamientoNombre = entidad.Tratamiento?.Nombre ?? "Tratamiento no disponible",
+                CostoFinal = entidad.CostoFinal,
+                Observaciones = entidad.Observaciones
+            };
+        }
+
+        // ---- Cita Mappings --- //
+
+        public static CitaDto ToDto(this Cita entidad)
+        {
+            if (entidad == null) return null;
+
+            return new CitaDto
+            {
+                Id = entidad.Id,
+                PacienteId = entidad.PacienteId,
+                PacienteNombre = entidad.Paciente?.Usuario != null
+                    ? $"{entidad.Paciente.Usuario.Nombre} {entidad.Paciente.Usuario.Apellidos}"
+                    : "N/A",
+
+                OdontologoId = entidad.OdontologoId,
+                OdontologoNombre = entidad.Odontologo?.Usuario != null
+                    ? $"{entidad.Odontologo.Usuario.Nombre} {entidad.Odontologo.Usuario.Apellidos}"
+                    : "N/A",
+
+                FechaHora = entidad.FechaHora,
+                DuracionMinutos = entidad.DuracionMinutos,
+
+                // Cálculo de fecha fin visual
+                FechaFin = entidad.FechaHora.AddMinutes((int)entidad.DuracionMinutos),
+
+                EstatusCita = entidad.EstatusCita,
+                MotivoConsulta = entidad.MotivoConsulta,
+
+                // Mapeo de la lista hija
+                Tratamientos = entidad.CitasTratamientos?
+                    .Select(ct => ct.ToDto())
+                    .ToList() ?? new List<CitaTratamientoDto>(),
+
+                // Propiedad calculada
+                CostoTotal = entidad.CitasTratamientos?.Sum(ct => ct.CostoFinal) ?? 0
+            };
+        }
+
+        public static void MapFromDto(this Cita entidad, CitaDtoIn dto)
+        {
+            if (dto == null) return;
+
+            entidad.PacienteId = dto.PacienteId;
+            entidad.OdontologoId = dto.OdontologoId;
+            entidad.FechaHora = dto.FechaHora;
+            entidad.DuracionMinutos = dto.DuracionMinutos;
+            entidad.MotivoConsulta = dto.MotivoConsulta;
+            entidad.EstatusCita = dto.EstatusCita;
+        }
+
+        // ---- Pago Mappings --- //
+        public static PagoDto ToDto(this Pago entidad)
+        {
+            if (entidad == null) return null;
+
+            return new PagoDto
+            {
+                Id = entidad.Id,
+                Monto = entidad.Monto,
+                FechaPago = entidad.FechaPago,
+                MetodoPago = entidad.MetodoPago,
+                CitaId = entidad.CitaId,
+
+                // Navegación para obtener nombres
+                PacienteNombre = entidad.Paciente?.Usuario != null
+                    ? $"{entidad.Paciente.Usuario.Nombre} {entidad.Paciente.Usuario.Apellidos}"
+                    : "N/A",
+
+                OdontologoNombre = entidad.Cita?.Odontologo?.Usuario != null
+                    ? $"{entidad.Cita.Odontologo.Usuario.Nombre} {entidad.Cita.Odontologo.Usuario.Apellidos}"
+                    : "N/A"
+            };
+        }
+
+        public static void MapFromDto(this Pago entidad, PagoDtoIn dto)
+        {
+            if (dto == null) return;
+
+            entidad.CitaId = dto.CitaId;
+            entidad.Monto = dto.Monto;
+            entidad.MetodoPago = dto.MetodoPago;
+            entidad.FechaPago = DateTime.Now;
+        }
+
     }
+
 }

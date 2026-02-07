@@ -28,7 +28,6 @@ namespace DentalNova.Repository.Daos
 
         public async Task<List<Especialidad>> ObtenerPorIdsAsync(List<int> ids)
         {
-            // Busca todas las especialidades cuyo ID esté en la lista proporcionada
             return await _context.Especialidades
                                  .Where(e => ids.Contains(e.Id))
                                  .ToListAsync();

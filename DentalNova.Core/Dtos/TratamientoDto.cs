@@ -42,4 +42,6 @@ namespace DentalNova.Core.Dtos
         [DisplayName("Activo")]
         public bool Activo { get; set; }
     }
+
+
 }

@@ -1,5 +1,6 @@
 ﻿using DentalNova.Core.Dtos;
 using DentalNova.Core.Interfaces;
+using System.Text.Json;
 
 namespace Proyecto_DentalNova.Services
 {
@@ -12,16 +13,37 @@ namespace Proyecto_DentalNova.Services
             _httpClient = httpClient;
         }
 
-        public async Task<TokenDto> LoginAsync(InicioDeSesionDto dto)
+        public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/login", dto);
+            // Enviamos la petición POST al API
+            var response = await _httpClient.PostAsJsonAsync("api/Auth/login", dto);
 
-            if (!response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
-                return null; // Login fallido
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                return await response.Content.ReadFromJsonAsync<LoginResponseDto>(options);
             }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                string mensajeError = "Credenciales inválidas.";
 
-            return await response.Content.ReadFromJsonAsync<TokenDto>();
+                try
+                {
+                    // Propiedad "message" del JSON
+                    var errorJson = JsonSerializer.Deserialize<JsonElement>(errorContent);
+                    if (errorJson.TryGetProperty("message", out var msg))
+                    {
+                        mensajeError = msg.GetString();
+                    }
+                }
+                catch
+                {
+                    
+                }
+
+                throw new Exception(mensajeError);
+            }
         }
     }
 }

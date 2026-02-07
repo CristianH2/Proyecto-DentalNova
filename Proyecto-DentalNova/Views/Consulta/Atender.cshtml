@@ -1,0 +1,211 @@
+﻿@model Proyecto_DentalNova.Models.ConsultaViewModel.ConsultaViewModel
+
+@{
+    ViewData["Title"] = "Atención de Consulta";
+    Layout = "~/Views/Shared/_LayoutOdontologo.cshtml"; // Asegurar layout del doctor
+
+    // Calcular edad si no viene calculada
+    var edad = Model.Paciente.Edad > 0 ? Model.Paciente.Edad : (DateTime.Now.Year - Model.Paciente.FechaCreacion.Year); // Ajustar según tu lógica de fecha nac
+}
+
+<form asp-action="Finalizar" asp-route-id="@Model.Cita.Id" method="post" id="formConsulta">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Cita.Id" />
+    <input type="hidden" asp-for="Cita.PacienteId" />
+    <input type="hidden" asp-for="Cita.OdontologoId" />
+    <input type="hidden" asp-for="Cita.FechaHora" />
+    <input type="hidden" asp-for="Cita.DuracionMinutos" />
+
+    @for (int i = 0; i < Model.Cita.Tratamientos.Count; i++)
+    {
+        <input type="hidden" name="Cita.Tratamientos[@i].TratamientoId" value="@Model.Cita.Tratamientos[i].TratamientoId" />
+    }
+
+    <div class="card shadow-sm border-0 mb-4 border-top border-5 @(Model.Paciente.ConAlergias ? "border-danger" : "border-primary")">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex align-items-center">
+                    <div class="bg-light p-3 rounded-circle me-3 border">
+                        <i class="fas fa-user-injured fa-2x text-secondary"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">@Model.Paciente.Nombre @Model.Paciente.Apellidos</h4> //Ajusta si propiedades cambian
+                        <div class="text-muted small">
+                            <span class="me-3"><i class="fas fa-birthday-cake me-1"></i> @edad años</span>
+                            <span><i class="fas fa-file-medical me-1"></i> Expediente #@Model.Paciente.Id</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    @if (Model.Paciente.ConAlergias)
+                    {
+                        <span class="badge bg-danger fs-6 mb-1 d-block shake-animation">
+                            <i class="fas fa-exclamation-triangle me-1"></i> ALERGIA: @Model.Paciente.Alergias
+                        </span>
+                    }
+                    @if (Model.Paciente.ConEnfermedadesCronicas)
+                    {
+                        <span class="badge bg-warning text-dark mb-1 d-block">
+                            <i class="fas fa-heartbeat me-1"></i> @Model.Paciente.EnfermedadesCronicas
+                        </span>
+                    }
+                    @if (!Model.Paciente.ConAlergias && !Model.Paciente.ConEnfermedadesCronicas)
+                    {
+                        <span class="badge bg-success bg-opacity-75">
+                            <i class="fas fa-check-circle me-1"></i> Paciente Sano (Reportado)
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <div class="accordion mt-3" id="accordionAntecedentes">
+                <div class="accordion-item border-0">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button collapsed py-2 bg-light text-muted small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            <i class="fas fa-notes-medical me-2"></i> Ver Antecedentes Completos y Medicación Actual
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionAntecedentes">
+                        <div class="accordion-body bg-light small">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Medicamentos:</strong> @(string.IsNullOrEmpty(Model.Paciente.MedicamentosActuales) ? "Ninguno" : Model.Paciente.MedicamentosActuales)
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Antecedentes Familiares:</strong> @(string.IsNullOrEmpty(Model.Paciente.AntecedentesFamiliares) ? "Ninguno" : Model.Paciente.AntecedentesFamiliares)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="m-0 fw-bold text-primary"><i class="fas fa-pen-alt me-2"></i>Nota de Evolución</h5>
+                </div>
+                <div class="card-body">
+
+                    <div class="mb-4">
+                        <label asp-for="NotasEvolucion" class="form-label fw-bold text-dark">Descripción del Procedimiento / Hallazgos</label>
+                        <textarea asp-for="NotasEvolucion" class="form-control" rows="8" placeholder="Describa el procedimiento realizado, comportamiento del paciente, hallazgos clínicos, etc."></textarea>
+                        <span asp-validation-for="NotasEvolucion" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Recomendaciones" class="form-label fw-bold text-dark">Indicaciones / Receta</label>
+                        <textarea asp-for="Recomendaciones" class="form-control" rows="4" placeholder="Ej: Tomar Ibuprofeno 400mg cada 8 horas. Reposo relativo..."></textarea>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-tooth me-2"></i>Tratamientos Agendados</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    @if (Model.Cita.Tratamientos.Any())
+                    {
+                        foreach (var t in Model.Cita.Tratamientos)
+                        {
+                            <div class="list-group-item px-3 py-3">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 fw-bold">@t.TratamientoNombre</h6>
+                                    <small class="text-muted"><i class="fas fa-check text-success"></i></small>
+                                </div>
+                                <p class="mb-1 small text-muted">@t.Observaciones</p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="p-3 text-center text-muted small">
+                            Consulta General (Sin tratamientos específicos)
+                        </div>
+                    }
+                </div>
+                <div class="card-footer bg-light text-center small text-muted">
+                    Estos tratamientos se marcarán como realizados.
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" onclick="confirmarFinalizar()" class="btn btn-success py-3 fw-bold shadow-sm">
+                            <i class="fas fa-save me-2"></i> FINALIZAR CONSULTA
+                        </button>
+
+                        <a asp-controller="Cita" asp-action="MisCitas" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Volver (Sin guardar)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        function confirmarFinalizar() {
+            Swal.fire({
+                title: '¿Finalizar Consulta?',
+                text: "La cita se marcará como Completada y se guardará la nota en el expediente.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, finalizar',
+                cancelButtonText: 'Seguir editando'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('formConsulta').submit();
+                }
+            })
+        }
+    </script>
+
+    <style>
+        /* Animación suave para alergias */
+        @@keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-2px);
+            }
+
+            50% {
+                transform: translateX(2px);
+            }
+
+            75% {
+                transform: translateX(-2px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .shake-animation {
+            animation: shake 1s infinite;
+        }
+    </style>
+}

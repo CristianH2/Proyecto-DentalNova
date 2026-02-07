@@ -6,41 +6,46 @@ using DentalNova.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddBusinessLogicServices(builder.Configuration);
+// SERVICIOS
 
-// Registra ITokenService y la autenticación JWT
+builder.Services.AddBusinessLogicServices(builder.Configuration);
 builder.Services.AddSecurityServices(builder.Configuration);
 
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers();
-
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-// Configura Swagger para usar autenticación JWT
+// Configuración Swagger con JWT
 builder.Services.AddSwaggerGen(options =>
 {
-    // Define el título de la API
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "DentalNova API", Version = "v1" });
 
-    // documentación
+    // XML Comments
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
+    if (File.Exists(xmlPath)) options.IncludeXmlComments(xmlPath);
 
-    // Configura el esquema de seguridad para JWT Bearer
+    // Definición de Seguridad para el candadito en Swagger
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name = "Authorization", // El nombre del header HTTP
-        Type = SecuritySchemeType.Http, // Tipo de esquema
-        Scheme = "Bearer", // El esquema ("Bearer")
-        BearerFormat = "JWT", // Formato del token
-        In = ParameterLocation.Header, // Dónde se envía (en el header)
-        Description = "Introduce tu token JWT (Ej: 'eyJhbGciOiJI...')"
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingrese el token JWT así: Bearer {tu_token}"
     });
 
-    // Aplica el esquema de seguridad globalmente a todas las operaciones
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -49,7 +54,7 @@ builder.Services.AddSwaggerGen(options =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer" // Debe coincidir con el Id de AddSecurityDefinition
+                    Id = "Bearer"
                 }
             },
             new string[] {}
@@ -59,15 +64,20 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
-}
     app.UseSwagger();
     app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 
+// CORS
+app.UseCors("AllowAll");
+
+// Autenticación y Autorización
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

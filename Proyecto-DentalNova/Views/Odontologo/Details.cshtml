@@ -1,25 +1,22 @@
-﻿@model DentalNova.Core.Dtos.OdontologoDto
+﻿@model Proyecto_DentalNova.Models.OdontologoViewModel.OdontologoVM
 
 @{
-    ViewData["Title"] = $"Perfil Dr(a). {Model.Nombre}";
+    ViewData["Title"] = $"Perfil Dr(a). {Model.OdontologoVisual.Nombre}";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var iniciales = (!string.IsNullOrEmpty(Model.Nombre) ? Model.Nombre.Substring(0, 1) : "") +
-                    (!string.IsNullOrEmpty(Model.Apellidos) ? Model.Apellidos.Substring(0, 1) : "");
+    var iniciales = (!string.IsNullOrEmpty(Model.OdontologoVisual.Nombre) ? Model.OdontologoVisual.Nombre.Substring(0, 1) : "") +
+                    (!string.IsNullOrEmpty(Model.OdontologoVisual.Apellidos) ? Model.OdontologoVisual.Apellidos.Substring(0, 1) : "");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold text-dark mb-0">Perfil Profesional</h2>
-        <p class="text-muted mb-0">Detalle de credenciales y especialidades.</p>
+        <p class="text-muted mb-0">Detalle de credenciales y disponibilidad.</p>
     </div>
     <div class="d-flex gap-2">
         <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i> Volver
+            <i class="fas fa-arrow-left me-2"></i> Volver al Directorio
         </a>
-        @* <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm">
-            <i class="fas fa-pen me-2"></i> Editar Perfil
-        </a> *@
     </div>
 </div>
 
@@ -34,11 +31,11 @@
                     @iniciales
                 </div>
 
-                <h4 class="fw-bold mb-1">Dr(a). @Model.Nombre</h4>
-                <h5 class="fw-light text-muted mb-3">@Model.Apellidos</h5>
+                <h4 class="fw-bold mb-1">Dr(a). @Model.OdontologoVisual.Nombre</h4>
+                <h5 class="fw-light text-muted mb-3">@Model.OdontologoVisual.Apellidos</h5>
 
                 <div class="badge bg-dark text-white mb-4 px-3 py-2 rounded-pill font-monospace">
-                    ID MÉDICO: #@Model.Id
+                    ID MÉDICO: #@Model.OdontologoVisual.Id
                 </div>
 
                 <hr class="my-4" />
@@ -48,7 +45,7 @@
                         <label class="small text-muted fw-bold text-uppercase">Correo Electrónico</label>
                         <div class="fs-6 text-break">
                             <i class="fas fa-envelope text-primary me-2 opacity-50"></i>
-                            @Model.CorreoElectronico
+                            @Model.OdontologoVisual.CorreoElectronico
                         </div>
                     </div>
 
@@ -56,20 +53,28 @@
                         <label class="small text-muted fw-bold text-uppercase">Fecha de Ingreso</label>
                         <div class="fs-6">
                             <i class="fas fa-calendar-check text-primary me-2 opacity-50"></i>
-                            @Model.FechaIngreso.ToLongDateString()
+                            @Model.OdontologoVisual.FechaIngreso.ToLongDateString()
                         </div>
                     </div>
                 </div>
 
-                <div class="card-footer bg-light text-center py-3 border-top-0 mt-4">
-                    <small class="text-success fw-bold"><i class="fas fa-circle me-1 small"></i> Personal Activo</small>
+                <div class="card-footer bg-light text-center py-3 border-top-0 mt-4 rounded">
+                    @if (Model.OdontologoVisual.Activo)
+                    {
+                        <small class="text-success fw-bold"><i class="fas fa-circle me-1 small"></i> Personal Activo</small>
+                    }
+                    else
+                    {
+                        <small class="text-danger fw-bold"><i class="fas fa-circle me-1 small"></i> Personal Inactivo</small>
+                    }
+                    
                 </div>
 
                 <div class="d-grid gap-2 mt-4">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm fw-bold">
+                    <a asp-action="Edit" asp-route-id="@Model.OdontologoVisual.Id" class="btn btn-primary shadow-sm fw-bold">
                         <i class="fas fa-pen me-2"></i> Editar Perfil
                     </a>
-                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-light text-danger border">
+                    <a asp-action="Delete" asp-route-id="@Model.OdontologoVisual.Id" class="btn btn-light text-danger border">
                         <i class="fas fa-trash me-2"></i> Dar de baja
                     </a>
                 </div>
@@ -79,7 +84,8 @@
     </div>
 
     <div class="col-12 col-lg-8 col-xl-9">
-        <div class="card shadow-sm border-0 h-100">
+
+        <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3 border-bottom">
                 <h6 class="m-0 fw-bold text-primary">
                     <i class="fas fa-briefcase-medical me-2"></i> Credenciales y Formación
@@ -87,7 +93,7 @@
             </div>
             <div class="card-body p-4">
 
-                <div class="row align-items-center mb-5">
+                <div class="row align-items-center mb-4">
                     <div class="col-12 col-md-6">
                         <div class="d-flex align-items-center p-3 border rounded bg-light">
                             <div class="bg-white p-3 rounded-circle shadow-sm text-primary me-3">
@@ -95,79 +101,110 @@
                             </div>
                             <div>
                                 <small class="text-muted fw-bold text-uppercase d-block">Cédula Profesional</small>
-                                <span class="fs-4 fw-bold font-monospace text-dark">@Model.CedulaProfesional</span>
+                                <span class="fs-4 fw-bold font-monospace text-dark">@Model.OdontologoVisual.CedulaProfesional</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-5">
-                    <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Especialidades Clínicas</h6>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Especialidades</h6>
+                        @if (Model.OdontologoVisual.Especialidades != null && Model.OdontologoVisual.Especialidades.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var esp in Model.OdontologoVisual.Especialidades)
+                                {
+                                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 fs-6 fw-normal">
+                                        <i class="fas fa-tooth me-2"></i> @esp
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">Odontología General</span>
+                        }
+                    </div>
 
-                    @if (Model.Especialidades != null && Model.Especialidades.Any())
-                    {
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach (var esp in Model.Especialidades)
-                            {
-                                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 fs-6 fw-normal">
-                                    <i class="fas fa-tooth me-2"></i> @esp
-                                </span>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <span class="text-muted fst-italic">Sin especialidades registradas (Odontología General)</span>
-                    }
-                </div>
-
-                <div class="mb-0">
-                    <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Formación Académica</h6>
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label class="small text-muted fw-bold">Institución / Universidad</label>
-                            <div class="fs-6 text-dark">
+                    <div class="col-md-6">
+                        <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Formación Académica</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
                                 <i class="fas fa-university text-secondary me-2"></i>
-                                @(string.IsNullOrEmpty(Model.Institucion) ? "No especificada" : Model.Institucion)
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="small text-muted fw-bold">Año de Graduación</label>
-                            <div class="fs-6 text-dark">
+                                @(string.IsNullOrEmpty(Model.OdontologoVisual.Institucion) ? "No especificada" : Model.OdontologoVisual.Institucion)
+                            </li>
+                            <li>
                                 <i class="fas fa-graduation-cap text-secondary me-2"></i>
-                                @(Model.AnioGraduacion.HasValue? Model.AnioGraduacion.Value.ToString() : "--")
-                            </div>
-                        </div>
+                                Graduación: @(Model.OdontologoVisual.AnioGraduacion.HasValue? Model.OdontologoVisual.AnioGraduacion.Value.ToString() : "--")
+                            </li>
+                        </ul>
                     </div>
                 </div>
-
             </div>
-
-            @* <div class="card-footer bg-white text-end py-3 border-top-0">
-                <button onclick="confirmarEliminar(@Model.Id)" class="btn btn-sm btn-outline-danger border-0">
-                    <i class="fas fa-trash-alt me-2"></i> Dar de baja odontólogo
-                </button>
-            </div> *@
         </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-primary">
+                    <i class="fas fa-clock me-2"></i> Disponibilidad Semanal
+                </h6>
+                <a asp-action="Horarios" asp-route-id="@Model.OdontologoVisual.Id" class="btn btn-primary btn-sm shadow-sm">
+                    <i class="fas fa-cog me-1"></i> Gestionar Horario
+                </a>
+            </div>
+            <div class="card-body p-0">
+                
+                @if (!Model.Horarios.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <div class="mb-3">
+                            <i class="far fa-calendar-times fa-3x opacity-25"></i>
+                        </div>
+                        <h6 class="fw-bold">Sin horarios configurados</h6>
+                        <p class="small mb-0">Haz clic en "Gestionar Horario" para asignar turnos.</p>
+                    </div>
+                }
+                else
+                {
+                    // Lógica de Agrupación Visual
+                    <div class="list-group list-group-flush">
+                        @foreach (var grupoDia in Model.Horarios.OrderBy(x => x.DiaSemana).GroupBy(x => x.DiaSemanaTexto))
+                        {
+                            <div class="list-group-item p-3">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3 mb-2 mb-md-0">
+                                        <span class="fw-bold text-uppercase text-dark d-flex align-items-center">
+                                            <i class="far fa-calendar-alt text-muted me-2"></i> @grupoDia.Key
+                                        </span>
+                                    </div>
+
+                                    <div class="col-md-9">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach (var turno in grupoDia.OrderBy(t => t.HoraInicio))
+                                            {
+                                                <div class="border rounded px-3 py-2 bg-light d-flex align-items-center">
+                                                    <i class="far fa-clock text-success me-2"></i>
+                                                    <span class="fw-bold text-dark me-2">
+                                                        @turno.HoraInicio.ToString(@"hh\:mm") - @turno.HoraFin.ToString(@"hh\:mm")
+                                                    </span>
+                                                    @if (!string.IsNullOrEmpty(turno.Consultorio))
+                                                    {
+                                                        <span class="badge bg-white text-muted border ms-2">
+                                                            <i class="fas fa-door-open me-1"></i> @turno.Consultorio
+                                                        </span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        function confirmarEliminar(id) {
-            Swal.fire({
-                title: '¿Dar de baja?',
-                text: "El odontólogo perderá acceso al sistema.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                     window.location.href = '@Url.Action("Delete")/' + id;
-                }
-            })
-        }
-    </script>
-}

@@ -8,12 +8,10 @@ namespace Proyecto_DentalNova.Services
     public class OdontologoServiceApi : IOdontologoService
     {
         private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public OdontologoServiceApi(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public OdontologoServiceApi(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<PagedResultDto<OdontologoDto>> ObtenerOdontologosAsync(OdontologoFilterDto filtro)
@@ -36,19 +34,16 @@ namespace Proyecto_DentalNova.Services
 
             var url = QueryHelpers.AddQueryString("api/Odontologos", queryParams);
 
-            await AddAuthorizationHeader();
             return await _httpClient.GetFromJsonAsync<PagedResultDto<OdontologoDto>>(url);
         }
 
         public async Task<OdontologoDto> ObtenerOdontologoPorIdAsync(int id)
         {
-            await AddAuthorizationHeader();
             return await _httpClient.GetFromJsonAsync<OdontologoDto>($"api/Odontologos/{id}");
         }
 
         public async Task CrearOdontologoAsync(OdontologoDtoIn dto)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.PostAsJsonAsync("api/Odontologos", dto);
             if (!response.IsSuccessStatusCode)
             {
@@ -60,21 +55,18 @@ namespace Proyecto_DentalNova.Services
 
         public async Task ActualizarOdontologoAsync(int id, OdontologoDtoIn dto)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.PutAsJsonAsync($"api/Odontologos/{id}", dto);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task EliminarOdontologoAsync(int id)
         {
-            await AddAuthorizationHeader();
             var response = await _httpClient.DeleteAsync($"api/Odontologos/{id}");
             response.EnsureSuccessStatusCode();
         }
 
         public async Task<List<UsuarioDisponibleDto>> ObtenerUsuariosDisponiblesAsync(int? odontologoIdEdicion = null)
         {
-            await AddAuthorizationHeader();
             var url = "api/Odontologos/usuarios-disponibles";
             if (odontologoIdEdicion.HasValue) url += $"?odontologoIdEdicion={odontologoIdEdicion}";
             return await _httpClient.GetFromJsonAsync<List<UsuarioDisponibleDto>>(url);
@@ -82,21 +74,7 @@ namespace Proyecto_DentalNova.Services
 
         public async Task<List<EspecialidadDto>> ObtenerEspecialidadesAsync()
         {
-            await AddAuthorizationHeader();
             return await _httpClient.GetFromJsonAsync<List<EspecialidadDto>>("api/Odontologos/especialidades");
-        }
-
-        private async Task AddAuthorizationHeader()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user != null && user.Identity.IsAuthenticated)
-            {
-                var token = user.FindFirst("JWT_TOKEN")?.Value;
-                if (!string.IsNullOrEmpty(token))
-                {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-            }
         }
     }
 }

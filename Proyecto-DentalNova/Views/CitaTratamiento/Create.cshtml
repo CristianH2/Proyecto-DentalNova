@@ -26,12 +26,8 @@
                 const tratamientoSelect = $('#tratamientoSelect');
                 const costoFinalInput = $('#costoFinalInput');
 
-                // Escuchar el evento 'change' en el dropdown de tratamientos
                 tratamientoSelect.on('change', function () {
-                    // Encontrar la opción seleccionada
                     const selectedOption = $(this).find('option:selected');
-
-                    // Obtener el costo del atributo 'data-costo'
                     const costoBase = selectedOption.data('costo');
 
                     // Si se seleccionó una opción válida, asignar el costo. Si no, poner 0.

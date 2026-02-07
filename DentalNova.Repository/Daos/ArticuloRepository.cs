@@ -19,13 +19,56 @@ namespace DentalNova.Repository.Daos
             _context = context;
         }
 
-        public async Task<IEnumerable<Articulo>> ObtenerTodosActivosAsync()
+        public async Task<Articulo> ObtenerPorIdAsync(int id)
         {
-            // Llama al DbSet "Articulos"
-            // y filtra por la propiedad "Activo"
             return await _context.Articulos
-                                 .Where(a => a.Activo)
-                                 .ToListAsync();
+                .Include(a => a.compraArticulos)
+                .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
+        public IQueryable<Articulo> ObtenerQueryable()
+        {
+            return _context.Articulos
+                .AsNoTracking();
+        }
+
+        public async Task AgregarAsync(Articulo articulo)
+        {
+            await _context.Articulos.AddAsync(articulo);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarAsync(Articulo articulo)
+        {
+            _context.Articulos.Update(articulo);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarAsync(int id)
+        {
+            var articulo = await _context.Articulos.FindAsync(id);
+            if (articulo != null)
+            {
+
+                // Relizando eliminacion completa
+                _context.Articulos.Remove(articulo);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // --- Validaciones ---
+
+        public async Task<bool> ExisteCodigoAsync(string codigo, int? idExcluir = null)
+        {
+            var query = _context.Articulos.AsQueryable();
+
+            if (idExcluir.HasValue)
+            {
+                // Si es edición, ignoramos el registro actual para que no choque consigo mismo
+                query = query.Where(a => a.Id != idExcluir.Value);
+            }
+
+            return await query.AnyAsync(a => a.Codigo == codigo);
         }
     }
 }

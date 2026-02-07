@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:DentalNova.Movil.ViewModels"
+             x:Class="DentalNova.Movil.Pages.PerfilPage"
+             Title="{Binding Title}"
+             BackgroundColor="#F5F5F5">
+    <ScrollView>
+        <VerticalStackLayout Padding="15" Spacing="20">
+
+            <Border BackgroundColor="White" Padding="15" StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10"/>
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="👤 Información Personal" FontAttributes="Bold" TextColor="#333" FontSize="16"/>
+                    <BoxView HeightRequest="1" Color="LightGray" Margin="0,5"/>
+
+                    <Label Text="Nombre:" TextColor="Gray" FontSize="12"/>
+                    <Label Text="{Binding Usuario.NombreCompleto}" FontSize="16" FontAttributes="Bold"/>
+
+                    <Label Text="Correo:" TextColor="Gray" FontSize="12" Margin="0,5,0,0"/>
+                    <Label Text="{Binding Usuario.CorreoElectronico}" FontSize="14"/>
+
+                    <Label Text="CURP:" TextColor="Gray" FontSize="12" Margin="0,5,0,0"/>
+                    <Label Text="{Binding Usuario.Curp}" FontSize="14"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="White" Padding="15" StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10"/>
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="🏥 Expediente Médico" FontAttributes="Bold" TextColor="#333" FontSize="16"/>
+                    <BoxView HeightRequest="1" Color="LightGray" Margin="0,5"/>
+
+                    <HorizontalStackLayout>
+                        <Label Text="Edad: " TextColor="Gray"/>
+                        <Label Text="{Binding Paciente.Edad, StringFormat='{0} años'}" FontAttributes="Bold"/>
+                    </HorizontalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding Paciente.ConAlergias}">
+                        <Label Text="⚠️ Alergias:" TextColor="Red" FontAttributes="Bold"/>
+                        <Label Text="{Binding Paciente.Alergias}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding Paciente.ConEnfermedadesCronicas}">
+                        <Label Text="⚠️ Enf. Crónicas:" TextColor="Orange" FontAttributes="Bold"/>
+                        <Label Text="{Binding Paciente.EnfermedadesCronicas}"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding Paciente.ConMedicamentosActuales}">
+                        <Label Text="💊 Medicamentos:" TextColor="Blue" FontAttributes="Bold"/>
+                        <Label Text="{Binding Paciente.MedicamentosActuales}"/>
+                    </VerticalStackLayout>
+
+                    <Label Text="✅ Sin condiciones médicas registradas" 
+                           TextColor="Green"
+                           IsVisible="{Binding Paciente.ConEnfermedadesCronicas, Converter={StaticResource InverseBoolConverter}}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="White" Padding="15" StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10"/>
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="🔒 Seguridad" FontAttributes="Bold" TextColor="#333" FontSize="16"/>
+                    <BoxView HeightRequest="1" Color="LightGray" Margin="0,5"/>
+
+                    <Entry Placeholder="Contraseña Actual" Text="{Binding PassActual}" IsPassword="True"/>
+                    <Entry Placeholder="Nueva Contraseña" Text="{Binding PassNuevo}" IsPassword="True"/>
+                    <Entry Placeholder="Confirmar Nueva" Text="{Binding PassConfirmar}" IsPassword="True"/>
+
+                    <Button Text="Actualizar Contraseña" 
+                            Command="{Binding CambiarPassCommand}"
+                            BackgroundColor="#333"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="Cerrar Sesión" 
+                    Command="{Binding CerrarSesionCommand}"
+                    BackgroundColor="Red" 
+                    TextColor="White"
+                    Margin="0,0,0,20"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

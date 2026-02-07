@@ -10,5 +10,7 @@ namespace DentalNova.Core.Repository.Interfaces
     public interface ICitaTratamientoRepository
     {
         Task AgregarAsync(CitaTratamiento citaTratamiento);
+        Task EliminarAsync(int id);
+        Task<int> ContarTratamientosPreviosAsync(int pacienteId, int tratamientoId);
     }
 }

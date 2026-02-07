@@ -1,108 +1,350 @@
-﻿@model DentalNova.Core.Repository.Entities.Cita
+﻿@model DentalNova.Core.Dtos.CitaDto
+@using DentalNova.Core.Repository.Entities
 
 @{
-    ViewData["Title"] = "Gestionar Cita";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = $"Cita #{Model.Id}";
+    // Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Detecion de Roles
+    bool esAdmin = User.IsInRole("Administrador");
+    bool esOdontologo = User.IsInRole("Odontologo");
+
+    // Configuración Visual según Estatus
+    string statusColor = "secondary";
+    string statusIcon = "fa-circle";
+    string statusText = "Desconocido";
+
+    switch (Model.EstatusCita)
+    {
+        case Enumerables.EstatusCita.Programada:
+            statusColor = "primary";
+            statusIcon = "fa-clock";
+            statusText = "Programada";
+            break;
+        case Enumerables.EstatusCita.Completada:
+            statusColor = "success";
+            statusIcon = "fa-check-circle";
+            statusText = "Completada";
+            break;
+        case Enumerables.EstatusCita.Cancelada:
+            statusColor = "danger";
+            statusIcon = "fa-ban";
+            statusText = "Cancelada";
+            break;
+        case Enumerables.EstatusCita.NoAsistida:
+            statusColor = "warning";
+            statusIcon = "fa-user-slash";
+            statusText = "No Asistió";
+            break;
+    }
 }
 
-<div class="container mt-4">
-    <div class="card shadow-lg border-0">
-        <div class="card-header bg-light p-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-calendar2-check display-4 me-3 text-primary"></i>
-                    <div>
-                        <h2 class="mb-0">Cita del @Model.FechaHora.ToString("D")</h2>
-                        <p class="mb-0 text-muted">a las @Model.FechaHora.ToString("t")</p>
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold text-dark mb-0">Detalle de Cita</h2>
+                <span class="badge bg-dark font-monospace rounded-pill">#@Model.Id</span>
+            </div>
+            <p class="text-muted mb-0">Expediente de consulta y servicios.</p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (esAdmin)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </a>
+            }
+            else
+            {
+                <a asp-action="MisCitas" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </a>
+            }
+            <button onclick="window.print()" class="btn btn-light border shadow-sm">
+                <i class="fas fa-print me-2"></i> Imprimir
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center pt-5 pb-4 bg-@statusColor bg-opacity-10 border-bottom border-@statusColor border-opacity-25">
+                    <div class="bg-white text-@statusColor rounded-circle d-inline-flex p-3 shadow-sm mb-3">
+                        <i class="fas @statusIcon fa-3x"></i>
                     </div>
+                    <h4 class="fw-bold text-@statusColor mb-0">@statusText</h4>
+                    <span class="text-muted small">Estado Actual</span>
                 </div>
-                <div>
-                    <h3 class="text-success mb-0">Total: @Model.CostoTotalTratamientos.ToString("C")</h3>
-                    <span class="badge bg-primary fs-5">@Model.EstatusCita</span>
+
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h3 class="fw-bold text-dark mb-0">@Model.FechaHora.ToString("dd MMM yyyy")</h3>
+                        <div class="fs-4 text-muted">@Model.FechaHora.ToString("hh:mm tt")</div>
+                        <span class="badge bg-light text-dark border mt-2">
+                            <i class="fas fa-hourglass-half me-1"></i> @((int)Model.DuracionMinutos) min
+                        </span>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="mb-4">
+                        <label class="small text-muted fw-bold text-uppercase mb-2">Paciente</label>
+                        <div class="d-flex align-items-center p-2 border rounded bg-light mb-3">
+                            <div class="bg-white p-2 rounded-circle text-success me-3 shadow-sm"><i class="fas fa-user"></i></div>
+                            <span class="fw-bold text-dark">@Model.PacienteNombre</span>
+                        </div>
+
+                        <label class="small text-muted fw-bold text-uppercase mb-2">Odontólogo</label>
+                        <div class="d-flex align-items-center p-2 border rounded bg-light">
+                            <div class="bg-white p-2 rounded-circle text-primary me-3 shadow-sm"><i class="fas fa-user-md"></i></div>
+                            <span class="fw-bold text-dark">Dr(a). @Model.OdontologoNombre</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.MotivoConsulta))
+                    {
+                        <div class="mb-4">
+                            <label class="small text-muted fw-bold text-uppercase">Motivo Consulta</label>
+                            <p class="fst-italic text-dark border-start border-4 ps-3 mt-1">
+                                "@Model.MotivoConsulta"
+                            </p>
+                        </div>
+                    }
+
+                    @if (Model.EstatusCita == Enumerables.EstatusCita.Programada)
+                    {
+                        <hr class="my-4" />
+                        <div class="d-grid gap-2">
+                            <form asp-action="Completar" asp-route-id="@Model.Id" class="form-action" data-confirm-title="¿Completar Cita?" data-confirm-text="Se marcará como finalizada y se generará el cargo." data-confirm-color="#198754" data-confirm-btn="Sí, completar">
+                                <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
+                                    <i class="fas fa-check-circle me-2"></i> Finalizar Cita
+                                </button>
+                            </form>
+                            
+                            @if (esAdmin)
+                            {
+                                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary fw-bold">
+                                    <i class="fas fa-pen me-2"></i> Editar / Reprogramar
+                                </a>
+                            }
+
+                            @if (esAdmin)
+                            {
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <form asp-action="Cancelar" asp-route-id="@Model.Id" class="form-action" data-confirm-title="¿Cancelar Cita?" data-confirm-text="La cita será cancelada." data-confirm-color="#dc3545" data-confirm-btn="Sí, cancelar">
+                                            <button type="submit" class="btn btn-outline-danger w-100 small-btn">
+                                                <i class="fas fa-times me-1"></i> Cancelar
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="col-6">
+                                        <form asp-action="NoAsistida" asp-route-id="@Model.Id" class="form-action" data-confirm-title="¿Paciente Ausente?" data-confirm-text="Se marcará como No Asistió." data-confirm-color="#ffc107" data-confirm-btn="Confirmar">
+                                            <button type="submit" class="btn btn-outline-warning text-dark w-100 small-btn">
+                                                <i class="fas fa-user-slash me-1"></i> Ausente
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }else{
+                                <form asp-action="NoAsistida" asp-route-id="@Model.Id" class="form-action" data-confirm-title="¿Paciente Ausente?" data-confirm-text="Se marcará como No Asistió." data-confirm-color="#ffc107" data-confirm-btn="Confirmar">
+                                    <button type="submit" class="btn btn-outline-warning text-dark w-100 small-btn">
+                                        <i class="fas fa-user-slash me-1"></i> Ausente
+                                    </button>
+                                </form>
+                            }
+
+                            <form asp-controller="Recordatorios" asp-action="Enviar" asp-route-citaId="@Model.Id"
+                                  class="form-action mt-2"
+                                  data-confirm-title="¿Enviar Recordatorio?"
+                                  data-confirm-text="Se enviará un mensaje automático al paciente notificando esta cita."
+                                  data-confirm-color="#0dcaf0"
+                                  data-confirm-btn="Sí, enviar ahora">
+
+                                <button type="submit" class="btn btn-info text-white w-100 py-2 fw-bold shadow-sm">
+                                    <i class="fas fa-paper-plane me-2"></i> Enviar Recordatorio
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else if ((Model.EstatusCita == Enumerables.EstatusCita.Cancelada || Model.EstatusCita == Enumerables.EstatusCita.NoAsistida) && esAdmin)
+                    {
+                        <hr class="my-4" />
+                        <form asp-action="Reactivar" asp-route-id="@Model.Id" class="form-action" data-confirm-title="¿Reactivar?" data-confirm-text="La cita volverá a estar programada." data-confirm-color="#0d6efd" data-confirm-btn="Sí, reactivar">
+                            <button type="submit" class="btn btn-light border w-100 text-primary fw-bold">
+                                <i class="fas fa-undo me-2"></i> Reactivar Cita
+                            </button>
+                        </form>
+                    }
                 </div>
             </div>
         </div>
 
-        <div class="card-body p-4">
-            <div class="row mb-5">
-                <div class="col-md-6">
-                    <h5 class="text-primary"><i class="bi bi-person"></i> Paciente</h5>
-                    <p class="fs-5 ms-3">@Model.Paciente?.Usuario?.Nombre @Model.Paciente?.Usuario?.Apellidos</p>
-                </div>
-                <div class="col-md-6">
-                    <h5 class="text-primary"><i class="bi bi-person-workspace"></i> Odontólogo Asignado</h5>
-                    <p class="fs-5 ms-3">@Model.Odontologo?.Usuario?.Nombre @Model.Odontologo?.Usuario?.Apellidos</p>
-                </div>
-                @if (!string.IsNullOrWhiteSpace(Model.MotivoConsulta))
-                {
-                    <div class="col-12 mt-3">
-                        <h5 class="text-primary"><i class="bi bi-chat-left-text"></i> Motivo de la Consulta</h5>
-                        <p class="ms-3 fst-italic">"@Model.MotivoConsulta"</p>
-                    </div>
-                }
-            </div>
+        <div class="col-lg-8">
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="text-success"><i class="bi bi-list-check"></i> Tratamientos en la Cita</h4>
-                        <a asp-controller="CitaTratamiento" asp-action="Create" asp-route-citaId="@Model.Id" class="btn btn-success">
-                            <i class="bi bi-plus-circle"></i> Añadir Tratamiento
-                        </a>
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card shadow-sm border-0 mt-4 border-start border-4 border-success">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-3 shadow-sm">
+                                    <i class="fas fa-hand-holding-usd fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-1">Balance Financiero</h5>
+                                    <p class="text-muted mb-0 small">
+                                        Total del tratamiento:
+                                        @* Usamos CostoTotal para mantener consistencia con la tabla de arriba *@
+                                        <span class="fw-bold text-success fs-5 ms-1">@Model.CostoTotal.ToString("C")</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div>
+                                @if (Model.CostoTotal > 0)
+                                {
+                                    @if (esAdmin)
+                                    {
+                                        <a asp-controller="Pago" asp-action="Create" asp-route-citaId="@Model.Id" class="btn btn-success px-4 py-2 fw-bold shadow-sm hover-scale">
+                                            <i class="fas fa-cash-register me-2"></i> Registrar / Ver Pagos
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2">
+                                            <i class="fas fa-dollar-sign me-1"></i> Cobro en Recepción
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-secondary border px-3 py-2">
+                                        <i class="fas fa-check me-1"></i> Sin costo asociado
+                                    </span>
+                                }
+                            </div>
+                        </div>
                     </div>
-                    <hr>
+                </div>
+
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-file-invoice-dollar me-2"></i> Desglose de Servicios</h6>
+                    <span class="badge bg-light text-dark border">@Model.Tratamientos.Count ítems</span>
+                </div>
+
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase small text-muted">
                                 <tr>
-                                    <th>Tratamiento</th>
-                                    <th>Costo Final</th>
-                                    <th>Estatus</th>
-                                    <th>Observaciones</th>
-                                    <th class="text-end">Acciones</th>
+                                    <th class="ps-4">Descripción del Tratamiento</th>
+                                    <th>Notas / Observaciones</th>
+                                    <th class="text-end pe-4">Importe</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var tratamiento in Model.CitasTratamientos)
+                                @if (Model.Tratamientos.Any())
+                                {
+                                    foreach (var item in Model.Tratamientos)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <span class="fw-bold text-dark d-block">@item.TratamientoNombre</span>
+                                            </td>
+                                            <td>
+                                                @if (string.IsNullOrEmpty(item.Observaciones))
+                                                {
+                                                    <span class="text-muted small fst-italic">--</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-secondary small">@item.Observaciones</span>
+                                                }
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <span class="font-monospace fw-bold text-dark fs-6">$@item.CostoFinal.ToString("N2")</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
                                 {
                                     <tr>
-                                        <td><strong>@tratamiento.Tratamiento?.Nombre</strong></td>
-                                        <td>@tratamiento.CostoFinal.ToString("C")</td>
-                                        <td><span class="badge bg-secondary">@tratamiento.EstatusTratamiento</span></td>
-                                        <td>@(tratamiento.Observaciones ?? "N/A")</td>
-                                        <td class="text-end">
-                                            <a asp-controller="CitaTratamiento" asp-action="Edit" asp-route-id="@tratamiento.Id" class="btn btn-sm btn-primary" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a asp-controller="CitaTratamiento" asp-action="Delete" asp-route-id="@tratamiento.Id" class="btn btn-sm btn-danger" title="Quitar">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                        <td colspan="3" class="text-center py-5 text-muted">
+                                            <i class="fas fa-receipt mb-2 fs-3 opacity-25"></i>
+                                            <p class="mb-0">No se han registrado servicios en esta cita.</p>
                                         </td>
                                     </tr>
                                 }
-                                @if (!Model.CitasTratamientos.Any())
-                                {
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted">Aún no se han añadido tratamientos a esta cita.</td>
-                                    </tr>
-                                }
                             </tbody>
+
+                            <tfoot class="bg-light border-top">
+                                <tr>
+                                    <td colspan="2" class="text-end pt-3 pb-3">
+                                        <span class="text-muted text-uppercase small fw-bold me-2">Subtotal</span>
+                                    </td>
+                                    <td class="text-end pe-4 pt-3 pb-3">
+                                        <span class="text-muted">$@Model.CostoTotal.ToString("N2")</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="text-end border-0 pb-4">
+                                        <span class="text-dark fw-bold me-2">TOTAL A PAGAR</span>
+                                    </td>
+                                    <td class="text-end pe-4 border-0 pb-4">
+                                        <span class="fs-4 fw-bold text-success">$@Model.CostoTotal.ToString("N2")</span>
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="card-footer text-end bg-light p-3">
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left-circle"></i> Volver a la Agenda
-            </a>
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-                <i class="bi bi-pencil-square"></i> Editar Datos de la Cita
-            </a>
-            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Eliminar Cita
-            </a>
+                <div class="card-footer bg-white p-3 text-muted small border-top">
+                    <i class="fas fa-info-circle me-1"></i> Precios en moneda nacional. Impuestos incluidos.
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Script Genérico para SweetAlert en Formularios
+        document.addEventListener('DOMContentLoaded', function () {
+            const actionForms = document.querySelectorAll('.form-action');
+
+            actionForms.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); // Detener envío normal
+
+                    const title = this.getAttribute('data-confirm-title') || '¿Confirmar?';
+                    const text = this.getAttribute('data-confirm-text') || 'Esta acción no se puede deshacer.';
+                    const color = this.getAttribute('data-confirm-color') || '#0d6efd';
+                    const btnText = this.getAttribute('data-confirm-btn') || 'Sí, continuar';
+
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: color,
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: btnText,
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

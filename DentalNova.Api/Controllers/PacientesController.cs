@@ -8,7 +8,6 @@ namespace DentalNova.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Roles = "Administrador,Odontologo")]
     public class PacientesController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -22,6 +21,7 @@ namespace DentalNova.Api.Controllers
         /// Obtiene una lista paginada de pacientes aplicando filtros avanzados.
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<ActionResult<PagedResultDto<PacienteAdminDto>>> GetPacientes([FromQuery] PacienteFilterDto filtro)
         {
             // Llama a la lógica de negocio
@@ -45,6 +45,7 @@ namespace DentalNova.Api.Controllers
         /// Obtiene los detalles de un paciente por su ID.
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<ActionResult<PacienteAdminDto>> GetPaciente(int id)
         {
             var paciente = await _unitOfWork.Paciente.ObtenerDetallePorIdAsync(id);
@@ -57,14 +58,12 @@ namespace DentalNova.Api.Controllers
         /// Crea un nuevo expediente de paciente.
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<ActionResult> CreatePaciente(PacienteAdminDtoIn dto)
         {
             try
             {
                 await _unitOfWork.Paciente.CrearPacienteAdminAsync(dto);
-                // Nota: Como CrearPacienteAdminAsync no devuelve el ID generado, 
-                // retornamos Ok() o NoContent(). Si modificas la BL para devolver ID, 
-                // podrías usar CreatedAtAction.
                 return Ok(new { Mensaje = "Paciente creado exitosamente." });
             }
             catch (InvalidOperationException ex)
@@ -78,6 +77,7 @@ namespace DentalNova.Api.Controllers
         /// Actualiza la información médica de un paciente.
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<IActionResult> UpdatePaciente(int id, PacienteAdminDtoIn dto)
         {
             if (id != dto.Id) return BadRequest("El ID no coincide.");
@@ -94,6 +94,7 @@ namespace DentalNova.Api.Controllers
         /// Elimina el expediente de un paciente.
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeletePaciente(int id)
         {
             await _unitOfWork.Paciente.EliminarPacienteAsync(id);
@@ -108,6 +109,7 @@ namespace DentalNova.Api.Controllers
         /// </summary>
         /// <param name="pacienteIdEdicion">Opcional: ID del paciente si se está editando.</param>
         [HttpGet("usuarios-disponibles")]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<List<UsuarioDisponibleDto>>> GetUsuariosDisponibles(int? pacienteIdEdicion = null)
         {
             var usuarios = await _unitOfWork.Paciente.ObtenerUsuariosDisponiblesAsync(pacienteIdEdicion);

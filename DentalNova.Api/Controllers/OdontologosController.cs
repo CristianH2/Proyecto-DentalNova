@@ -1,5 +1,6 @@
 ﻿using DentalNova.Core.Dtos;
 using DentalNova.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,6 @@ namespace DentalNova.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(Roles = "Administrador")]
     public class OdontologosController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -21,9 +21,9 @@ namespace DentalNova.Api.Controllers
         /// Obtiene una lista paginada de odontólogos con filtros (incluyendo especialidad).
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Administrador,Odontologo,Paciente")]
         public async Task<ActionResult<PagedResultDto<OdontologoDto>>> GetOdontologos([FromQuery] OdontologoFilterDto filtro)
         {
-            // Llama a la lógica de negocio
             var pagedList = await _unitOfWork.Odontologo.ObtenerListaPaginadaAsync(filtro);
 
             // Envuelve en el DTO de respuesta paginada
@@ -44,6 +44,7 @@ namespace DentalNova.Api.Controllers
         /// Obtiene los detalles de un odontólogo por su ID.
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Roles = "Administrador,Odontologo")]
         public async Task<ActionResult<OdontologoDto>> GetOdontologo(int id)
         {
             var odontologo = await _unitOfWork.Odontologo.ObtenerPorIdAdminAsync(id);
@@ -56,6 +57,7 @@ namespace DentalNova.Api.Controllers
         /// Registra un nuevo odontólogo y asigna sus especialidades.
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult> CreateOdontologo(OdontologoDtoIn dto)
         {
             try
@@ -65,7 +67,6 @@ namespace DentalNova.Api.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Captura validaciones de negocio
                 return BadRequest(new { Mensaje = ex.Message });
             }
         }
@@ -74,6 +75,7 @@ namespace DentalNova.Api.Controllers
         /// Actualiza la información y especialidades de un odontólogo.
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> UpdateOdontologo(int id, OdontologoDtoIn dto)
         {
             if (id != dto.Id) return BadRequest("El ID no coincide.");
@@ -89,6 +91,7 @@ namespace DentalNova.Api.Controllers
         /// Elimina un odontólogo del sistema.
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteOdontologo(int id)
         {
             await _unitOfWork.Odontologo.EliminarOdontologoAsync(id);
@@ -101,6 +104,7 @@ namespace DentalNova.Api.Controllers
         /// Obtiene usuarios candidatos para ser odontólogos.
         /// </summary>
         [HttpGet("usuarios-disponibles")]
+        [Authorize(Roles = "Administrador,Odontologo")]
         public async Task<ActionResult<List<UsuarioDisponibleDto>>> GetUsuariosDisponibles(int? odontologoIdEdicion = null)
         {
             var usuarios = await _unitOfWork.Odontologo.ObtenerUsuariosDisponiblesAsync(odontologoIdEdicion);
@@ -111,6 +115,7 @@ namespace DentalNova.Api.Controllers
         /// Obtiene el catálogo completo de especialidades.
         /// </summary>
         [HttpGet("especialidades")]
+        [Authorize(Roles = "Administrador, Odontologo")]
         public async Task<ActionResult<List<EspecialidadDto>>> GetEspecialidades()
         {
             var especialidades = await _unitOfWork.Odontologo.ObtenerTodasEspecialidadesAsync();

@@ -23,8 +23,7 @@ namespace DentalNova.Business.Rules
         }
 
 
-        // Crea o actualiza el perfil de un Paciente asociado a un Usuario.
-        // Calcula la edad automáticamente.
+        // Crea o actualiza el perfil de un Paciente
         public async Task<PacienteDto> GuardarPerfilPacienteAsync(int usuarioId, PerfilPacienteDtoIn dto)
         {
             // Obtener el Usuario (para su Fecha de Nacimiento)
@@ -83,7 +82,7 @@ namespace DentalNova.Business.Rules
                 pacienteGuardado = await _repositorio.Paciente.ActualizarAsync(pacienteExistente);
             }
 
-            // 5. Devolver el DTO de salida
+            // DTO de salida
             return pacienteGuardado.ToDto();
         }
 
@@ -105,6 +104,7 @@ namespace DentalNova.Business.Rules
         {
             var hoy = DateTime.Now;
             int edad = hoy.Year - fechaNacimiento.Year;
+
             // Ajusta por si aún no cumple años este año
             if (fechaNacimiento.Date > hoy.AddYears(-edad))
             {
@@ -147,8 +147,7 @@ namespace DentalNova.Business.Rules
             if (filtro.ConMedicamentosActuales) query = query.Where(p => p.ConMedicamentosActuales);
             if (filtro.ConAntecedentesFamiliares) query = query.Where(p => p.ConAntecedentesFamiliares);
 
-            // Ordenamiento por defecto
-            //query = query.OrderBy(p => p.Usuario.Apellidos);
+            // Ordenamiento
             query = query.OrderBy(p => p.Id);
 
             // Paginación (Obtiene Entidades)
@@ -170,14 +169,13 @@ namespace DentalNova.Business.Rules
             var queryUsuarios = _repositorio.Usuario.ObtenerQueryableParaFiltro()
                                                   .Where(u => u.Activo && u.Roles.Any(r => r.Nombre == "Paciente"));
 
-            // 3. Aplicar filtro de exclusión
+            // Filtro
             if (pacienteIdEdicion.HasValue)
             {
-                // Si estamos editando, necesitamos saber qué Usuario ID tiene este paciente para NO excluirlo
+                // Excluir todos los ocupados EXCEPTO el del paciente actual
                 var pacienteActual = await _repositorio.Paciente.ObtenerPorIdConUsuarioAsync(pacienteIdEdicion.Value);
                 if (pacienteActual != null)
                 {
-                    // Excluir todos los ocupados EXCEPTO el del paciente actual
                     queryUsuarios = queryUsuarios.Where(u => !idsOcupados.Contains(u.Id) || u.Id == pacienteActual.UsuarioId);
                 }
             }
@@ -187,7 +185,7 @@ namespace DentalNova.Business.Rules
                 queryUsuarios = queryUsuarios.Where(u => !idsOcupados.Contains(u.Id));
             }
 
-            // Ejecutar y Mapear
+            // Mapear
             var usuarios = await queryUsuarios.OrderBy(u => u.Apellidos).ToListAsync();
             return usuarios.Select(u => u.ToDisponibleDto()).ToList();
         }
@@ -204,7 +202,6 @@ namespace DentalNova.Business.Rules
                 UsuarioId = paciente.UsuarioId,
                 ConAlergias = paciente.ConAlergias,
                 Alergias = paciente.Alergias,
-                // ... resto de campos
                 Observaciones = paciente.Observaciones
             };
         }
@@ -217,7 +214,7 @@ namespace DentalNova.Business.Rules
 
         public async Task CrearPacienteAdminAsync(PacienteAdminDtoIn dto)
         {
-            // Validación de negocio: Race condition check
+            // Race condition check
             if (await _repositorio.Paciente.ExistePacienteParaUsuarioAsync(dto.UsuarioId))
             {
                 throw new InvalidOperationException("Este usuario ya tiene un expediente de paciente asignado.");

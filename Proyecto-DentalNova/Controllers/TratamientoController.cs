@@ -8,7 +8,7 @@ using Proyecto_DentalNova.Models.TratamientoViewModel;
 
 namespace Proyecto_DentalNova.Controllers
 {
-    //[Authorize(Roles = "Administrador")] // Seguridad MVC
+    [Authorize(Roles = "Administrador")]
     public class TratamientoController : Controller
     {
         private readonly ITratamientoService _tratamientoService;
@@ -22,7 +22,7 @@ namespace Proyecto_DentalNova.Controllers
         [HttpGet]
         public async Task<IActionResult> Index([Bind(Prefix = "Filtro")] TratamientoFilterViewModel filtro)
         {
-            // 1. Mapear VM Filtro -> DTO Filtro
+            //Mapear VM Filtro -> DTO Filtro
             var filtroDto = new TratamientoFilterDto
             {
                 Page = filtro.Page,
@@ -31,13 +31,15 @@ namespace Proyecto_DentalNova.Controllers
                 NombreLike = filtro.NombreLike,
                 CostoMin = filtro.CostoMin,
                 CostoMax = filtro.CostoMax,
+                DuracionMin = filtro.DuracionMin,
+                DuracionMax = filtro.DuracionMax,
                 Activo = filtro.Activo
             };
 
-            // 2. Llamar API
+            // Llamar API
             var apiResult = await _tratamientoService.ObtenerTratamientosAdminAsync(filtroDto);
 
-            // 3. Crear lista paginada
+            // Lista paginada
             var pagedResults = PaginatedList<TratamientoDto>.Create(
                 apiResult.Items,
                 apiResult.TotalCount,
@@ -61,7 +63,6 @@ namespace Proyecto_DentalNova.Controllers
             try
             {
                 var dto = await _tratamientoService.ObtenerTratamientoPorIdAsync(id.Value);
-                // Nota: Tu vista Details.cshtml debe esperar TratamientoAdminDtoOut
                 return View(dto);
             }
             catch (HttpRequestException) { return NotFound(); }
@@ -156,7 +157,6 @@ namespace Proyecto_DentalNova.Controllers
             try
             {
                 var dto = await _tratamientoService.ObtenerTratamientoPorIdAsync(id.Value);
-                // Nota: Tu vista Delete.cshtml debe esperar TratamientoAdminDtoOut
                 return View(dto);
             }
             catch (HttpRequestException) { return NotFound(); }
@@ -179,24 +179,23 @@ namespace Proyecto_DentalNova.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Tratamiento/ToggleActivo
+        // --- POST: Tratamiento/ToggleActivo ---
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleActivo(int id)
         {
             try
             {
-                // 1. Obtener el tratamiento actual
+                // Obtener el tratamiento actual
                 var currentDto = await _tratamientoService.ObtenerTratamientoPorIdAsync(id);
 
-                // 2. Validación de seguridad (por si el ID no existe)
                 if (currentDto == null)
                 {
                     TempData["MensajeError"] = "El tratamiento solicitado no existe.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                // 3. Crear el DTO con el estado INVERTIDO
+                // Crear el DTO con el estado INVERTIDO
                 var updateDto = new TratamientoDtoIn
                 {
                     Id = currentDto.Id,
@@ -204,19 +203,15 @@ namespace Proyecto_DentalNova.Controllers
                     Descripcion = currentDto.Descripcion,
                     Costo = currentDto.Costo,
                     DuracionDias = currentDto.DuracionDias,
-                    Activo = !currentDto.Activo // <--- Aquí inviertes el valor
+                    Activo = !currentDto.Activo
                 };
 
-                // 4. Llamar a la API
+                // Llamar a la API
                 await _tratamientoService.ActualizarTratamientoAsync(id, updateDto);
-
-                // 5. CAMBIO CLAVE: Usar las llaves correctas para SweetAlert
-                // Antes: TempData["Success"]
                 TempData["MensajeExito"] = $"El tratamiento se ha {(updateDto.Activo ? "activado" : "desactivado")} correctamente.";
             }
-            catch (Exception ex) // Captura Exception general para atrapar cualquier error, no solo HTTP
+            catch (Exception ex)
             {
-                // Antes: TempData["Error"]
                 TempData["MensajeError"] = "No se pudo cambiar el estado: " + ex.Message;
             }
 

@@ -18,6 +18,6 @@ namespace DentalNova.Core.Dtos
 
         [Required]
         [MinLength(8, ErrorMessage = "La nueva contraseña debe tener al menos 8 caracteres.")]
-        public string PasswordNueva { get; set; }
+        public string PasswordNuevo { get; set; }
     }
 }

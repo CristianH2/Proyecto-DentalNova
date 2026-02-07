@@ -19,8 +19,6 @@ namespace DentalNova.Repository.Daos
             _context = context;
         }
 
-
-        // Agrega un nuevo registro de Paciente a la base de datos.
         public async Task<Paciente> AgregarAsync(Paciente paciente)
         {
             await _context.Pacientes.AddAsync(paciente);
@@ -28,8 +26,6 @@ namespace DentalNova.Repository.Daos
             return paciente; // Devuelve la entidad con el nuevo ID
         }
 
-
-        // Actualiza un registro de Paciente existente en la base de datos.
         public async Task<Paciente> ActualizarAsync(Paciente paciente)
         {
             // Le decimos a EF Core que esta entidad ha sido modificada
@@ -38,12 +34,8 @@ namespace DentalNova.Repository.Daos
             return paciente;
         }
 
-
-        // Busca un perfil de Paciente usando el ID del Usuario asociado.
         public async Task<Paciente> ObtenerPorUsuarioIdAsync(int usuarioId)
         {
-            // Busca en el DbSet "Pacientes"
-            // usando la llave foránea "UsuarioId"
             return await _context.Pacientes
                                  .FirstOrDefaultAsync(p => p.UsuarioId == usuarioId);
         }
@@ -52,12 +44,11 @@ namespace DentalNova.Repository.Daos
         // --- MÉTODOS NUEVOS (Gestión Admin) ---
 
         // Retorna la consulta base para el filtrado.
-        // Incluye la relación con Usuario para poder filtrar por Nombre/Apellido.
         public IQueryable<Paciente> ObtenerQueryableParaFiltro()
         {
             return _context.Pacientes
-                           .Include(p => p.Usuario) // ¡Crucial! El filtro usa p.Usuario.Nombre
-                           .AsNoTracking(); // Optimización de lectura
+                           .Include(p => p.Usuario) 
+                           .AsNoTracking();
         }
 
 
@@ -82,17 +73,11 @@ namespace DentalNova.Repository.Daos
             }
         }
 
-
-        // Verifica si ya existe un registro de paciente para un usuario específico.
-        // (Para evitar duplicados al crear).
         public async Task<bool> ExistePacienteParaUsuarioAsync(int usuarioId)
         {
             return await _context.Pacientes.AnyAsync(p => p.UsuarioId == usuarioId);
         }
 
-
-        // Obtiene una lista de todos los IDs de usuarios que ya tienen un paciente asignado.
-        // (Se usa para filtrar el DropDownList y no mostrar usuarios ocupados).
         public async Task<List<int>> ObtenerIdsUsuariosOcupadosAsync()
         {
             return await _context.Pacientes

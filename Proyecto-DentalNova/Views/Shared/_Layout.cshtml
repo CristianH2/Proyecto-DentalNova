@@ -13,6 +13,7 @@
     <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js'></script>
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @* <link rel="stylesheet" href="~/Proyecto_DentalNova.styles.css" asp-append-version="true" /> *@
@@ -26,8 +27,12 @@
 
         <div class="bg-dark text-white" id="sidebar-wrapper">
             <div class="sidebar-heading text-center py-4 fs-4 fw-bold text-uppercase border-bottom border-secondary">
-                <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none">
+                @* <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none">
                     <i class="bi bi-heart-pulse-fill text-primary me-2"></i> DentalNova
+                </a> *@
+                <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center justify-content-center">
+                    <i class="fas fa-tooth text-primary me-2"></i>
+                    DentalNova
                 </a>
             </div>
 
@@ -39,6 +44,12 @@
                 <div class="sidebar-subheading text-muted text-uppercase small fw-bold px-3 mt-4 mb-2">Operaciones</div>
                 <a asp-controller="Cita" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
                     <i class="bi bi-calendar-plus me-2"></i> Agendar Cita
+                </a>
+                <a asp-controller="Articulo" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
+                    <i class="fas fa-boxes-packing me-2"></i> Inventario General
+                </a>
+                <a asp-controller="Pago" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
+                    <i class="fas fa-cash-register me-2"></i> Historial de Pagos
                 </a>
 
                 <div class="sidebar-subheading text-muted text-uppercase small fw-bold px-3 mt-4 mb-2">Administración</div>
@@ -74,6 +85,10 @@
                                     <span class="fw-bold small">@User.Identity.Name</span>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" asp-controller="Perfil" asp-action="Index">
+                                        <i class="fas fa-user-cog me-2 text-muted"></i> Mi Perfil
+                                    </a>
+                                    <div class="dropdown-divider"></div>
                                     <form class="form-inline" asp-controller="Account" asp-action="Logout">
                                         <button type="button" onclick="this.form.submit()" class="dropdown-item text-danger">
                                             <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
@@ -135,117 +150,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-
-
-@*  <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Clínica Dental</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    @await RenderSectionAsync("Styles", required: false)
-</head>
-<body class="bg-light">
-
-    <div class="d-flex" id="wrapper">
-        <div class="bg-dark text-white p-3" id="sidebar-wrapper" style="min-width: 250px; min-height: 100vh;">
-            <div class="sidebar-heading text-center py-4 fs-4 fw-bold text-uppercase border-bottom border-secondary">
-                <i class="fa-solid fa-tooth me-2"></i> DentSys
-            </div>
-            <div class="list-group list-group-flush my-3">
-                <a asp-controller="Home" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white fw-bold">
-                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                </a>
-                <a asp-controller="Usuario" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
-                    <i class="fas fa-calendar-check me-2"></i> Usuario
-                </a>
-                <a asp-controller="Paciente" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
-                    <i class="fas fa-users me-2"></i> Pacientes
-                </a>
-                <a asp-controller="Odontologo" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
-                    <i class="fas fa-user-md me-2"></i> Odontólogos
-                </a>
-                <a asp-controller="Tratamiento" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
-                    <i class="fas fa-notes-medical me-2"></i> Tratamientos
-                </a>
-
-                <div class="mt-4 text-muted small text-uppercase px-3">Administración</div>
-
-                <a asp-controller="Usuarios" asp-action="Index" class="list-group-item list-group-item-action bg-transparent text-white">
-                    <i class="fas fa-cog me-2"></i> Configuración
-                </a>
-            </div>
-        </div>
-        <div id="page-content-wrapper" class="w-100">
-
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4">
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-outline-secondary" id="menu-toggle"><i class="fas fa-bars"></i></button>
-                    <h5 class="ms-3 mb-0 text-muted">@ViewData["Title"]</h5>
-                </div>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px;">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <span>Dr. Administrador</span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#">Mi Perfil</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item text-danger" href="#">Cerrar Sesión</a>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <div class="container-fluid px-4 py-4">
-                @if (TempData["Mensaje"] != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        @TempData["Mensaje"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                }
-
-                @RenderBody()
-            </div>
-        </div>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        $("#menu-toggle").click(function(e) {
-            e.preventDefault();
-            $("#wrapper").toggleClass("toggled");
-        });
-    </script>
-
-    <script src="~/js/site.js" asp-append-version="true"></script>
-
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html> *@

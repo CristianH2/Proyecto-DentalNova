@@ -9,7 +9,8 @@ namespace DentalNova.Core.Repository.Interfaces
 {
     public interface IOdontologoRepository
     {
-        Task<Odontologo> ObtenerPorIdAsync(int id); // Para obtener los datos del odontólogo asignado
+        Task<Odontologo> ObtenerPorIdAsync(int id);
+        Task<Odontologo> ObtenerPorUsuarioIdAsync(int usuarioId);
 
         IQueryable<Odontologo> ObtenerQueryableParaFiltro();
 

@@ -5,21 +5,387 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>@ViewData["Title"]</h1>
-<hr />
-<form asp-action="Edit" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Cita.Id" />
-    <input type="hidden" asp-for="Cita.FechaCreacion" />
-    <partial name="_CitaFormulario" model="Model" />
-    <div class="form-group mt-4">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar Cambios</button>
-        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
-    </div>
-</form>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold text-dark mb-0">Editar Cita</h2>
+                <span class="badge bg-secondary font-monospace">#@Model.Cita.Id</span>
+            </div>
+            <p class="text-muted mb-0">Modificar agenda, participantes o servicios.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Details" asp-route-id="@Model.Cita.Id" class="btn btn-outline-secondary">
+                <i class="fas fa-eye me-2"></i> Ver Detalles
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-2"></i> Cancelar
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["MensajeError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="Cita.Id" />
+                @Html.AntiForgeryToken()
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-user-edit me-2"></i> Participantes</h6>
+                    </div>
+                    <div class="card-body p-4">
+
+                        <div class="alert alert-warning py-2 small d-flex align-items-center mb-4 border-0 bg-warning bg-opacity-10 text-dark">
+                            <i class="fas fa-exclamation-circle fs-5 me-3 text-warning"></i>
+                            <div>
+                                <strong>Precaución:</strong> Modificar el Paciente u Odontólogo cambiará la asignación del historial médico.
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Cita.PacienteId" class="form-label small fw-bold text-muted text-uppercase">Paciente</label>
+                                <div class="input-group flex-nowrap">
+                                    <span class="input-group-text bg-light"><i class="fas fa-user-injured"></i></span>
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <select asp-for="Cita.PacienteId" asp-items="Model.Pacientes" class="form-select select2-search" required></select>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Cita.PacienteId" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cita.OdontologoId" class="form-label small fw-bold text-muted text-uppercase">Odontólogo</label>
+                                <div class="input-group flex-nowrap">
+                                    <span class="input-group-text bg-light"><i class="fas fa-user-md"></i></span>
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <select asp-for="Cita.OdontologoId" asp-items="Model.Odontologos" class="form-select select2-search" id="selectOdontologo" required></select>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Cita.OdontologoId" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="m-0 fw-bold text-primary"><i class="far fa-calendar-alt me-2"></i> Reagendar Cita</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Cita.FechaHora" class="form-label small fw-bold text-muted text-uppercase">Fecha y Hora</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="far fa-clock"></i></span>
+                                    <input asp-for="Cita.FechaHora" class="form-control" type="datetime-local" id="inputFechaHora" required />
+
+                                    <button type="button" class="btn btn-primary" id="btnVerCalendario"
+                                            data-bs-toggle="modal" data-bs-target="#modalCalendario"
+                                            title="Ver disponibilidad visual">
+                                        <i class="fas fa-calendar-week"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Cita.FechaHora" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Cita.DuracionMinutos" class="form-label small fw-bold text-muted text-uppercase">Duración</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-hourglass-half"></i></span>
+                                    <select asp-for="Cita.DuracionMinutos" asp-items="Model.Duraciones" class="form-select" required></select>
+                                </div>
+                                <span asp-validation-for="Cita.DuracionMinutos" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="Cita.EstatusCita" class="form-label small fw-bold text-muted text-uppercase">Estatus</label>
+                                <select asp-for="Cita.EstatusCita" asp-items="Model.Estatus" class="form-select"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="m-0 fw-bold text-primary"><i class="fas fa-briefcase-medical me-2"></i> Servicios y Notas</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label asp-for="TratamientosSeleccionados" class="form-label small fw-bold text-muted text-uppercase">Tratamientos Asignados</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-tooth"></i></span>
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <select asp-for="TratamientosSeleccionados" asp-items="Model.Tratamientos" class="form-select select2-multiple" multiple="multiple" style="width: 100%;">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-text small">Los servicios resaltados son los actuales.</div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label asp-for="Cita.MotivoConsulta" class="form-label small fw-bold text-muted text-uppercase">Motivo / Observaciones</label>
+                            <textarea asp-for="Cita.MotivoConsulta" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Cita.MotivoConsulta" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-light p-3 text-end">
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                            <i class="fas fa-save me-2"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 1.5rem; z-index: 10;">
+                <div class="card shadow-sm border-0 border-top border-info border-4">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="m-0 fw-bold text-dark"><i class="fas fa-info-circle me-2 text-info"></i> Referencia Semanal</h6>
+                    </div>
+                    <div class="card-body p-0">
+
+                        <div id="panelVacio" class="text-center py-5 px-3 d-none">
+                            <i class="fas fa-user-md fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted small mb-0">Seleccione un odontólogo.</p>
+                        </div>
+
+                        <div id="panelLoading" class="text-center py-5 d-none">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <p class="text-muted small">Cargando horarios...</p>
+                        </div>
+
+                        <div id="panelHorarios" class="d-none">
+                            <div class="alert alert-light border-0 mb-0 small text-center text-muted border-bottom">
+                                Horarios de atención base del doctor.
+                            </div>
+                            <div class="list-group list-group-flush" id="listaHorariosContainer">
+                            </div>
+                        </div>
+
+                        <div id="msgSinHorarios" class="text-center py-5 d-none">
+                            <i class="far fa-calendar-times fa-3x text-warning opacity-50 mb-3"></i>
+                            <p class="text-muted small px-3">Sin horarios base configurados.</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="modalCalendario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="far fa-calendar-check me-2"></i>Agenda en Tiempo Real</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="calendar" style="min-height: 600px;"></div>
+            </div>
+            <div class="modal-footer bg-light">
+                <div class="me-auto small">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span><span class="badge bg-primary">■</span> Programada</span>
+                        <span><span class="badge bg-success">■</span> Completada</span>
+                        @* <span><span class="badge bg-danger">■</span> Cancelada</span> *@
+                        <span><span class="badge bg-warning text-dark">■</span> No Asistió</span>
+                    </div>
+                    <div class="text-muted fst-italic">
+                        <i class="fas fa-mouse-pointer me-1"></i> Haga clic en un espacio vacío para seleccionar.
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // SELECT2
+            $('.select2-search').select2({ theme: 'bootstrap-5', width: '100%', placeholder: 'Buscar...', allowClear: true });
+            $('.select2-multiple').select2({ theme: 'bootstrap-5', width: '100%', placeholder: 'Seleccione...', closeOnSelect: false });
+
+            // Referencias
+            const selectOdontologo = $('#selectOdontologo'); // jQuery para Select2
+            const inputFecha = document.getElementById('inputFechaHora');
+            const btnVerCalendario = document.getElementById('btnVerCalendario');
+
+            // Sidebar
+            const panelVacio = document.getElementById('panelVacio');
+            const panelLoading = document.getElementById('panelLoading');
+            const panelHorarios = document.getElementById('panelHorarios');
+            const msgSin = document.getElementById('msgSinHorarios');
+            const container = document.getElementById('listaHorariosContainer');
+
+            // Calendario
+            const modalEl = document.getElementById('modalCalendario');
+            const calendarEl = document.getElementById('calendar');
+            let calendar = null;
+
+            // LOGICA FULLCALENDAR
+            function initCalendar() {
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'timeGridWeek',
+                    locale: 'es',
+                    themeSystem: 'bootstrap5',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    slotMinTime: '07:00:00',
+                    slotMaxTime: '21:00:00',
+                    allDaySlot: false,
+                    height: 'auto',
+                    expandRows: true,
+
+                    // Clic en hueco vacío
+                    dateClick: function(info) {
+                        let fechaStr = info.dateStr;
+                        if(fechaStr.length > 16) fechaStr = fechaStr.substring(0, 16);
+                        inputFecha.value = fechaStr;
+                        bootstrap.Modal.getInstance(modalEl).hide();
+                    },
+
+                    // Cargar eventos (Citas Ocupadas)
+                    events: function(info, successCallback, failureCallback) {
+                        var id = selectOdontologo.val();
+                        if (!id) {
+                            successCallback([]);
+                            return;
+                        }
+
+                        var url = '@Url.Action("GetEventosOdontologo", "Cita")' +
+                                  '?odontologoId=' + id +
+                                  '&start=' + info.startStr +
+                                  '&end=' + info.endStr;
+
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data => successCallback(data))
+                            .catch(err => {
+                                console.error("Error calendario:", err);
+                                failureCallback(err);
+                            });
+                    }
+                });
+                calendar.render();
+            }
+
+            initCalendar();
+
+            // Al abrir el modal en EDITAR:
+            modalEl.addEventListener('shown.bs.modal', function () {
+                calendar.render(); // Redibujar tamaño
+                var fechaActual = inputFecha.value;
+
+                if (fechaActual) {
+                    calendar.gotoDate(fechaActual);
+                }
+
+                // Recargar los eventos del doctor seleccionado
+                calendar.refetchEvents();
+            });
+
+            // Validación botón abrir
+            btnVerCalendario.addEventListener('click', function(e) {
+                if(!selectOdontologo.val()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('Atención: Debe haber un odontólogo seleccionado.');
+                }
+            });
+
+            // LOGICA SIDEBAR (Horarios Fijos)
+            function cargarHorariosFijos(id) {
+                // Reset UI
+                panelVacio.classList.add('d-none');
+                panelHorarios.classList.add('d-none');
+                msgSin.classList.add('d-none');
+
+                if (!id) {
+                    panelVacio.classList.remove('d-none');
+                    return;
+                }
+
+                panelLoading.classList.remove('d-none');
+
+                $.ajax({
+                    url: '@Url.Action("GetHorariosOdontologo", "Cita")',
+                    data: { id: id },
+                    success: function (data) {
+                        panelLoading.classList.add('d-none');
+                        container.innerHTML = '';
+
+                        if (data && data.length > 0) {
+                            data.forEach(item => {
+                                const html = `
+                                    <div class="list-group-item px-3 py-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 text-uppercase">${item.dia}</span>
+                                            <small class="text-muted fw-bold">${item.consultorio}</small>
+                                        </div>
+                                        <div class="d-flex align-items-center text-dark">
+                                            <i class="far fa-clock text-success me-2"></i>
+                                            <span class="fw-bold">${item.horario}</span>
+                                        </div>
+                                    </div>`;
+                                container.innerHTML += html;
+                            });
+                            panelHorarios.classList.remove('d-none');
+                        } else {
+                            msgSin.classList.remove('d-none');
+                        }
+                    },
+                    error: function () {
+                        panelLoading.classList.add('d-none');
+                    }
+                });
+            }
+
+            // EVENTOS Y CARGA INICIAL
+            // Cuando cambian el doctor manualmente
+            selectOdontologo.on('change', function() {
+                var id = $(this).val();
+                cargarHorariosFijos(id);
+
+                if(modalEl.classList.contains('show')) {
+                    calendar.refetchEvents();
+                }
+            });
+
+            var idInicial = selectOdontologo.val();
+            if (idInicial) {
+                // Cargar el sidebar azul inmediatamente
+                cargarHorariosFijos(idInicial);
+            } else {
+                panelVacio.classList.remove('d-none');
+            }
+        });
+    </script>
 }

@@ -1,9 +1,13 @@
-﻿using DentalNova.Core.Helpers;
+﻿using DentalNova.Core.Dtos;
+using DentalNova.Core.Helpers;
+using DentalNova.Core.Interfaces;
 using DentalNova.Core.Repository.Entities;
 using DentalNova.Repository.DataContext;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Proyecto_DentalNova.Extensions;
 using Proyecto_DentalNova.Models.CitaViewModel;
 using static DentalNova.Core.Repository.Entities.Enumerables;
 
@@ -11,256 +15,577 @@ namespace Proyecto_DentalNova.Controllers
 {
     public class CitaController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ICitaService _citaService;
+        private readonly IPacienteService _pacienteService;
+        private readonly IOdontologoService _odontologoService;
+        private readonly ITratamientoService _tratamientoService;
+        private readonly IHorarioOdontologoService _horarioService;
 
-        public CitaController(ApplicationDbContext context)
+        public CitaController(
+            ICitaService citaService,
+            IPacienteService pacienteService,
+            IOdontologoService odontologoService,
+            ITratamientoService tratamientoService,
+            IHorarioOdontologoService horarioService)
         {
-            _context = context;
+            _citaService = citaService;
+            _pacienteService = pacienteService;
+            _odontologoService = odontologoService;
+            _tratamientoService = tratamientoService;
+            _horarioService = horarioService;
         }
 
-        // --- Método auxiliar para el filtro ---
-        private void HydrateFilter(CitaFilterViewModel filtro)
-        {
-            filtro.EstatusDisponibles = Enum.GetValues<EstatusCita>()
-                .Select(e => new SelectListItem(e.ToString(), e.ToString()))
-                .ToList();
-        }
+        // --- Helpers Privados para llenar listas ---
 
-        // --- Método para construir el View Model ---
-        private async Task<CitaVM> BuildCitaVMAsync(Cita? cita = null)
+        private async Task<CitaVM> ConstruirViewModelAsync(CitaVM? vmExistente = null)
         {
-            var vm = new CitaVM
+            var vm = vmExistente ?? new CitaVM();
+
+            // Cargar Pacientes
+            var filtroPacientes = new PacienteFilterDto { PageSize = 1000 };
+            var pacientesResult = await _pacienteService.ObtenerPacientesAsync(filtroPacientes);
+
+            vm.Pacientes = pacientesResult.Items.Select(p => new SelectListItem
             {
-                Cita = cita ?? new Cita { FechaHora = DateTime.Now },
+                Value = p.Id.ToString(),
+                Text = $"{p.Nombre} {p.Apellidos} (Edad: {p.Edad})"
+            });
 
-                // Carga solo los pacientes que tienen un usuario activo asociado
-                PacientesDisponibles = await _context.Pacientes
-                    .Include(p => p.Usuario)
-                    .Where(p => p.Usuario.Activo)
-                    .OrderBy(p => p.Usuario.Apellidos)
-                    .Select(p => new SelectListItem(
-                        $"{p.Usuario.Apellidos}, {p.Usuario.Nombre}",
-                        p.Id.ToString()))
-                    .ToListAsync(),
+            // Cargar Odontólogos
+            var filtroOdontologos = new OdontologoFilterDto { PageSize = 1000 };
+            var odontologosResult = await _odontologoService.ObtenerOdontologosAsync(filtroOdontologos);
 
-                // Carga solo los odontólogos que tienen un usuario activo asociado
-                OdontologosDisponibles = await _context.Odontologos
-                    .Include(o => o.Usuario)
-                    .Where(o => o.Usuario.Activo)
-                    .OrderBy(o => o.Usuario.Apellidos)
-                    .Select(o => new SelectListItem(
-                        $"{o.Usuario.Apellidos}, {o.Usuario.Nombre}",
-                        o.Id.ToString()))
-                    .ToListAsync(),
+            vm.Odontologos = odontologosResult.Items.Select(o => new SelectListItem
+            {
+                Value = o.Id.ToString(),
+                Text = $"{o.Nombre} {o.Apellidos} - {o.CedulaProfesional}"
+            });
 
-                // Carga los estatus desde el Enum
-                EstatusDisponibles = Enum.GetValues<EstatusCita>()
-                    .Select(e => new SelectListItem(e.ToString(), e.ToString()))
-                    .ToList(),
+            // Cargar Tratamientos Activos
+            var filtroTratamientos = new TratamientoFilterDto { Activo = true, PageSize = 1000 };
+            var tratamientosResult = await _tratamientoService.ObtenerTratamientosAdminAsync(filtroTratamientos);
 
-                // Carga las duraciones para los Radio Buttons
-                DuracionesDisponibles = Enum.GetValues<DuracionMinutos>()
-                    .Select(d => new SelectListItem(
-                        $"{(int)d} minutos", // Muestra "30 minutos", "60 minutos", etc.
-                        d.ToString()))
-                    .ToList()
-            };
+            vm.Tratamientos = tratamientosResult.Items.Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = $"{t.Nombre} (${t.Costo:N2})"
+            });
+
+            // Cargar Enums (Duración y Estatus)
+            vm.Duraciones = Enum.GetValues(typeof(DuracionMinutos)).Cast<DuracionMinutos>()
+                .Select(d => new SelectListItem { Value = d.ToString(), Text = $"{(int)d} Minutos" });
+
+            // 'Programada' por defecto al crear
+            vm.Estatus = new List<SelectListItem> { new SelectListItem { Value = "Programada", Text = "Programada", Selected = true } };
+
             return vm;
         }
 
-        // GET: Cita
-        // --- ACCIÓN INDEX ACTUALIZADA ---
+        // --- GET: Cita/Create ---
         [HttpGet]
-        public async Task<IActionResult> Index([Bind(Prefix = "Filtro")] CitaFilterViewModel filtro)
-        {
-            HydrateFilter(filtro);
-
-            IQueryable<Cita> query = _context.Citas
-                .Include(c => c.Paciente.Usuario)
-                .Include(c => c.Odontologo.Usuario)
-                .AsNoTracking();
-
-            if (filtro.Id.HasValue)
-                query = query.Where(c => c.Id == filtro.Id.Value);
-
-            // Filtra por nombre O apellido del paciente
-            if (!string.IsNullOrWhiteSpace(filtro.PacienteNombreLike))
-                query = query.Where(c => c.Paciente.Usuario.Nombre.Contains(filtro.PacienteNombreLike) ||
-                                         c.Paciente.Usuario.Apellidos.Contains(filtro.PacienteNombreLike));
-
-            // Filtra por nombre O apellido del odontólogo
-            if (!string.IsNullOrWhiteSpace(filtro.OdontologoNombreLike))
-                query = query.Where(c => c.Odontologo.Usuario.Nombre.Contains(filtro.OdontologoNombreLike) ||
-                                         c.Odontologo.Usuario.Apellidos.Contains(filtro.OdontologoNombreLike));
-
-            if (filtro.FechaDesde.HasValue)
-                query = query.Where(c => c.FechaHora.Date >= filtro.FechaDesde.Value);
-            if (filtro.FechaHasta.HasValue)
-                query = query.Where(c => c.FechaHora.Date <= filtro.FechaHasta.Value);
-            if (filtro.Estatus.HasValue)
-                query = query.Where(c => c.EstatusCita == filtro.Estatus.Value);
-
-            query = query.OrderByDescending(c => c.FechaHora);
-            var pagedResults = await PaginatedList<Cita>.CreateAsync(query, filtro.Page, filtro.PageSize);
-            var vm = new CitaIndexViewModel { Filtro = filtro, Resultados = pagedResults };
-
-            return View(vm);
-        }
-
-        // --- Acciones para el autocompletado (JSON) ---
-
-        [HttpGet]
-        public async Task<IActionResult> BuscarPacientes(string term)
-        {
-            if (string.IsNullOrEmpty(term) || term.Length < 2)
-            {
-                return Json(new List<object>());
-            }
-
-            // Búsqueda más robusta: comprueba si el término está en el nombre O en los apellidos.
-            var pacientes = await _context.Pacientes
-                .Include(p => p.Usuario)
-                .Where(p => p.Usuario.Nombre.Contains(term) || p.Usuario.Apellidos.Contains(term))
-                .Take(10)
-                .Select(p => new {
-                    id = p.Id,
-                    label = $"{p.Usuario.Nombre} {p.Usuario.Apellidos}"
-                })
-                .ToListAsync();
-
-            return Json(pacientes);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> BuscarOdontologos(string term)
-        {
-            if (string.IsNullOrEmpty(term) || term.Length < 2)
-            {
-                return Json(new List<object>());
-            }
-
-            // Búsqueda más robusta: comprueba si el término está en el nombre O en los apellidos.
-            var odontologos = await _context.Odontologos
-                .Include(o => o.Usuario)
-                .Where(o => o.Usuario.Nombre.Contains(term) || o.Usuario.Apellidos.Contains(term))
-                .Take(10)
-                .Select(o => new {
-                    id = o.Id,
-                    label = $"{o.Usuario.Nombre} {o.Usuario.Apellidos}"
-                })
-                .ToListAsync();
-
-            return Json(odontologos);
-        }
-
-        // GET: Cita/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var cita = await _context.Citas
-                .Include(c => c.Paciente.Usuario)
-                .Include(c => c.Odontologo.Usuario)
-                // Carga ansiosa de los detalles (CitaTratamiento) Y sus tratamientos asociados
-                .Include(c => c.CitasTratamientos)
-                    .ThenInclude(ct => ct.Tratamiento)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (cita == null) return NotFound();
-
-            return View(cita);
-        }
-
-        // GET: Cita/Create
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create()
         {
-            var vm = await BuildCitaVMAsync();
+            var vm = await ConstruirViewModelAsync();
             return View(vm);
         }
 
-        // POST: Cita/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // --- POST: Cita/Create ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CitaVM vm)
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Create(CitaVM model)
         {
-            if (ModelState.IsValid)
+            // Asignamos los tratamientos seleccionados
+            model.Cita.TratamientosIds = model.TratamientosSeleccionados;
+
+            // Validaciones
+            if (model.Cita.PacienteId <= 0) ModelState.AddModelError("Cita.PacienteId", "Seleccione un paciente.");
+            if (model.Cita.OdontologoId <= 0) ModelState.AddModelError("Cita.OdontologoId", "Seleccione un odontólogo.");
+
+            if (!ModelState.IsValid)
             {
-                vm.Cita.FechaCreacion = DateTime.Now;
-                _context.Add(vm.Cita);
-                await _context.SaveChangesAsync();
-                // Redirige a la nueva vista de detalles para añadir tratamientos
-                return RedirectToAction(nameof(Details), new { id = vm.Cita.Id });
+                var vmRecargado = await ConstruirViewModelAsync(model);
+                return View(vmRecargado);
             }
 
-            var reloadedVm = await BuildCitaVMAsync(vm.Cita);
-            return View(reloadedVm);
+            try
+            {
+                var id = await _citaService.CrearAsync(model.Cita);
+
+                TempData["MensajeExito"] = "Cita agendada correctamente.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = ex.Message;
+                var vmRecargado = await ConstruirViewModelAsync(model);
+                return View(vmRecargado);
+            }
         }
 
-        // GET: Cita/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        // --- GET: Cita/Details/5 ---
+        [HttpGet]
+        [Authorize(Roles = "Administrador,Odontologo")]
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null) return NotFound();
+            try
+            {
+                var cita = await _citaService.ObtenerPorIdAsync(id);
+                if (cita == null) return NotFound();
+                return View(cita);
+            }
+            catch
+            {
+                return NotFound();
+            }
+        }
 
-            var cita = await _context.Citas.FindAsync(id);
-            if (cita == null) return NotFound();
+        // --- POST: Cita/Cancelar/5 ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Cancelar(int id)
+        {
+            try
+            {
+                await _citaService.CambiarEstatusAsync(id, EstatusCita.Cancelada);
+                TempData["MensajeExito"] = "La cita ha sido cancelada.";
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al cancelar: " + ex.Message;
+            }
+            return RedirectToAction(nameof(Details), new { id });
+        }
 
-            var vm = await BuildCitaVMAsync(cita);
+        // --- POST: Cita/Completar/5 ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Completar(int id)
+        {
+            try
+            {
+                await _citaService.CambiarEstatusAsync(id, EstatusCita.Completada);
+                TempData["MensajeExito"] = "La cita se marcó como completada.";
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al completar: " + ex.Message;
+            }
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // --- GET: Cita ---
+        [HttpGet]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Index([Bind(Prefix = "Filtro")] CitaFilterDto filtro)
+        {
+            if (filtro.Page < 1) filtro.Page = 1;
+            if (filtro.PageSize < 1) filtro.PageSize = 10;
+
+            // Mostrar desde hoy
+            //if (!filtro.FechaInicio.HasValue && !filtro.FechaFin.HasValue) filtro.FechaInicio = DateTime.Today; 
+
+            // Llamar API
+            var apiResult = await _citaService.ObtenerListaPaginadaAsync(filtro);
+
+            // Crear lista paginada manual
+            var pagedResults = PaginatedList<CitaDto>.Create(
+                apiResult.Items,
+                apiResult.TotalCount,
+                filtro.Page, // Usamos la página solicitada
+                filtro.PageSize
+            );
+
+            // Cargar Listas para los filtros
+            var odontologosDto = await _odontologoService.ObtenerOdontologosAsync(new OdontologoFilterDto { PageSize = 1000 });
+            var pacientesDto = await _pacienteService.ObtenerPacientesAsync(new PacienteFilterDto { PageSize = 1000 });
+
+            // Construir ViewModel
+            var vm = new CitaIndexViewModel
+            {
+                Filtro = filtro,
+                Resultados = pagedResults,
+
+                Odontologos = odontologosDto.Items.Select(o => new SelectListItem
+                {
+                    Value = o.Id.ToString(),
+                    Text = $"{o.Nombre} {o.Apellidos}"
+                }),
+                Pacientes = pacientesDto.Items.Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = $"{p.Nombre} {p.Apellidos}"
+                }),
+                Estatus = Enum.GetValues(typeof(EstatusCita)).Cast<EstatusCita>()
+                    .Select(e => new SelectListItem { Value = ((int)e).ToString(), Text = e.ToString() })
+            };
+
             return View(vm);
         }
 
-        // POST: Cita/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // --- POST: Cita/Delete/5 ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, CitaVM vm)
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id != vm.Cita.Id) return BadRequest();
-
-            if (ModelState.IsValid)
+            try
             {
-                vm.Cita.FechaActualizacion = DateTime.Now;
-                _context.Update(vm.Cita);
-                await _context.SaveChangesAsync();
-                // Redirige de vuelta a la vista de detalles
-                return RedirectToAction(nameof(Details), new { id = vm.Cita.Id });
+                await _citaService.EliminarAsync(id); // Soft Delete
+                TempData["MensajeExito"] = "La cita ha sido eliminada del listado activo.";
             }
-
-            var reloadedVm = await BuildCitaVMAsync(vm.Cita);
-            return View(reloadedVm);
-        }
-
-        // GET: Cita/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-            var cita = await _context.Citas
-                .Include(c => c.Paciente.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (cita == null) return NotFound();
-            return View(cita);
-        }
-
-        // POST: Cita/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var cita = await _context.Citas.FindAsync(id);
-            if (cita != null)
+            catch (Exception ex)
             {
-                // Si la cita tiene tratamientos. Se eliminará en cascada
-                _context.Citas.Remove(cita);
-                await _context.SaveChangesAsync();
+                TempData["MensajeError"] = "No se pudo eliminar la cita: " + ex.Message;
             }
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CitaExists(int id)
+        // --- GET: Cita/Edit/5 ---
+        [HttpGet]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Edit(int id)
         {
-            return _context.Citas.Any(e => e.Id == id);
+            try
+            {
+                // Obtener la cita actual
+                var citaDto = await _citaService.ObtenerPorIdAsync(id);
+                if (citaDto == null) return NotFound();
+
+                // DTO de Salida -> ViewModel de Entrada
+                var vm = new CitaVM
+                {
+                    Cita = new CitaDtoIn
+                    {
+                        Id = citaDto.Id,
+                        PacienteId = citaDto.PacienteId,
+                        OdontologoId = citaDto.OdontologoId,
+                        FechaHora = citaDto.FechaHora,
+                        DuracionMinutos = citaDto.DuracionMinutos,
+                        MotivoConsulta = citaDto.MotivoConsulta,
+                        EstatusCita = citaDto.EstatusCita
+                    },
+
+                    TratamientosSeleccionados = citaDto.Tratamientos.Select(t => t.TratamientoId).ToList()
+                };
+
+                // Cargar las listas desplegables
+                vm = await ConstruirViewModelAsync(vm);
+
+                return View(vm);
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "No se pudo cargar la cita para edición: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
+
+        // --- POST: Cita/Edit/5 ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Edit(int id, CitaVM model)
+        {
+            if (id != model.Cita.Id) return BadRequest();
+
+            model.Cita.TratamientosIds = model.TratamientosSeleccionados;
+
+            if (!ModelState.IsValid)
+            {
+                var vmRecargado = await ConstruirViewModelAsync(model);
+                return View(vmRecargado);
+            }
+
+            try
+            {
+                await _citaService.ActualizarAsync(id, model.Cita);
+                TempData["MensajeExito"] = "La cita ha sido actualizada correctamente.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = ex.Message;
+                var vmRecargado = await ConstruirViewModelAsync(model);
+                return View(vmRecargado);
+            }
+        }
+
+        // --- POST: Cita/NoAsistida/5 ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Odontologo")]
+        public async Task<IActionResult> NoAsistida(int id)
+        {
+            try
+            {
+                await _citaService.CambiarEstatusAsync(id, EstatusCita.NoAsistida);
+                TempData["MensajeExito"] = "La cita se marcó como NO ASISTIDA.";
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al actualizar estatus: " + ex.Message;
+            }
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // --- GET: GetHorariosOdontologo/5 ---
+        [HttpGet]
+        [Authorize(Roles = "Administrador,Odontologo")]
+        public async Task<IActionResult> GetHorariosOdontologo(int id)
+        {
+            try
+            {
+                var horarios = await _horarioService.ObtenerPorOdontologoAsync(id);
+
+                // Proyectamos a un objeto anónimo simple para el JSON
+                var resultado = horarios
+                    .OrderBy(h => h.DiaSemana)
+                    .ThenBy(h => h.HoraInicio)
+                    .Select(h => new {
+                        dia = h.DiaSemana.ToString(),
+                        horario = $"{h.HoraInicio:hh\\:mm} - {h.HoraFin:hh\\:mm}",
+                        consultorio = h.Consultorio
+                    });
+
+                return Json(resultado);
+            }
+            catch
+            {
+                return Json(new List<object>());
+            }
+        }
+
+        // --- POST: Cita/Reactivar/5 ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Reactivar(int id)
+        {
+            try
+            {
+                await _citaService.CambiarEstatusAsync(id, EstatusCita.Programada);
+                TempData["MensajeExito"] = "La cita ha sido reactivada correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = ex.Message;
+            }
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // --- GET: Cita/GetEventosOdontologo ---
+        [HttpGet]
+        [Authorize(Roles = "Administrador,Odontologo")]
+        public async Task<IActionResult> GetEventosOdontologo(int odontologoId, DateTime start, DateTime end)
+        {
+            // Crear filtro para el rango de fechas que pide el calendario
+            var filtro = new CitaFilterDto
+            {
+                OdontologoId = odontologoId,
+                FechaInicio = start,
+                FechaFin = end,
+                Page = 1,
+                PageSize = 1000
+            };
+
+            var resultado = await _citaService.ObtenerListaPaginadaAsync(filtro);
+
+            // Mapear a formato FullCalendar
+            var eventos = resultado.Items
+                .Where(c => c.EstatusCita != EstatusCita.Cancelada) // No mostrar canceladas
+                .Select(c => new
+                {
+                    id = c.Id,
+                    // Mostramos Nombre + Estatus en el título
+                    title = $"{c.PacienteNombre} ({c.EstatusTexto})",
+                    start = c.FechaHora.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    end = c.FechaHora.AddMinutes((double)c.DuracionMinutos).ToString("yyyy-MM-ddTHH:mm:ss"),
+
+                    backgroundColor = c.EstatusCita switch
+                    {
+                        EstatusCita.Programada => "#0d6efd", // Azul
+                        EstatusCita.Completada => "#198754", // Verde
+                        EstatusCita.Cancelada => "#dc3545",  // Rojo
+                        EstatusCita.NoAsistida => "#ffc107", // Amarillo 
+                        _ => "#6c757d"                       // Gris (Default)
+                    },
+
+                    borderColor = c.EstatusCita switch
+                    {
+                        EstatusCita.Programada => "#0d6efd",
+                        EstatusCita.Completada => "#198754",
+                        EstatusCita.Cancelada => "#dc3545",
+                        EstatusCita.NoAsistida => "#ffc107",
+                        _ => "#6c757d"
+                    },
+
+                    // El amarillo con letras negras
+                    textColor = c.EstatusCita == EstatusCita.NoAsistida ? "#000000" : "#ffffff"
+                });
+
+            return Json(eventos);
+        }
+
+        // -----------------------------------------------
+        // Controladores para los Odontólogos
+        // -----------------------------------------------
+
+        // GET: Cita/MisCitas
+        [Authorize(Roles = "Odontologo")]
+        public async Task<IActionResult> MisCitas([Bind(Prefix = "Filtro")] CitaFilterDto filtro)
+        {
+            // Obtener el ID del odontólogo desde el Token
+            var odontologoId = User.GetOdontologoId();
+
+            if (!odontologoId.HasValue)
+            {
+                TempData["MensajeError"] = "No se pudo identificar su perfil profesional.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            filtro.OdontologoId = odontologoId.Value;
+            if (filtro.Page < 1) filtro.Page = 1;
+            if (filtro.PageSize < 1) filtro.PageSize = 10;
+            if (!filtro.FechaInicio.HasValue && !filtro.FechaFin.HasValue)
+            {
+                filtro.FechaInicio = DateTime.Today;
+            }
+
+            // Obtener datos
+            var apiResult = await _citaService.ObtenerListaPaginadaAsync(filtro);
+
+            var pagedResults = PaginatedList<CitaDto>.Create(
+                apiResult.Items,
+                apiResult.TotalCount,
+                filtro.Page,
+                filtro.PageSize
+            );
+
+            // Cargar filtros
+            var pacientesDto = await _pacienteService.ObtenerPacientesAsync(new PacienteFilterDto { PageSize = 1000 });
+
+            var vm = new CitaIndexViewModel
+            {
+                Filtro = filtro,
+                Resultados = pagedResults,
+
+                // Lista de pacientes para el buscador
+                Pacientes = pacientesDto.Items.Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = $"{p.Nombre} {p.Apellidos}"
+                }),
+
+                // Estatus
+                Estatus = Enum.GetValues(typeof(EstatusCita)).Cast<EstatusCita>()
+                    .Select(e => new SelectListItem { Value = ((int)e).ToString(), Text = e.ToString() })
+            };
+
+            return View(vm);
+        }
+
+        // --- GET: Cita/Agendar ---
+        [HttpGet]
+        [Authorize(Roles = "Odontologo")]
+        public async Task<IActionResult> Agendar(int? pacienteId)
+        {
+            var odontologoId = User.GetOdontologoId();
+            if (!odontologoId.HasValue) return RedirectToAction("Index", "Home");
+
+            var vm = new CitaVM();
+
+            vm.Cita.OdontologoId = odontologoId.Value;
+
+            if (pacienteId.HasValue)
+            {
+                vm.Cita.PacienteId = pacienteId.Value;
+            }
+
+            // Cargar Listas
+            var filtroPacientes = new PacienteFilterDto { PageSize = 1000 };
+            var pacientesResult = await _pacienteService.ObtenerPacientesAsync(filtroPacientes);
+            vm.Pacientes = pacientesResult.Items.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = $"{p.Nombre} {p.Apellidos}",
+                Selected = pacienteId.HasValue && p.Id == pacienteId.Value
+            });
+
+            // Odontólogo
+            vm.Odontologos = new List<SelectListItem>();
+
+            // Tratamientos
+            var filtroTratamientos = new TratamientoFilterDto { Activo = true, PageSize = 1000 };
+            var tratamientosResult = await _tratamientoService.ObtenerTratamientosAdminAsync(filtroTratamientos);
+            vm.Tratamientos = tratamientosResult.Items.Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = $"{t.Nombre}"
+            });
+
+            vm.Duraciones = Enum.GetValues(typeof(DuracionMinutos)).Cast<DuracionMinutos>()
+                .Select(d => new SelectListItem { Value = d.ToString(), Text = $"{(int)d} Minutos" });
+
+            vm.Estatus = new List<SelectListItem> { new SelectListItem { Value = "Programada", Text = "Programada", Selected = true } };
+
+            return View(vm);
+        }
+
+        // --- POST: Cita/Agendar ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Odontologo")]
+        public async Task<IActionResult> Agendar(CitaVM model)
+        {
+            // ID del odontólogo logueado
+            var odontologoId = User.GetOdontologoId();
+            if (!odontologoId.HasValue) return RedirectToAction("Index", "Home");
+
+            model.Cita.OdontologoId = odontologoId.Value;
+            model.Cita.TratamientosIds = model.TratamientosSeleccionados;
+
+            // Validaciones
+            if (model.Cita.PacienteId <= 0) ModelState.AddModelError("Cita.PacienteId", "Seleccione un paciente.");
+
+            if (!ModelState.IsValid)
+            {
+                return await Agendar(model.Cita.PacienteId);
+            }
+
+            try
+            {
+                var id = await _citaService.CrearAsync(model.Cita);
+                TempData["MensajeExito"] = "Cita de seguimiento agendada correctamente.";
+                return RedirectToAction("MisCitas");
+            }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = ex.Message;
+                return await Agendar(model.Cita.PacienteId);
+            }
+        }
+
+
+        // GET: Cita/GetMisEventos (Para el calendario de "Mis Citas")
+        [HttpGet]
+        [Authorize(Roles = "Odontologo")]
+        public async Task<IActionResult> GetMisEventos(DateTime start, DateTime end)
+        {
+            var odontologoId = User.GetOdontologoId();
+            if (!odontologoId.HasValue) return Json(new List<object>());
+            return await GetEventosOdontologo(odontologoId.Value, start, end);
+        }
+
+
+
+
+
+
+
+
     }
 }

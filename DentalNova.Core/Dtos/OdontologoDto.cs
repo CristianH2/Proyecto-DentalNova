@@ -19,6 +19,7 @@ namespace DentalNova.Core.Dtos
         public string NombreCompleto => $"{Nombre} {Apellidos}";
         public string CorreoElectronico { get; set; }
         public string Telefono { get; set; }
+        public bool Activo { get; set; }
 
         // Datos del Odontólogo
         public string CedulaProfesional { get; set; }

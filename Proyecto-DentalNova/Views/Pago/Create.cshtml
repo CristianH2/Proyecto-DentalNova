@@ -1,0 +1,170 @@
+﻿@model Proyecto_DentalNova.Models.PagoViewModel.PagoCreateViewModel
+
+@{
+    ViewData["Title"] = "Registrar Cobro";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Caja y Facturación</h2>
+            <p class="text-muted mb-0">Registro de ingresos para la Cita <span class="fw-bold text-dark">#@Model.Pago.CitaId</span></p>
+        </div>
+        <a asp-controller="Cita" asp-action="Details" asp-route-id="@Model.Pago.CitaId" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Volver a la Cita
+        </a>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100 bg-light">
+                <div class="card-body p-4 position-relative">
+                    <div class="position-absolute top-0 start-50 translate-middle rounded-circle bg-white border shadow-sm d-flex align-items-center justify-content-center"
+                         style="width: 60px; height: 60px;">
+                        <i class="fas fa-file-invoice-dollar text-primary fs-3"></i>
+                    </div>
+
+                    <h5 class="fw-bold text-center mt-4 mb-4 text-dark">Estado de Cuenta</h5>
+
+                    <div class="text-center mb-4">
+                        <small class="text-uppercase text-muted fw-bold d-block">Paciente</small>
+                        <span class="fs-5 fw-bold text-primary">@Model.EstadoCuenta.PacienteNombre</span>
+                    </div>
+
+                    <hr class="border-secondary border-opacity-25 dashed" style="border-style: dashed;" />
+
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">Costo Total</span>
+                            <span class="fw-bold text-dark">@Model.EstadoCuenta.CostoTotal.ToString("C")</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">
+                            <span class="text-success"><i class="fas fa-check-circle me-1"></i> Pagado</span>
+                            <span class="fw-bold text-success">- @Model.EstadoCuenta.TotalPagado.ToString("C")</span>
+                        </li>
+                    </ul>
+
+                    <hr class="border-secondary border-opacity-25 dashed" style="border-style: dashed;" />
+
+                    <div class="mt-4 p-4 bg-white rounded-3 border border-danger border-opacity-25 text-center shadow-sm">
+                        <small class="text-uppercase text-danger fw-bold letter-spacing-1">Saldo Pendiente</small>
+                        <div class="display-6 fw-bold text-danger mt-2">@Model.EstadoCuenta.Pendiente.ToString("C")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow border-0 h-100">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-cash-register me-2"></i> Nueva Transacción</h5>
+                </div>
+                <div class="card-body p-5">
+
+                    @if (TempData["MensajeError"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["MensajeError"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post" id="formPago">
+                        <input type="hidden" asp-for="Pago.CitaId" />
+
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label asp-for="Pago.Monto" class="form-label small fw-bold text-muted text-uppercase">Monto a Recibir</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white text-success border-success fw-bold fs-3">$</span>
+                                    <input asp-for="Pago.Monto"
+                                           class="form-control form-control-lg fs-1 fw-bold text-success border-success"
+                                           type="number" step="0.01"
+                                           min="0.01"
+                                           max="@Model.EstadoCuenta.Pendiente"
+                                           placeholder="0.00"
+                                           autofocus />
+                                </div>
+                                <span asp-validation-for="Pago.Monto" class="text-danger small"></span>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">Ingrese el monto del abono o liquidación.</small>
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none" onclick="liquidarTotal()">
+                                        Liquidar Total (@Model.EstadoCuenta.Pendiente.ToString("N2"))
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Pago.MetodoPago" class="form-label small fw-bold text-muted text-uppercase">Forma de Pago</label>
+                                <select asp-for="Pago.MetodoPago" asp-items="Model.MetodosPago" class="form-select form-select-lg">
+                                </select>
+                                <span asp-validation-for="Pago.MetodoPago" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="button" class="btn btn-success btn-lg py-3 fw-bold shadow-sm" onclick="confirmarPago()">
+                                <i class="fas fa-check-circle me-2"></i> CONFIRMAR INGRESO
+                            </button>
+                            <a asp-controller="Cita" asp-action="Details" asp-route-id="@Model.Pago.CitaId" class="btn btn-light btn-lg text-muted border">
+                                Cancelar Operación
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Función auxiliar para llenar el monto total automáticamente
+        function liquidarTotal() {
+            var pendiente = @Model.EstadoCuenta.Pendiente.ToString("F2", System.Globalization.CultureInfo.InvariantCulture); // Formato JS seguro
+            document.getElementById('Pago_Monto').value = pendiente;
+        }
+
+        function confirmarPago() {
+            var inputMonto = document.getElementById('Pago_Monto');
+            var monto = parseFloat(inputMonto.value);
+            var pendiente = parseFloat(@Model.EstadoCuenta.Pendiente.ToString("F2", System.Globalization.CultureInfo.InvariantCulture));
+
+            // Validaciones Cliente
+            if (!monto || monto <= 0) {
+                Swal.fire('Monto Inválido', 'Ingrese una cantidad mayor a $0.00', 'warning');
+                return;
+            }
+
+            if (monto > pendiente) {
+                Swal.fire('Exceso de Pago', 'El monto no puede ser mayor al saldo pendiente ($' + pendiente.toFixed(2) + ').', 'error');
+                return;
+            }
+
+            // Confirmación Visual
+            Swal.fire({
+                title: '¿Confirmar Cobro?',
+                html: `<div class="fs-1 text-success fw-bold">$${monto.toFixed(2)}</div><div class="text-muted">se registrará como ingreso.</div>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, cobrar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('formPago').submit();
+                }
+            })
+        }
+    </script>
+}
