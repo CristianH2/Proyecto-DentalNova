@@ -78,3 +78,57 @@ Recordatorios Automáticos: Envío de notificaciones para citas
 
 ### Cargar datos requeridos
 1. Ejecutar de la carpeta 'DentalNova.Repository/Scripts de ayuda SQL' los insert para rellenar las tablas de Tratamientos y de Artículos.
+
+## Arquitectura del Sistema
+
+```mermaid
+flowchart TD
+ subgraph subGraph0["Actores (Usuarios)"]
+    direction LR
+        Paciente("Paciente")
+        Odontologo("Odontólogo")
+        Admin("Administrador")
+ end
+
+ subgraph subGraph1["Plataformas Cliente"]
+    direction LR
+        AppMovil["**Aplicación Móvil**<br>*(Pacientes)*"]
+        Navegador["<b>Navegador Web</b><br>*(Admin / Odontólogo)*"]
+ end
+
+ subgraph subGraphLogic["Lógica Compartida"]
+        EFCore["<b>Entity Framework Core</b><br><i>(Acceso a Datos)</i>"]
+ end
+
+ subgraph subGraph2["<b>Servidor ASP.NET Core</b>"]
+    direction TB
+        MVC["<b>Capa MVC</b><br><i>(Vistas Razor / UI Web)</i>"]
+        API["<b>API REST</b><br><i>(Servicios para Web y App Móvil)</i>"]
+        subGraphLogic
+ end
+
+ subgraph subGraph3["Infraestructura Externa"]
+    direction TB
+        DB[("<b>Base de Datos</b><br><i>SQL Server</i>")]
+        Notif["<b>Servicio de Notificaciones</b><br><i>(Recordatorios)</i>"]
+ end
+
+    %% Relaciones de usuarios
+    Paciente -- Usa --> AppMovil
+    Odontologo -- Usa --> Navegador
+    Admin -- Usa --> Navegador
+
+    %% Flujo Web
+    Navegador -- Interacción UI --> MVC
+    MVC -- Consume API --> API
+
+    %% Flujo Móvil
+    AppMovil -- Peticiones API (JSON) --> API
+
+    %% Lógica y datos
+    API -- Usa --> EFCore
+    EFCore <-- CRUD --> DB
+
+    %% Servicios externos
+    API -- Solicita Envío --> Notif
+
