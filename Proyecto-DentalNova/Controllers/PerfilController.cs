@@ -49,7 +49,7 @@ namespace Proyecto_DentalNova.Controllers
             ModelState.Remove("NombreCompleto");
             ModelState.Remove("Correo");
             ModelState.Remove("Rol");
-            ModelState.Remove("FechaRegistro");
+            ModelState.Remove("FechaNacimiento");
             ModelState.Remove("Telefono");
 
             if (!ModelState.IsValid)

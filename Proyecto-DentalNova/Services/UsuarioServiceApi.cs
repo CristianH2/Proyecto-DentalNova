@@ -35,11 +35,9 @@ namespace Proyecto_DentalNova.Services
 
             var url = QueryHelpers.AddQueryString("api/Usuarios", queryParams);
 
-            // Llama al GET
             var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode(); // Lanza excepción si no es 200 OK
+            response.EnsureSuccessStatusCode();
 
-            // Leer el JSON y devolverlo
             return await response.Content.ReadFromJsonAsync<PagedResultDto<UsuarioAdminDto>>();
         }
 

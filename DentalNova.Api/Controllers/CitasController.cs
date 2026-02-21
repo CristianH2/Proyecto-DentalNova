@@ -112,6 +112,10 @@ namespace DentalNova.Api.Controllers
             }
         }
 
+
+        /// <summary>
+        /// Elimina una cita (Soft Delete: cambia a Cancelada, no borra físicamente).
+        /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(204)] // NoContent
         [ProducesResponseType(404)] // NotFound

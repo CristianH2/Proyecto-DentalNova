@@ -10,7 +10,7 @@ namespace DentalNova.Movil.ViewModels
     {
         private readonly UnitOfWork _unitOfWork;
 
-        // DATOS
+        // datos
         private PerfilUsuarioDto usuario;
         public PerfilUsuarioDto Usuario
         {
@@ -25,7 +25,7 @@ namespace DentalNova.Movil.ViewModels
             set { paciente = value; OnPropertyChanged(); }
         }
 
-        // FORMULARIO PASSWORD
+        // Formulario
         private string passActual;
         public string PassActual
         {

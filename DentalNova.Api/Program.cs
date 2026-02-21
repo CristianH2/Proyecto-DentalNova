@@ -1,10 +1,18 @@
 using DentalNova.Business.Helpers;
 using DentalNova.Business.Rules;
-using Microsoft.OpenApi.Models;
-using System.Reflection;
 using DentalNova.Security;
+using Microsoft.OpenApi.Models;
+using System.Globalization;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configuración de Cultura (Moneda y Decimales)
+var cultureInfo = new CultureInfo("es-MX");
+cultureInfo.NumberFormat.NumberDecimalSeparator = ".";
+cultureInfo.NumberFormat.CurrencyDecimalSeparator = ".";
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 // SERVICIOS
 
@@ -67,9 +75,9 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+}
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 

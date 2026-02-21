@@ -9,7 +9,8 @@ namespace Proyecto_DentalNova.Extensions
         public static IServiceCollection AddDentalNovaApiServices(this IServiceCollection services, IConfiguration configuration)
         {
             // Obtener la URL
-            var baseUrl = configuration["Api:BaseUrl"] ?? "http://localhost:5260/";
+            //var baseUrl = configuration["Api:BaseUrl"] ?? "http://localhost:5260/";
+            var baseUrl = configuration["Api:BaseUrl"] ?? "https://api-dentalnova.azurewebsites.net/";
 
             // Registrar el handler de autenticación
             services.AddTransient<AuthHeaderHandler>();

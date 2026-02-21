@@ -21,13 +21,9 @@ namespace DentalNova.Movil
             // HttpClient (Global)
             builder.Services.AddSingleton(sp =>
             {
-                // Crear un manejador que ignore errores de certificados SSL
                 var handler = new HttpClientHandler();
-
-                // Esta línea mágica le dice a la app: "Confía en cualquier certificado del servidor"
                 handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
 
-                // Creamos el cliente usando ese manejador permisivo
                 var client = new HttpClient(handler)
                 {
                     BaseAddress = new Uri(AppConfig.BaseUrl),

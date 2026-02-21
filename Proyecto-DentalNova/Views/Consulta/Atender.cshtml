@@ -2,10 +2,9 @@
 
 @{
     ViewData["Title"] = "Atención de Consulta";
-    Layout = "~/Views/Shared/_LayoutOdontologo.cshtml"; // Asegurar layout del doctor
+    Layout = "~/Views/Shared/_LayoutOdontologo.cshtml"; 
 
-    // Calcular edad si no viene calculada
-    var edad = Model.Paciente.Edad > 0 ? Model.Paciente.Edad : (DateTime.Now.Year - Model.Paciente.FechaCreacion.Year); // Ajustar según tu lógica de fecha nac
+    var edad = Model.Paciente.Edad > 0 ? Model.Paciente.Edad : (DateTime.Now.Year - Model.Paciente.FechaCreacion.Year); 
 }
 
 <form asp-action="Finalizar" asp-route-id="@Model.Cita.Id" method="post" id="formConsulta">
@@ -29,7 +28,7 @@
                         <i class="fas fa-user-injured fa-2x text-secondary"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0">@Model.Paciente.Nombre @Model.Paciente.Apellidos</h4> //Ajusta si propiedades cambian
+                        <h4 class="fw-bold mb-0">@Model.Paciente.Nombre @Model.Paciente.Apellidos</h4>
                         <div class="text-muted small">
                             <span class="me-3"><i class="fas fa-birthday-cake me-1"></i> @edad años</span>
                             <span><i class="fas fa-file-medical me-1"></i> Expediente #@Model.Paciente.Id</span>

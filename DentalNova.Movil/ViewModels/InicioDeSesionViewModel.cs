@@ -35,7 +35,6 @@ namespace DentalNova.Movil.ViewModels
         public ICommand LoginCommand { get; }
         public Command IrARegistroCommand { get; }
 
-        // Constructor con Inyección de Dependencias
         public InicioDeSesionViewModel(UnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -45,7 +44,7 @@ namespace DentalNova.Movil.ViewModels
 
         private async void OnLogin()
         {
-            if (IsBusy) return; // Evita doble clic
+            if (IsBusy) return;
 
             // Validaciones
             if (string.IsNullOrWhiteSpace(Correo) || string.IsNullOrWhiteSpace(Password))
@@ -62,10 +61,20 @@ namespace DentalNova.Movil.ViewModels
 
             if (resultado != null && !string.IsNullOrEmpty(resultado.Token))
             {
-                _unitOfWork.Config.Token = resultado.Token;
-                _unitOfWork.Config.PacienteId = resultado.PacienteId ?? 0;
-                _unitOfWork.Config.UsuarioId = resultado.UsuarioId;
-                Application.Current.MainPage = new AppShell();
+                if (resultado.PacienteId == null || resultado.PacienteId == 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Acceso Denegado",
+                        "Esta aplicación es exclusiva para Pacientes. El personal clínico debe ingresar desde el portal web.",
+                        "Entendido");
+                }
+                else
+                {
+                    _unitOfWork.Config.Token = resultado.Token;
+                    _unitOfWork.Config.PacienteId = resultado.PacienteId ?? 0;
+                    _unitOfWork.Config.UsuarioId = resultado.UsuarioId;
+                    Application.Current.MainPage = new AppShell();
+                }
             }
             else
             {

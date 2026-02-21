@@ -27,7 +27,6 @@ namespace DentalNova.Api.Controllers
         /// Endpoint para el login de usuarios.
         /// <param name="loginDto">Objeto que contiene el correo y la contraseña del usuario
         /// </summary>
-
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
