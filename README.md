@@ -83,9 +83,13 @@ O ejecutar el script DentalNova_DB.sql con las tablas ya creadas.
 ### Iniciar sesión:
 - Usuario (Admin): admin@correo.com
 - Contraseña (Admin): Admin123.
+
+  
 - Usuario (Odontólogo): rebeca@gmail.com
 - Contraseña (Odontólogo): User123.
-- - Usuario (Paciente): juan@gmail.com
+
+  
+- Usuario (Paciente): juan@gmail.com
 - Contraseña (Paciente): User123.
 
 
